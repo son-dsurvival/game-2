@@ -1,0 +1,76 @@
+{
+  "before_unlock": {
+    "required_specialists": [
+      "cache",
+      "character",
+      "create",
+      "rules",
+      "special"
+    ],
+    "alchemy_routed": false
+  },
+  "recorded": {
+    "status": "recorded",
+    "turn_id": "trial-branch-unlock-001",
+    "day": 2,
+    "phase": "Evening",
+    "promotion_status": "pending",
+    "summary": "Alchemy branch established.",
+    "commit_id": "commit-trial-branch-unlock-001",
+    "resource_commit": [],
+    "state_updates": [],
+    "modifier_updates": [],
+    "branch_updates": [
+      {
+        "branch": "alchemy",
+        "status": "unlocked",
+        "specialist": "alchemy",
+        "template": "alchemy.md",
+        "activation_tags": [
+          "activity.alchemy"
+        ],
+        "reason": "The resolved turn established a functioning alchemy practice."
+      }
+    ],
+    "target_segments": [
+      {
+        "file": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+        "section": "Event log",
+        "mapping": "mapped",
+        "importance": "required",
+        "summary": "Alchemy branch established.",
+        "content": "Alchemy branch established.",
+        "reason": "Every resolved turn receives a canonical event entry.",
+        "promote_to_canon": true
+      }
+    ],
+    "cache_delta": null,
+    "source": "C:\\Users\\OlufemisayoOyeneyin\\Desktop\\game part 2\\trial\\27_branch_unlock_temp_memory.md"
+  },
+  "registry": {
+    "alchemy_unlocked": true,
+    "entry": {
+      "branch": "alchemy",
+      "status": "unlocked",
+      "specialist": "alchemy",
+      "template": "alchemy.md",
+      "activation_tags": [
+        "activity.alchemy"
+      ],
+      "reason": "The resolved turn established a functioning alchemy practice."
+    }
+  },
+  "after_unlock": {
+    "required_specialists": [
+      "alchemy",
+      "cache",
+      "character",
+      "create",
+      "rules",
+      "special"
+    ],
+    "alchemy_routed": true
+  },
+  "status": "passed",
+  "temp_memory": "## Current Session Position\n\nday: 2\nphase: Evening\n\nThe phase above is the current position after the latest committed turn. Turn commits retain their starting and ending phase history.\n\n## Pending Session Canon\n\n<!-- recorder:trial-branch-unlock-001 -->\n### Recorded Turn — trial-branch-unlock-001\nday: 2\nphase: Evening\npromotion_status: pending\nsummary: Alchemy branch established.\ncommit_id: commit-trial-branch-unlock-001\nparent_commit: None\n\n### State Updates\n- No exact state updates.\n\n### Resource Commit\n- No resource changes committed.\n\n### New Modifiers\n- None.\n\n### Branch Registry Updates\n- alchemy: status unlocked; specialist alchemy; template alchemy.md; activation tags activity.alchemy; reason The resolved turn established a functioning alchemy practice.\n\n### Game Cache Delta\n- No cache changes.\n\n### Target Updates\n- file: markdown_files/🌍 CORE WORLD FRAME (REFINED).md\n- section: Event log\n- mapping: mapped\n- importance: required\n- summary: Alchemy branch established.\n- pending content: Alchemy branch established.\n\n<!-- /recorder:trial-branch-unlock-001 -->\n\n## Session Resource Ledger\n\nThis is a consolidated working ledger for the active session. It is not established canon until promotion.\n\n- No committed resource changes.\n\n## Pending Branch Registry Updates\n\nResolved branch unlocks pending promotion to Branch Registry.md.\n\n## alchemy\nstatus: unlocked\nspecialist: alchemy\ntemplate: alchemy.md\nactivation tags: activity.alchemy\nreason: The resolved turn established a functioning alchemy practice.\n\n"
+}

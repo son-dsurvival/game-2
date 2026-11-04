@@ -1,0 +1,167 @@
+{
+  "routing": {
+    "request_type": "admin",
+    "admin_request": {
+      "operation": "query",
+      "target": "character",
+      "entities": [
+        "Seris"
+      ],
+      "write_requested": false,
+      "player_message": "Why is Seris's relationship status wrong? Please investigate the records."
+    },
+    "preflight_errors": [],
+    "status": "passed"
+  },
+  "evidence_bundle": {
+    "selection_source": "admin_deterministic_selector",
+    "selected_section_count": 40,
+    "admin_source_count": 0,
+    "status": "passed"
+  },
+  "admin_agent": {
+    "response": {
+      "request_id": "turn-unknown-dea5a9e0",
+      "status": "answered",
+      "answer": "Dummy admin answer for query about character. Evidence was frozen before analysis.",
+      "evidence": [
+        {
+          "source": "admin_request",
+          "location": "request",
+          "claim": "The request was received outside roleplay."
+        }
+      ],
+      "changes": [],
+      "instructions": [],
+      "questions": [],
+      "conflicts": [],
+      "approval_required": false
+    },
+    "status": "passed"
+  },
+  "admin_editor": {
+    "update": {
+      "status": "applied",
+      "request_id": "admin-editor-update-4ce478b6",
+      "proposal_id": "admin-editor-update-4ce478b6",
+      "proposal_digest": "50b4f498530fef9b9d3ed00d40b021817abe3887464bfe5d84d0cb38c61e359f",
+      "files_changed": [
+        "markdown_files/__admin_dummy__.md"
+      ],
+      "changes": [
+        {
+          "target_file": "markdown_files/__admin_dummy__.md",
+          "action": "update",
+          "template": null,
+          "before_hash": "c3ce909d735bad4fecec2bad3e62073836a97c757805b9ddad29d8b4d10d84d0",
+          "after_hash": "47dab53d31ddc5a4ff58148a4168e98f9a0893bb860cc65085c609c53899c076",
+          "reason": "Dummy approved update"
+        }
+      ],
+      "audit": {
+        "timestamp": "2026-11-04T19:30:44.050908+00:00",
+        "request_id": "admin-editor-update-4ce478b6",
+        "operation": "apply_admin_proposal",
+        "status": "applied",
+        "proposal_digest": "50b4f498530fef9b9d3ed00d40b021817abe3887464bfe5d84d0cb38c61e359f",
+        "approved_by": "player",
+        "files_changed": [
+          "markdown_files/__admin_dummy__.md"
+        ],
+        "changes": [
+          {
+            "target_file": "markdown_files/__admin_dummy__.md",
+            "action": "update",
+            "template": null,
+            "before_hash": "c3ce909d735bad4fecec2bad3e62073836a97c757805b9ddad29d8b4d10d84d0",
+            "after_hash": "47dab53d31ddc5a4ff58148a4168e98f9a0893bb860cc65085c609c53899c076",
+            "reason": "Dummy approved update"
+          }
+        ]
+      }
+    },
+    "delete": {
+      "status": "applied",
+      "request_id": "admin-editor-delete-4ce478b6",
+      "proposal_id": "admin-editor-delete-4ce478b6",
+      "proposal_digest": "77fb30eb741bfa30607223ede3c39ff5b2fc024cd070401aabf19972c67571d0",
+      "files_changed": [
+        "markdown_files/__admin_dummy__.md"
+      ],
+      "changes": [
+        {
+          "target_file": "markdown_files/__admin_dummy__.md",
+          "action": "delete",
+          "template": null,
+          "before_hash": "47dab53d31ddc5a4ff58148a4168e98f9a0893bb860cc65085c609c53899c076",
+          "after_hash": "975649247fad8bc48581ce93fb90c372cf7e2bf580105deda3ae27d84bc43523",
+          "reason": "Dummy approved deletion"
+        }
+      ],
+      "audit": {
+        "timestamp": "2026-11-04T19:30:44.135678+00:00",
+        "request_id": "admin-editor-delete-4ce478b6",
+        "operation": "apply_admin_proposal",
+        "status": "applied",
+        "proposal_digest": "77fb30eb741bfa30607223ede3c39ff5b2fc024cd070401aabf19972c67571d0",
+        "approved_by": "player",
+        "files_changed": [
+          "markdown_files/__admin_dummy__.md"
+        ],
+        "changes": [
+          {
+            "target_file": "markdown_files/__admin_dummy__.md",
+            "action": "delete",
+            "template": null,
+            "before_hash": "47dab53d31ddc5a4ff58148a4168e98f9a0893bb860cc65085c609c53899c076",
+            "after_hash": "975649247fad8bc48581ce93fb90c372cf7e2bf580105deda3ae27d84bc43523",
+            "reason": "Dummy approved deletion"
+          }
+        ]
+      }
+    },
+    "create": {
+      "status": "applied",
+      "request_id": "admin-editor-create-4ce478b6",
+      "proposal_id": "admin-editor-create-4ce478b6",
+      "proposal_digest": "a29739658703cf2aaa142663df77ad6d0aba6b1cfaa03c7cd30829e898871d2e",
+      "files_changed": [
+        "markdown_files/__admin_created__.md"
+      ],
+      "changes": [
+        {
+          "target_file": "markdown_files/__admin_created__.md",
+          "action": "create",
+          "template": "ledger_resources",
+          "before_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "after_hash": "0916d102e50c0c6bfe4a2beaa81a125726360fc03c6dffb2c284a71de6fd86bb",
+          "reason": "Dummy approved templated creation"
+        }
+      ],
+      "audit": {
+        "timestamp": "2026-11-04T19:30:44.212171+00:00",
+        "request_id": "admin-editor-create-4ce478b6",
+        "operation": "apply_admin_proposal",
+        "status": "applied",
+        "proposal_digest": "a29739658703cf2aaa142663df77ad6d0aba6b1cfaa03c7cd30829e898871d2e",
+        "approved_by": "player",
+        "files_changed": [
+          "markdown_files/__admin_created__.md"
+        ],
+        "changes": [
+          {
+            "target_file": "markdown_files/__admin_created__.md",
+            "action": "create",
+            "template": "ledger_resources",
+            "before_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "after_hash": "0916d102e50c0c6bfe4a2beaa81a125726360fc03c6dffb2c284a71de6fd86bb",
+            "reason": "Dummy approved templated creation"
+          }
+        ]
+      }
+    },
+    "final_updated_file": "# Admin Dummy\n\nValue: 2\n",
+    "created_file": "# Ledger Resources\n\n## Current Resources\n\n### Personal Resources\n\n- current HP:\n- current MP: 100\n- current SP:\n- money: 50\n- food:\n- water:\n\n### Materials\n\n#### {material name}\nquantity:\nwhere stored:\nnotes:\n\n## Resource Changes\n\n### {day and phase}\n\n- resource:\n- before:\n- delta:\n- after:\n- reason:\n\n## Facilities\n\n### {facility name}\nlocation:\nstatus:\nresources available:\n\n#### Facility Modifiers\n\n- name:\n- description:\n- effect:\n- where it applies:\n\n## Resource Rules and Notes\n\n-\n",
+    "status": "passed"
+  }
+}

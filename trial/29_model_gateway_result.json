@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "first_provider_call": true,
+  "same_process_reused": true,
+  "restart_reused": true,
+  "provider_called_once_for_success": true,
+  "failure_raised": true,
+  "success_recorded": true,
+  "failure_recorded": true,
+  "no_api_key_recorded": true
+}

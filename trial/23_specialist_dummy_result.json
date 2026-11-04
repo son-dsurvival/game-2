@@ -1,0 +1,320 @@
+{
+  "turn_id": "trial-dummy-alchemy-001",
+  "action_frames": [
+    {
+      "actor": {
+        "name": "Player",
+        "kind": "character",
+        "specific_evidence_required": true
+      },
+      "intent": "Test and preserve a new healing potion recipe",
+      "target": {
+        "name": "alchemy workshop",
+        "kind": "location",
+        "specific_evidence_required": true
+      },
+      "method": "Use two moonstones over two days with Seris measuring the reaction",
+      "participants": [
+        {
+          "name": "Seris",
+          "role": "helper",
+          "specific_evidence_required": true
+        }
+      ],
+      "ambiguities": []
+    }
+  ],
+  "selected_sections": [
+    {
+      "id": "dummy-game-rules",
+      "name": "Game Rules excerpt",
+      "description": "Dummy evidence reference for the specialist test.",
+      "source": "markdown_files/game rules (1).md",
+      "location": "lines 1-20",
+      "path": [
+        "Game Rules"
+      ],
+      "selected_by": [
+        "trial_fixture"
+      ],
+      "reasons": [
+        "Dummy fixture evidence"
+      ]
+    }
+  ],
+  "evidence_gaps": [],
+  "gap_adjudication": null,
+  "specialist_results": [
+    {
+      "specialist": "cache",
+      "status": "complete",
+      "citations": [
+        {
+          "source": "markdown_files/game rules (1).md",
+          "heading": "Game Rules excerpt",
+          "line_range": "1-20",
+          "claim": "Dummy evidence was available to the specialist."
+        }
+      ],
+      "applicable_rules": [],
+      "excluded_rules": [],
+      "findings": [],
+      "assumptions": [],
+      "evidence_requests": [],
+      "conflicts": [],
+      "recommendation": null,
+      "calculation": null,
+      "cache_delta": {
+        "durable_facts": [],
+        "active_threads": [],
+        "pending_commitments": [],
+        "unresolved_questions": [],
+        "expiring_facts": []
+      }
+    },
+    {
+      "specialist": "rules",
+      "status": "complete",
+      "citations": [
+        {
+          "source": "markdown_files/game rules (1).md",
+          "heading": "Game Rules excerpt",
+          "line_range": "1-20",
+          "claim": "Dummy evidence was available to the specialist."
+        }
+      ],
+      "applicable_rules": [
+        "Treat this as a noncombat experiment with a two-day time cost and a resource cost."
+      ],
+      "excluded_rules": [],
+      "findings": [
+        "The rules lane owns experiment procedure, difficulty, time, and moonstone costs."
+      ],
+      "assumptions": [],
+      "evidence_requests": [],
+      "conflicts": [],
+      "recommendation": null,
+      "calculation": {
+        "kind": "difficulty",
+        "target_type": "Task Value",
+        "tier": 1,
+        "components": {
+          "difficulty": 70,
+          "novelty": 25,
+          "integration": 0,
+          "independence": 0,
+          "field_risk": 0,
+          "practice_carryover": 0
+        },
+        "reaction_reference": 0,
+        "total": 95,
+        "formula": "70 + 25 + 0 + 0 + 0 - 0 = 95"
+      },
+      "cache_delta": null
+    },
+    {
+      "specialist": "character",
+      "status": "complete",
+      "citations": [
+        {
+          "source": "markdown_files/game rules (1).md",
+          "heading": "Game Rules excerpt",
+          "line_range": "1-20",
+          "claim": "Dummy evidence was available to the specialist."
+        }
+      ],
+      "applicable_rules": [],
+      "excluded_rules": [],
+      "findings": [
+        "Seris is a named helper and her relationship, autonomy, and contribution must be checked.",
+        "The player is the Main actor; Seris is a Sub only if the evidence confirms active help."
+      ],
+      "assumptions": [],
+      "evidence_requests": [],
+      "conflicts": [],
+      "recommendation": null,
+      "calculation": {
+        "kind": "modifier",
+        "action_type": "other",
+        "stat_formula": "Average Relevant Stats + skill + assistance",
+        "components": [
+          {
+            "name": "Average Relevant Stats",
+            "value": 40,
+            "included": true,
+            "reason": "dummy character data"
+          },
+          {
+            "name": "Alchemy skill",
+            "value": 15,
+            "included": true,
+            "reason": "dummy character data"
+          },
+          {
+            "name": "Seris assistance",
+            "value": 10,
+            "included": true,
+            "reason": "active helper role"
+          }
+        ],
+        "realistic_approach": 10,
+        "action_value_before_d20": 75,
+        "participants": [
+          "Player",
+          "Seris"
+        ],
+        "team_action": null
+      },
+      "cache_delta": null
+    },
+    {
+      "specialist": "special",
+      "status": "complete",
+      "citations": [
+        {
+          "source": "markdown_files/game rules (1).md",
+          "heading": "Game Rules excerpt",
+          "line_range": "1-20",
+          "claim": "Dummy evidence was available to the specialist."
+        }
+      ],
+      "applicable_rules": [],
+      "excluded_rules": [],
+      "findings": [
+        "The alchemy branch is active because the player is testing and preserving a recipe.",
+        "The branch may later need a dedicated recipe-quality specialist if this becomes recurring."
+      ],
+      "assumptions": [],
+      "evidence_requests": [],
+      "conflicts": [],
+      "recommendation": null,
+      "calculation": null,
+      "cache_delta": null
+    },
+    {
+      "specialist": "create",
+      "status": "complete",
+      "citations": [
+        {
+          "source": "markdown_files/game rules (1).md",
+          "heading": "Game Rules excerpt",
+          "line_range": "1-20",
+          "claim": "Dummy evidence was available to the specialist."
+        }
+      ],
+      "applicable_rules": [],
+      "excluded_rules": [],
+      "findings": [
+        "Existing core lanes cover this turn, but a recurring recipe-quality branch may need its own specialist."
+      ],
+      "assumptions": [],
+      "evidence_requests": [],
+      "conflicts": [],
+      "recommendation": null,
+      "calculation": null,
+      "cache_delta": null,
+      "created_specialists": [
+        {
+          "name": "recipe_quality",
+          "purpose": "Track recurring recipe stability, quality, preservation, and refinement outcomes.",
+          "questions": [
+            "Which recipe-quality rules apply?",
+            "What evidence changes recipe stability or preservation?"
+          ],
+          "activation_tags": [
+            "activity.alchemy",
+            "mechanic.recipe_quality"
+          ],
+          "category": "special",
+          "unlockable": true,
+          "status": "proposed"
+        }
+      ]
+    },
+    {
+      "specialist": "alchemy",
+      "status": "complete",
+      "citations": [
+        {
+          "source": "markdown_files/game rules (1).md",
+          "heading": "Game Rules excerpt",
+          "line_range": "1-20",
+          "claim": "Dummy evidence was available to the specialist."
+        }
+      ],
+      "applicable_rules": [],
+      "excluded_rules": [],
+      "findings": [
+        "Alchemy monitors the recipe, reagents, reaction procedure, and preservation result."
+      ],
+      "assumptions": [],
+      "evidence_requests": [],
+      "conflicts": [],
+      "recommendation": null,
+      "calculation": null,
+      "cache_delta": null
+    }
+  ],
+  "specialist_updates": {
+    "created_specialists": [
+      {
+        "name": "recipe_quality",
+        "purpose": "Track recurring recipe stability, quality, preservation, and refinement outcomes.",
+        "questions": [
+          "Which recipe-quality rules apply?",
+          "What evidence changes recipe stability or preservation?"
+        ],
+        "activation_tags": [
+          "activity.alchemy",
+          "mechanic.recipe_quality"
+        ],
+        "category": "special",
+        "unlockable": true,
+        "status": "proposed"
+      }
+    ],
+    "game_cache": {
+      "durable_facts": [],
+      "active_threads": [],
+      "pending_commitments": [],
+      "unresolved_questions": [],
+      "expiring_facts": []
+    },
+    "note": "Cache is advisory context; proposals are bounded and require approval before becoming an unlocked route."
+  },
+  "coverage": {
+    "required": [
+      "cache",
+      "rules",
+      "character",
+      "special",
+      "create",
+      "alchemy"
+    ],
+    "completed": [
+      "cache",
+      "rules",
+      "character",
+      "special",
+      "create",
+      "alchemy"
+    ],
+    "failed_or_blocked": [],
+    "section_gaps": []
+  },
+  "test_metadata": {
+    "mode": "deterministic_dummy_no_api",
+    "specialists_started": [
+      "cache",
+      "rules",
+      "character",
+      "special",
+      "create",
+      "alchemy"
+    ],
+    "specialist_count": 6,
+    "elapsed_seconds": 0.344,
+    "parallelism_check": "inconclusive",
+    "note": "The cache lane runs first; the remaining specialists sleep 0.05s concurrently."
+  }
+}

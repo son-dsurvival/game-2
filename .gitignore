@@ -1,0 +1,12 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+# Private runtime state; campaign-safe facts live in approved Markdown instead.
+brain/state/*.json
+brain/state/*.jsonl
+brain/state/*.lock
+brain/state/*.md
+brain/state/pending_operations/
+brain/state/editor_transactions/
+brain/state/editor_receipts/

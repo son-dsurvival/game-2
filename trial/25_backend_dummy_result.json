@@ -1,0 +1,262 @@
+{
+  "phase_clock": {
+    "start": {
+      "day": 4,
+      "phase": "Late Afternoon",
+      "progress": 0.0
+    },
+    "transitions": [
+      {
+        "tick_id": "day-4-evening",
+        "previous": {
+          "day": 4,
+          "phase": "Late Afternoon",
+          "progress": 0.0
+        },
+        "current": {
+          "day": 4,
+          "phase": "Evening",
+          "progress": 0.0
+        }
+      }
+    ],
+    "status": "passed"
+  },
+  "background_state": {
+    "loaded_directives": [
+      {
+        "directive_id": "directive-seris-hunt-001",
+        "actor": "Seris",
+        "task": "Hunt monsters near the eastern road",
+        "location": "Eastern road",
+        "constraints": [
+          "Do not travel beyond the eastern road"
+        ],
+        "started": {
+          "day": 4,
+          "phase": "Morning",
+          "progress": 0.0
+        },
+        "expires": null,
+        "status": "active",
+        "last_processed_tick": "day-4-evening",
+        "assigned_by": "Player",
+        "metadata": {
+          "visibility": "hidden",
+          "ooc_visibility": "teammate_status"
+        }
+      },
+      {
+        "directive_id": "directive-ava-rest-001",
+        "actor": "Ava",
+        "task": "Stand watch at the camp",
+        "location": "Camp",
+        "constraints": [],
+        "started": {
+          "day": 4,
+          "phase": "Morning",
+          "progress": 0.0
+        },
+        "expires": null,
+        "status": "active",
+        "last_processed_tick": "day-4-evening",
+        "assigned_by": "Player",
+        "metadata": {
+          "visibility": "hidden",
+          "ooc_visibility": "teammate_status"
+        }
+      }
+    ],
+    "public_register_path": "C:\\Users\\OlufemisayoOyeneyin\\Desktop\\game part 2\\trial\\25_backend_temp_memory.md",
+    "private_state_path": "C:\\Users\\OlufemisayoOyeneyin\\Desktop\\game part 2\\trial\\25_backend_private_state.json",
+    "status": "passed"
+  },
+  "autonomy_resolver": {
+    "planned_actions": [
+      {
+        "directive_id": "directive-seris-hunt-001",
+        "actor": "Seris",
+        "assigned_task": "Hunt monsters near the eastern road",
+        "chosen_action": "Scout the road before engaging the nearest monster",
+        "location": "Eastern road",
+        "constraints": [
+          "Do not travel beyond the eastern road"
+        ],
+        "requires_resolution": true,
+        "visibility": "hidden",
+        "ooc_visibility": "teammate_status",
+        "rationale": "Assigned task is compatible with the actor's current state; resolve capability, cost, risk, and outcome separately."
+      },
+      {
+        "directive_id": "directive-ava-rest-001",
+        "actor": "Ava",
+        "assigned_task": "Stand watch at the camp",
+        "chosen_action": "Remain idle: actor is resting",
+        "location": "Camp",
+        "constraints": [],
+        "requires_resolution": false,
+        "visibility": "hidden",
+        "ooc_visibility": "teammate_status",
+        "rationale": "actor is resting"
+      }
+    ],
+    "status": "passed"
+  },
+  "phase_tick_engine": {
+    "result": {
+      "status": "complete",
+      "start": {
+        "day": 4,
+        "phase": "Late Afternoon",
+        "progress": 0.0
+      },
+      "phases_requested": 1,
+      "ticks": [
+        {
+          "tick_id": "day-4-evening",
+          "status": "committed",
+          "record": {
+            "tick_id": "day-4-evening",
+            "position": {
+              "day": 4,
+              "phase": "Evening",
+              "progress": 0.0
+            },
+            "actions": [
+              {
+                "directive_id": "directive-seris-hunt-001",
+                "actor": "Seris",
+                "assigned_task": "Hunt monsters near the eastern road",
+                "chosen_action": "Scout the road before engaging the nearest monster",
+                "location": "Eastern road",
+                "constraints": [
+                  "Do not travel beyond the eastern road"
+                ],
+                "requires_resolution": true,
+                "visibility": "hidden",
+                "ooc_visibility": "teammate_status",
+                "rationale": "Assigned task is compatible with the actor's current state; resolve capability, cost, risk, and outcome separately.",
+                "status": "successful",
+                "player_visibility": "hidden"
+              },
+              {
+                "directive_id": "directive-ava-rest-001",
+                "actor": "Ava",
+                "assigned_task": "Stand watch at the camp",
+                "chosen_action": "Remain idle: actor is resting",
+                "location": "Camp",
+                "constraints": [],
+                "requires_resolution": false,
+                "visibility": "hidden",
+                "ooc_visibility": "teammate_status",
+                "rationale": "actor is resting",
+                "status": "idle",
+                "player_visibility": "hidden"
+              }
+            ],
+            "automatic_updates": [
+              {
+                "state": "current MP",
+                "before": 95,
+                "delta": 5,
+                "after": 100,
+                "visibility": "visible",
+                "ooc_visibility": "teammate_status"
+              }
+            ],
+            "resource_changes": [
+              {
+                "resource": "arrows",
+                "before": 20,
+                "delta": -3,
+                "after": 17,
+                "reason": "Seris hunted a monster",
+                "visibility": "hidden",
+                "ooc_visibility": "teammate_status"
+              }
+            ],
+            "world_updates": [
+              {
+                "description": "Monster tracks were found near the eastern road",
+                "visibility": "visible",
+                "ooc_visibility": "private"
+              }
+            ],
+            "visibility_events": [],
+            "completed_directives": [],
+            "notes": [
+              "Dummy resolution; hidden NPC action remains in session state."
+            ]
+          }
+        }
+      ],
+      "plans_requiring_resolution": []
+    },
+    "specialists_started": [
+      "cache",
+      "rules",
+      "character",
+      "special",
+      "create"
+    ],
+    "status": "passed"
+  },
+  "visibility_filter": {
+    "player_view": {
+      "tick_id": "day-4-evening",
+      "position": {
+        "day": 4,
+        "phase": "Evening",
+        "progress": 0.0
+      },
+      "actions": [],
+      "automatic_updates": [
+        {
+          "state": "current MP",
+          "before": 95,
+          "delta": 5,
+          "after": 100,
+          "visibility": "visible",
+          "ooc_visibility": "teammate_status"
+        }
+      ],
+      "resource_changes": [],
+      "world_updates": [],
+      "visibility_events": [],
+      "completed_directives": [],
+      "notes": [
+        "Dummy resolution; hidden NPC action remains in session state."
+      ],
+      "hidden_event_count": 4,
+      "player_view": true
+    },
+    "hidden_action_removed": true,
+    "private_world_update_withheld": true,
+    "status": "passed"
+  },
+  "idempotence": {
+    "retry": {
+      "status": "complete",
+      "start": {
+        "day": 4,
+        "phase": "Late Afternoon",
+        "progress": 0.0
+      },
+      "phases_requested": 1,
+      "ticks": [
+        {
+          "tick_id": "day-4-evening",
+          "status": "already_committed"
+        }
+      ],
+      "plans_requiring_resolution": []
+    },
+    "status": "passed"
+  },
+  "private_storage": {
+    "world_surprise_retained_privately": true,
+    "world_surprise_not_mirrored": true,
+    "status": "passed"
+  },
+  "temp_memory": "# Dummy Experimentation Register\n\n## Active Background Directives\n\nOnly explicitly safe teammate/background status is mirrored here. Complete directive metadata remains private runtime state.\n\n### directive-seris-hunt-001\nactor: Seris\ntask: Hunt monsters near the eastern road\nlocation: Eastern road\nstatus: active\nlast processed tick: day-4-evening\nooc visibility: teammate_status\nroleplay visibility: hidden\n\n### directive-ava-rest-001\nactor: Ava\ntask: Stand watch at the camp\nlocation: Camp\nstatus: active\nlast processed tick: day-4-evening\nooc visibility: teammate_status\nroleplay visibility: hidden\n\n## Outside Player Perspective Turns\n\nThis register mirrors only explicitly safe teammate/background status. True surprises, enemy plans, unrevealed world events, and private tick detail remain in private runtime storage until normal play reveals them.\n\n### day-4-evening\nday: 4\nphase: Evening\nstatus: committed\n\n#### Off-Screen Actions\n- actor: Seris\n  assigned task: Hunt monsters near the eastern road\n  chosen action: Scout the road before engaging the nearest monster\n  result: successful\n  ooc visibility: teammate_status\n  roleplay visibility: hidden\n- actor: Ava\n  assigned task: Stand watch at the camp\n  chosen action: Remain idle: actor is resting\n  result: idle\n  ooc visibility: teammate_status\n  roleplay visibility: hidden\n\n#### Automatic Updates\n- state: current MP; before: 95; delta: 5; after: 100; ooc visibility: teammate_status; roleplay visibility: visible\n\n#### Resource Changes\n- resource: arrows; before: 20; delta: -3; after: 17; ooc visibility: teammate_status; roleplay visibility: hidden\n\n#### World Updates\n- None.\n\n#### Player Report\n\nstatus: not yet reported\n"
+}

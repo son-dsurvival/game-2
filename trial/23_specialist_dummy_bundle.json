@@ -1,0 +1,50 @@
+{
+  "turn_id": "trial-dummy-alchemy-001",
+  "request_type": "in_game",
+  "mode": "noncombat",
+  "tags": [
+    {"tag": "activity.alchemy", "source": "player_input", "evidence": "alchemy workshop"},
+    {"tag": "activity.experiment", "source": "player_input", "evidence": "test a new potion"},
+    {"tag": "mechanic.resource_cost", "source": "player_input", "evidence": "two moonstones"},
+    {"tag": "mechanic.time_cost", "source": "player_input", "evidence": "over two days"},
+    {"tag": "context.emotional", "source": "player_input", "evidence": "Seris helps"}
+  ],
+  "required_specialists": ["rules", "character", "special", "create", "alchemy"],
+  "player_input": {
+    "raw": "I spend two days in the alchemy workshop testing a new healing potion using two moonstones. Seris helps me measure the reaction and I want to preserve the successful recipe.",
+    "segments": [
+      {
+        "segment_id": 1,
+        "text": "Test and preserve a new healing potion recipe with Seris in the alchemy workshop.",
+        "tags": ["activity.alchemy", "activity.experiment", "mechanic.resource_cost", "mechanic.time_cost", "context.emotional"],
+        "classification": "noncombat"
+      }
+    ]
+  },
+  "action_frames": [
+    {
+      "actor": {"name": "Player", "kind": "character", "specific_evidence_required": true},
+      "intent": "Test and preserve a new healing potion recipe",
+      "target": {"name": "alchemy workshop", "kind": "location", "specific_evidence_required": true},
+      "method": "Use two moonstones over two days with Seris measuring the reaction",
+      "participants": [
+        {"name": "Seris", "role": "helper", "specific_evidence_required": true}
+      ],
+      "ambiguities": []
+    }
+  ],
+  "selected_sections": [
+    {
+      "id": "dummy-game-rules",
+      "name": "Game Rules excerpt",
+      "description": "Dummy evidence reference for the specialist test.",
+      "source": "markdown_files/game rules (1).md",
+      "location": "lines 1-20",
+      "path": ["Game Rules"],
+      "selected_by": ["trial_fixture"],
+      "reasons": ["Dummy fixture evidence"]
+    }
+  ],
+  "evidence_gaps": [],
+  "specialist_bundles": {}
+}

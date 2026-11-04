@@ -1,0 +1,26 @@
+{
+  "turn_id": "trial-recorder-001",
+  "status": "resolved",
+  "resolution_record": {
+    "turn_id": "trial-recorder-001",
+    "status": "resolved",
+    "time_changes": [{"day": 1, "phase": "afternoon"}],
+    "resource_changes": [
+      {"resource": "MP", "before": 100, "delta": -5, "after": 95, "reason": "spell cast"},
+      {"resource": "gold", "before": 50, "delta": -2, "after": 48, "reason": "purchase"}
+    ],
+    "modifier_changes": [
+      {
+        "modifier": "Stable Healing Formula",
+        "description": "Healing potion recipes are more stable when prepared with measured moonstone ratios."
+      }
+    ],
+    "outcome": "The spell was cast and the purchase completed.",
+    "consequences": [],
+    "relationship_changes": [],
+    "xp_changes": [],
+    "visibility": {},
+    "mutation_requirements": [],
+    "notes": []
+  }
+}

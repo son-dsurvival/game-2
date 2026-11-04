@@ -1,0 +1,65 @@
+{
+  "status": "recorded",
+  "turn_id": "trial-recorder-001",
+  "day": 1,
+  "phase": "afternoon",
+  "promotion_status": "pending",
+  "summary": "Dummy resolved turn: spell cast and purchase completed.",
+  "commit_id": "commit-trial-recorder-001",
+  "resource_commit": [
+    {
+      "resource": "current MP",
+      "delta": -5,
+      "before": 100,
+      "after": 95,
+      "reconciliation": [
+        "spell cast"
+      ],
+      "unresolved": false,
+      "status": "resolved"
+    },
+    {
+      "resource": "money",
+      "delta": -2,
+      "before": 50,
+      "after": 48,
+      "reconciliation": [
+        "purchase"
+      ],
+      "unresolved": false,
+      "status": "resolved"
+    }
+  ],
+  "state_updates": [
+    {
+      "state": "current MP",
+      "value": 95
+    },
+    {
+      "state": "money",
+      "value": 48
+    }
+  ],
+  "modifier_updates": [
+    {
+      "modifier": "Stable Healing Formula",
+      "description": "Healing potion recipes are more stable when prepared with measured moonstone ratios."
+    }
+  ],
+  "branch_updates": [],
+  "target_segments": [
+    {
+      "file": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+      "section": "Event log",
+      "mapping": "mapped",
+      "importance": "required",
+      "summary": "Dummy resolved turn: spell cast and purchase completed.",
+      "content": "Dummy resolved turn: spell cast and purchase completed.",
+      "reason": "Every resolved turn receives a canonical event entry.",
+      "promote_to_canon": true
+    }
+  ],
+  "cache_delta": null,
+  "source": "C:\\Users\\OlufemisayoOyeneyin\\Desktop\\game part 2\\trial\\24_recorder_temp_memory.md",
+  "temp_memory": "## Current Session Position\n\nday: 1\nphase: afternoon\n\nThe phase above is the current position after the latest committed turn. Turn commits retain their starting and ending phase history.\n\n## Pending Session Canon\n\n<!-- recorder:trial-recorder-001 -->\n### Recorded Turn — trial-recorder-001\nday: 1\nphase: afternoon\npromotion_status: pending\nsummary: Dummy resolved turn: spell cast and purchase completed.\ncommit_id: commit-trial-recorder-001\nparent_commit: None\n\n### State Updates\n- current MP = 95\n- money = 48\n\n### Resource Commit\n- current MP: before 100; delta -5; after 95; status resolved\n- money: before 50; delta -2; after 48; status resolved\n\n### New Modifiers\n- Stable Healing Formula: Healing potion recipes are more stable when prepared with measured moonstone ratios.\n\n### Branch Registry Updates\n- None.\n\n### Game Cache Delta\n- No cache changes.\n\n### Target Updates\n- file: markdown_files/🌍 CORE WORLD FRAME (REFINED).md\n- section: Event log\n- mapping: mapped\n- importance: required\n- summary: Dummy resolved turn: spell cast and purchase completed.\n- pending content: Dummy resolved turn: spell cast and purchase completed.\n\n<!-- /recorder:trial-recorder-001 -->\n\n## Session Resource Ledger\n\nThis is a consolidated working ledger for the active session. It is not established canon until promotion.\n\n- current MP = 95\n- money = 48\n\n## Session Modifier Ledger\n\nThese are session updates and are not established canon until promotion.\n\n- Stable Healing Formula: Healing potion recipes are more stable when prepared with measured moonstone ratios.\n\n"
+}

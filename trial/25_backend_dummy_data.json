@@ -1,0 +1,36 @@
+{
+  "start": {"day": 4, "phase": "Late Afternoon"},
+  "phases_elapsed": 1,
+  "directives": [
+    {
+      "directive_id": "directive-seris-hunt-001",
+      "actor": "Seris",
+      "task": "Hunt monsters near the eastern road",
+      "location": "Eastern road",
+      "constraints": ["Do not travel beyond the eastern road"],
+      "started": {"day": 4, "phase": "Morning"},
+      "status": "active",
+      "assigned_by": "Player",
+      "metadata": {"visibility": "hidden", "ooc_visibility": "teammate_status"}
+    },
+    {
+      "directive_id": "directive-ava-rest-001",
+      "actor": "Ava",
+      "task": "Stand watch at the camp",
+      "location": "Camp",
+      "constraints": [],
+      "started": {"day": 4, "phase": "Morning"},
+      "status": "active",
+      "assigned_by": "Player",
+      "metadata": {"visibility": "hidden", "ooc_visibility": "teammate_status"}
+    }
+  ],
+  "character_state": {
+    "Seris": {
+      "independent_action": "Scout the road before engaging the nearest monster"
+    },
+    "Ava": {
+      "resting": true
+    }
+  }
+}

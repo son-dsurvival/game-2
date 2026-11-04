@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "setup_gate": true,
+  "day_end_blocks": true,
+  "receipt_requires_world": true,
+  "world_roll_saved": true,
+  "play_opened": true,
+  "resume_exact": true
+}
