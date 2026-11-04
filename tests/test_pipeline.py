@@ -33,6 +33,14 @@ class ScriptedGame:
     def prepare_day(self, context):
         return {'proposal': self.admin({}, {}, context), 'world_pool': {'People': list(range(1, 101))}, 'turn_ids': []}
 
+    def prepare_character_addition(self, context):
+        return {'status': 'proposal_ready', 'answer': 'Add the character?',
+                'changes': [{'target_file': 'markdown_files/TEMP_MEMORY.md', 'action': 'update', 'old_text': 'before', 'new_text': 'after'}]}
+
+    def prepare_specialist_install(self, context, proposal):
+        return {'status': 'proposal_ready', 'answer': 'Install?',
+                'changes': [{'target_file': 'markdown_files/TEMP_MEMORY.md', 'action': 'update', 'old_text': 'before', 'new_text': 'installed'}]}
+
     def world(self, context, roll, pool):
         return {'roll': roll, 'selected_trigger': 'People', 'encounter_condition': 'enter the market', 'latest_phase': 'Evening', 'generated_event': 'A visitor asks for help.'}
 
@@ -187,6 +195,59 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(result['status'], 'open')
             self.assertEqual(result['position']['phase'], 'Morning')
             self.assertIn('A knock wakes you.', result['message'])
+
+    def _seed_open_campaign(self, root):
+        target = Path(root) / 'markdown_files/TEMP_MEMORY.md'
+        target.parent.mkdir(parents=True)
+        target.write_text('before', encoding='utf-8')
+        RuntimeStateStore(root).save({
+            'play_gate': 'open', 'campaign_id': 'campaign-one',
+            'main_character': 'Kael',
+            'party': [{'identity': {'name': 'Kael'}, 'stats': {}, 'description': '', 'class': ''}],
+            'position': {'day': 1, 'phase': 'Early Morning', 'progress': 0.0},
+        })
+
+    def test_new_character_is_added_to_party_after_approval(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._seed_open_campaign(root)
+            pipeline = CampaignPipeline(root, modules=ScriptedGame())
+            pipeline.new_character()
+            pipeline.add_character({'name': 'Mira', 'age': 22, 'race': 'Human'},
+                                   {'AGI': 5, 'INT': 5, 'STR': 5, 'END': 5, 'WIS': 5, 'PRE': 5},
+                                   'A scholar.', 'Mage')
+            pipeline.select_main('Mira')
+            review = pipeline.review_setup()
+            self.assertEqual(review['status'], 'character_review')
+            self.assertEqual(Path(root, 'markdown_files/TEMP_MEMORY.md').read_text(encoding='utf-8'), 'before')
+            result = pipeline.approve()
+            self.assertEqual(result['status'], 'open')
+            state = RuntimeStateStore(root).load()
+            self.assertEqual([m['identity']['name'] for m in state['party']], ['Kael', 'Mira'])
+            self.assertEqual(state['main_character'], 'Kael')
+
+    def test_new_party_member_keeps_main_character(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._seed_open_campaign(root)
+            pipeline = CampaignPipeline(root, modules=ScriptedGame())
+            pipeline.new_party_member()
+            pipeline.add_character({'name': 'Renn', 'age': 31, 'race': 'Human'},
+                                   {'AGI': 6, 'INT': 6, 'STR': 6, 'END': 6, 'WIS': 3, 'PRE': 3},
+                                   'A road-worn scout.', 'Scout')
+            self.assertEqual(pipeline.select_main('Renn')['draft']['mode'], 'new_party_member')
+            self.assertEqual(pipeline.review_setup()['status'], 'character_review')
+            self.assertEqual(pipeline.approve()['status'], 'open')
+            state = RuntimeStateStore(root).load()
+            self.assertEqual(state['main_character'], 'Kael')
+
+    def test_stored_specialist_proposal_can_be_installed(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._seed_open_campaign(root)
+            RuntimeStateStore(root).save({'specialist_proposals': {'beast_taming': {'name': 'beast_taming', 'purpose': 'Tame beasts', 'questions': ['which'], 'activation_tags': ['activity.beast_taming']}}})
+            pipeline = CampaignPipeline(root, modules=ScriptedGame())
+            self.assertEqual([p['name'] for p in pipeline.specialist_proposals()], ['beast_taming'])
+            review = pipeline.propose_specialist('beast_taming')
+            self.assertEqual(review['status'], 'admin_review')
+            self.assertEqual(pipeline.approve()['status'], 'open')
 
 
 if __name__ == '__main__':

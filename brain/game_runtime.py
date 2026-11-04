@@ -49,6 +49,8 @@ class CampaignPipeline:
             result['question'] = state['pending_clarification']
         if state.get('proposal'):
             result['proposal'] = state['proposal']
+        if state.get('specialist_proposals'):
+            result['specialist_proposals'] = list(state['specialist_proposals'].values())
         return result
 
     def submit(self, message: str) -> dict[str, Any]:
@@ -59,7 +61,7 @@ class CampaignPipeline:
             if state.get('operation') and state['play_gate'] in {'running', 'retry', 'background_pending'}:
                 self._drive()
                 state = self.state.load()
-            if state['play_gate'] in {'day_end_review', 'setup_review', 'admin_review'}:
+            if state['play_gate'] in {'day_end_review', 'setup_review', 'admin_review', 'character_review'}:
                 if message.strip().startswith('{') and message.strip().endswith('}'):
                     return self._review_question(message, state)
                 return self._revise(message, state)
@@ -79,7 +81,7 @@ class CampaignPipeline:
                 is_admin = message.strip().startswith('{') and message.strip().endswith('}')
                 if not is_admin:
                     self.require_open_play()
-                elif state['play_gate'] not in {'open', 'day_end_review', 'admin_review'}:
+                elif state['play_gate'] not in {'open', 'day_end_review', 'admin_review', 'character_review'}:
                     raise RuntimeError('Finish or resume the pending operation before administrative edits.')
                 operation = {
                     'id': 'turn-' + uuid.uuid4().hex, 'kind': 'turn', 'stage': 'route',
@@ -90,9 +92,18 @@ class CampaignPipeline:
             return self._drive()
 
     def begin_setup(self) -> dict[str, Any]:
+        return self._begin_character_mode('new_game')
+
+    def new_character(self) -> dict[str, Any]:
+        return self._begin_character_mode('new_character')
+
+    def new_party_member(self) -> dict[str, Any]:
+        return self._begin_character_mode('new_party_member')
+
+    def _begin_character_mode(self, mode: str) -> dict[str, Any]:
         from brain.setup_drafts import SetupDrafts
         with runtime_lease(self.root):
-            SetupDrafts(self.state).begin()
+            SetupDrafts(self.state).begin(mode)
             return self.view()
 
     def add_character(self, identity: dict[str, Any], stats: dict[str, Any], description: str, character_class: str) -> dict[str, Any]:
@@ -122,9 +133,19 @@ class CampaignPipeline:
     def review_setup(self) -> dict[str, Any]:
         with runtime_lease(self.root):
             state = self.state.load()
-            if state['play_gate'] != 'setup_draft' or not state.get('draft', {}).get('main_character'):
+            draft = state.get('draft') or {}
+            if state['play_gate'] != 'setup_draft':
+                raise RuntimeError('Start a character draft before review.')
+            mode = draft.get('mode', 'new_game')
+            if mode == 'new_game' and not draft.get('main_character'):
                 raise RuntimeError('Finish the party and choose its main character before review.')
-            operation = {'id': 'setup-' + uuid.uuid4().hex, 'kind': 'setup', 'stage': 'prepare_setup', 'before': {'day': 1, 'phase': PHASES[0], 'progress': 0}, 'message': 'Prepare the complete starting party for review.', 'answers': [], 'revision': 0, 'results': {}, 'dice': {}}
+            if mode != 'new_game' and not draft.get('characters'):
+                raise RuntimeError('Draft the character before review.')
+            kind = 'setup' if mode == 'new_game' else 'character'
+            stage = 'prepare_setup' if kind == 'setup' else 'prepare_character'
+            operation = {'id': kind + '-' + uuid.uuid4().hex, 'kind': kind, 'stage': stage,
+                         'before': state['position'], 'message': 'Prepare the character addition for review.',
+                         'answers': [], 'revision': 0, 'results': {}, 'dice': {}}
             self.state.save({'operation': operation, 'play_gate': 'running'})
             return self._drive()
 
@@ -150,6 +171,8 @@ class CampaignPipeline:
             'world_pool': state.get('world_pool'), 'review_kind': operation.get('review_gate'),
             'saved_rolls': state.get('saved_rolls', {}), 'draft': state.get('draft'),
             'event_to_encounter': operation.get('event_to_encounter'),
+            'party': state.get('party', []), 'main_character': state.get('main_character'),
+            'specialist_proposals': state.get('specialist_proposals', {}),
         }
 
     def _checkpoint(self, operation: dict[str, Any], stage: str, **changes: Any) -> None:
@@ -165,7 +188,7 @@ class CampaignPipeline:
                          'answers': [], 'revision': 0, 'results': {}, 'dice': {}}
             self.state.save({'operation': operation, 'play_gate': 'running'})
             state = self.state.load()
-        if not state.get('operation') or state['play_gate'] in {'awaiting_clarification', 'day_end_review', 'admin_review', 'setup_review'}:
+        if not state.get('operation') or state['play_gate'] in {'awaiting_clarification', 'day_end_review', 'admin_review', 'setup_review', 'character_review'}:
             return self.view()
         operation = state['operation']
         context = self._context(operation)
@@ -182,6 +205,12 @@ class CampaignPipeline:
                         self._validate_pool(prepared['world_pool'])
                         self.state.save({'world_pool': prepared['world_pool']})
                     self._prepare_review(prepared['proposal'], operation, 'setup_review')
+                elif operation['kind'] == 'character':
+                    proposal = self.modules.prepare_character_addition(context)
+                    self._prepare_review(proposal, operation, 'character_review')
+                elif operation['kind'] == 'specialist':
+                    proposal = self.modules.prepare_specialist_install(context, operation['specialist'])
+                    self._prepare_review(proposal, operation, 'admin_review')
                 elif operation['kind'] == 'day_end':
                     prepared = self.modules.prepare_day(context)
                     self._validate_pool(prepared['world_pool'])
@@ -192,8 +221,22 @@ class CampaignPipeline:
                     self._world(operation)
                 else:
                     self._turn(operation, context)
-        except Exception:
-            # Provider exceptions and traces can contain hidden facts or credentials.
+        except Exception as exc:
+            # Never leak provider traces or hidden facts to the player. Record the
+            # diagnostic privately so an operator can inspect a stuck step.
+            try:
+                error_path = self.root / 'brain/state/runtime_errors.jsonl'
+                error_path.parent.mkdir(parents=True, exist_ok=True)
+                with error_path.open('a', encoding='utf-8') as handle:
+                    handle.write(json.dumps({
+                        'campaign_id': scope.get('campaign_id'),
+                        'operation': operation.get('id'),
+                        'stage': operation.get('stage'),
+                        'type': type(exc).__name__,
+                        'error': str(exc),
+                    }, ensure_ascii=False) + '\n')
+            except OSError:
+                pass
             self.state.save({'play_gate': 'retry', 'message': 'Processing stopped safely. Use /retry to resume this step.'})
         return self.view()
 
@@ -300,6 +343,8 @@ class CampaignPipeline:
                 review_due = crossed_day or state.get('review_after_interrupt', False)
                 gate = 'sleep_pending' if keep_sleeping else 'day_end_pending' if review_due and not interrupted else 'open'
                 history = [*state.get('history', []), {'turn_id': operation['id'], 'day': operation['before']['day'], 'prompt': operation['message'], 'result': message}]
+                created = (results.get('specialists') or {}).get('specialist_updates', {}).get('created_specialists') or []
+                specialist_proposals = {**state.get('specialist_proposals', {}), **{p['name']: p for p in created if isinstance(p, dict) and p.get('name')}}
                 self.state.save({
                     'position': after, 'history': history, 'operation': None,
                     'play_gate': gate, 'sleep_until_day': state.get('sleep_until_day') if keep_sleeping else None,
@@ -310,6 +355,7 @@ class CampaignPipeline:
                     'completed_day': operation['before']['day'] if after['day'] > operation['before']['day'] else state.get('completed_day'),
                     'saved_rolls': {**state.get('saved_rolls', {}), operation['id']: operation['dice']},
                     'pending_world_event': None if operation.get('event_to_encounter') else state.get('pending_world_event'),
+                    'specialist_proposals': specialist_proposals,
                 })
                 return
             else:
@@ -370,7 +416,7 @@ class CampaignPipeline:
         from brain.game_modules import admin_module
         with runtime_lease(self.root):
             state = self.state.load()
-            if state['play_gate'] not in {'admin_review', 'day_end_review', 'setup_review'} or not state.get('proposal'):
+            if state['play_gate'] not in {'admin_review', 'day_end_review', 'setup_review', 'character_review'} or not state.get('proposal'):
                 raise RuntimeError('There is no proposal awaiting approval.')
             if state['play_gate'] == 'setup_review' and not confirm_reset:
                 raise ValueError('Replacement requires explicit confirmation: /approve-reset.')
@@ -399,12 +445,44 @@ class CampaignPipeline:
                          'message': 'Approved changes saved.', 'state_version': state.get('state_version', 0) + 1})
         if operation['review_gate'] == 'setup_review':
             self._activate_setup(operation)
+        elif operation['review_gate'] == 'character_review':
+            self._activate_character(operation)
         elif operation['review_gate'] == 'day_end_review':
             operation['kind'] = 'world'
             self._checkpoint(operation, 'world', play_gate='world_event_pending')
             self._world(operation)
         else:
             self.state.save({'operation': None, 'play_gate': operation.get('return_gate', 'open') if operation.get('return_gate') == 'day_end_review' else 'open'})
+
+    def _activate_character(self, operation: dict[str, Any]) -> None:
+        state = self.state.load()
+        draft = state['draft']
+        character = draft['characters'][0]
+        party = [*(state.get('party') or []), character]
+        self.state.save({
+            'party': party, 'draft': None, 'operation': None, 'proposal': None,
+            'play_gate': 'open', 'message': 'Character added to the party.',
+            'last_receipt': operation['receipt'],
+            'state_version': state.get('state_version', 0) + 1,
+        })
+
+    def specialist_proposals(self) -> list[dict[str, Any]]:
+        with runtime_lease(self.root):
+            return list((self.state.load().get('specialist_proposals') or {}).values())
+
+    def propose_specialist(self, name: str) -> dict[str, Any]:
+        with runtime_lease(self.root):
+            state = self.state.load()
+            if state['play_gate'] != 'open':
+                raise RuntimeError('Install specialists between turns, when play is open.')
+            stored = (state.get('specialist_proposals') or {}).get(name)
+            if not isinstance(stored, dict):
+                raise ValueError('No stored specialist proposal by that name.')
+            operation = {'id': 'specialist-' + uuid.uuid4().hex, 'kind': 'specialist', 'stage': 'prepare_specialist',
+                         'before': state['position'], 'message': f'Install specialist {name}.',
+                         'answers': [], 'revision': 0, 'results': {}, 'dice': {}, 'specialist': stored}
+            self.state.save({'operation': operation, 'play_gate': 'running'})
+            return self._drive()
 
     def _activate_setup(self, operation: dict[str, Any]) -> None:
         from brain.persistence import atomic_text

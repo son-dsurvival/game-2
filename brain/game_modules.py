@@ -167,6 +167,76 @@ class GameModules:
             'Nothing': [44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 82, 83, 84, 86, 87, 88, 90, 91, 92, 94, 95, 96, 98, 99, 100],
         }
 
+    def prepare_character_addition(self, context: dict[str, Any]) -> dict[str, Any]:
+        draft = context.get('draft') or {}
+        mode = draft.get('mode')
+        character = (draft.get('characters') or [{}])[0]
+        main = context.get('main_character')
+        existing_party = context.get('party') or []
+
+        def read(name: str) -> str:
+            try:
+                return (self.root / 'markdown_files' / name).read_text(encoding='utf-8')
+            except OSError:
+                return ''
+
+        status = read('status sheet.md')
+        ledger = read('Ledger Resources.md')
+        relationships = read('character relationship.md')
+        task = (
+            'Add ONE new ' + ('player character' if mode == 'new_character' else 'NPC party member') +
+            ' to the ACTIVE campaign. The existing main character is ' + str(main) + ' and must NOT change; '
+            'an NPC party member is not the main character. Do NOT reset or replace existing content: only append. '
+            'Derive rule-compliant class, equipment, money, skills, relationships and derived stats from the rules '
+            'and the character draft. Use APPEND-STYLE exact edits: each old_text MUST be quoted exactly from the '
+            'CURRENT file content shown below, and new_text must keep it and append the new character. '
+            'If a starting class package is not defined, derive a defensible one from the rules and the description. '
+            'Only target status sheet.md, Ledger Resources.md, and character relationship.md.\n'
+            'CURRENT status sheet:\n<<<STATUS\n' + status + '\nSTATUS>>>\n'
+            'CURRENT ledger:\n<<<LEDGER\n' + ledger + '\nLEDGER>>>\n'
+            'CURRENT relationships:\n<<<REL\n' + relationships + '\nREL>>>\n'
+            'NEW CHARACTER:\n' + json.dumps({k: character.get(k) for k in ('identity', 'stats', 'description', 'class')}, ensure_ascii=False)
+        )
+        local = {**context, 'message': '{' + task + '}'}
+        route = self.route(local['message'], local)
+        route['turn_id'] = context['turn_id']
+        bundle = self.evidence(route, local)
+        analysis = self.specialists(bundle, local, ('character',))
+        proposal = self.admin(bundle, analysis, local)
+        if proposal.get('status') != 'proposal_ready':
+            raise RuntimeError('Character addition needs clarification or more evidence.')
+        allowed = {'markdown_files/status sheet.md', 'markdown_files/Ledger Resources.md', 'markdown_files/character relationship.md', 'markdown_files/TEMP_MEMORY.md'}
+        targets = {c.get('target_file') for c in proposal.get('changes', []) if isinstance(c, dict)}
+        if not targets or not targets <= allowed:
+            raise RuntimeError('Character addition may only edit character records, not reset campaign files.')
+        return proposal
+
+    def prepare_specialist_install(self, context: dict[str, Any], proposal_data: dict[str, Any]) -> dict[str, Any]:
+        from brain.specialists.registry import validate_created_definition
+        definition = validate_created_definition(proposal_data)
+        if definition is None:
+            raise ValueError('Specialist proposal is invalid or duplicates an existing specialist.')
+        path = self.root / 'markdown_files/Branch Registry.md'
+        original = path.read_text(encoding='utf-8')
+        title = definition.name.replace('_', ' ').title()
+        if re.search(rf'^##\s+{re.escape(title)}\s*$', original, re.M | re.I):
+            raise ValueError('Branch already exists in the registry.')
+        section = '\n'.join([
+            f'## {title}',
+            'status: unlocked',
+            f'specialist: {definition.name}',
+            'template: none',
+            'activation tags: ' + (', '.join(definition.activation_tags) or 'none'),
+            f'reason: approved Create Specialist proposal ({definition.purpose[:180]})',
+        ])
+        unlock_rules = re.search(r'^##\s+Unlock Rules\s*$', original, re.M)
+        if unlock_rules:
+            updated = original[:unlock_rules.start()] + section + '\n\n' + original[unlock_rules.start():]
+        else:
+            updated = original.rstrip() + '\n\n' + section + '\n'
+        change = {'target_file': 'markdown_files/Branch Registry.md', 'action': 'update', 'old_text': original, 'new_text': updated, 'reason': 'Install approved Create Specialist proposal.'}
+        return {'status': 'proposal_ready', 'answer': f'Install specialist {definition.name}?', 'changes': [change], 'evidence': [], 'instructions': [], 'questions': [], 'conflicts': [], 'approval_required': True}
+
     def prepare_setup(self, context: dict[str, Any]) -> dict[str, Any]:
         required = {'status sheet.md', 'character relationship.md', 'Ledger Resources.md', 'Experimentation Register.md', 'Branch Registry.md', 'TEMP_MEMORY.md', '🌍 CORE WORLD FRAME (REFINED).md'}
         task = (
@@ -295,11 +365,48 @@ class GameModules:
         if operation.get('review_gate') == 'day_end_review':
             SessionRecorder(self.root).mark_promoted(operation.get('turn_ids', []))
 
+    @staticmethod
+    def _party_directives(context: dict[str, Any]) -> list[dict[str, Any]]:
+        """Directives so non-main party members act autonomously in the backend.
+
+        The main character is driven by the player; the others pursue their own
+        goals unless the player has given them explicit instructions (which are
+        already stored as directives and take priority).
+        """
+        party_raw = context.get('party')
+        party = party_raw if isinstance(party_raw, list) else []
+        main = context.get('main_character')
+        directives: list[dict[str, Any]] = []
+        for member in party:
+            identity = member.get('identity') if isinstance(member, dict) else None
+            name = identity.get('name') if isinstance(identity, dict) else None
+            if not name or str(name) == str(main):
+                continue
+            slug = re.sub(r'[^a-z0-9]+', '-', str(name).casefold()).strip('-')
+            directives.append({
+                'directive_id': f'party-{slug}',
+                'actor': str(name),
+                'task': 'Act autonomously toward your own goals as a party member; never take actions reserved for the main character.',
+                'status': 'active',
+                'metadata': {
+                    'visibility': 'hidden',
+                    'ooc_visibility': 'private',
+                    'requires_resolution': True,
+                    'party_member': True,
+                },
+            })
+        return directives
+
     def background(self, transitions: list[dict[str, Any]], context: dict[str, Any]) -> dict[str, Any]:
         store = BackgroundStateStore(
             self.root / 'brain/state/background_visible.md',
             private_state_path=self.root / 'brain/state/background_state.json',
         )
+        # Non-main party members act autonomously unless explicitly instructed.
+        existing_ids = {directive.directive_id for directive in store.load_directives()}
+        for directive in self._party_directives(context):
+            if directive['directive_id'] not in existing_ids:
+                store.upsert_directive(directive)
         clock = PhaseClock()
         for transition in transitions:
             existing = next((tick for tick in store.load_ticks() if tick['tick_id'] == transition['tick_id']), None)

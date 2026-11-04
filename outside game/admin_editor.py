@@ -182,12 +182,18 @@ class AdminEditor:
                     return {"error": f"change_{index} old_text did not match exactly once", "target_file": target, "matches": current.count(old)}
                 updated = current.replace(old, new, 1)
                 if template and campaign and path.name not in self.LORE_FILES:
-                    self.templates.validate(updated, template)
+                    removed = self._headings(current) - self._headings(updated)
+                    if removed:
+                        return {"error": f"change_{index} would remove existing headings", "target_file": target, "removed": sorted(removed)[:6]}
         except (FileNotFoundError, ValueError) as exc:
             return {"error": f"change_{index} template validation failed: {exc}", "target_file": target}
         if "```json" in updated.casefold():
             return {"error": f"change_{index} would write a JSON blob into Markdown"}
         return {"updated": updated, "template": template}
+
+    @staticmethod
+    def _headings(text: str) -> set[str]:
+        return {line.strip() for line in text.splitlines() if line.lstrip().startswith('#')}
 
     def _stage(self, proposal_id: str, prepared: list[dict[str, Any]]) -> Path:
         transaction = self.transactions / f"txn-{self._safe_id(proposal_id)}-{uuid.uuid4().hex[:8]}"

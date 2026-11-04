@@ -14,11 +14,17 @@ class SetupDrafts:
     def __init__(self, state: RuntimeStateStore):
         self.state = state
 
-    def begin(self) -> None:
+    def begin(self, mode: str = 'new_game') -> None:
+        if mode not in {'new_game', 'new_character', 'new_party_member'}:
+            raise ValueError('Unknown character mode.')
         current = self.state.load()
         if current.get('operation') or current.get('draft'):
             raise RuntimeError('Finish the pending operation or cancel the existing draft first.')
-        self.state.save({'draft': {'campaign_id': 'campaign-' + uuid.uuid4().hex, 'characters': [], 'main_character': None,
+        if mode != 'new_game' and current['play_gate'] != 'open':
+            raise RuntimeError('Adding characters requires an active campaign.')
+        campaign_id = current.get('campaign_id') if mode != 'new_game' else None
+        self.state.save({'draft': {'campaign_id': campaign_id or 'campaign-' + uuid.uuid4().hex,
+                                   'characters': [], 'main_character': None, 'mode': mode,
                                    'previous_gate': current['play_gate'], 'question': 'identity', 'partial': {}},
                          'play_gate': 'setup_draft', 'message': 'Identity: enter name | age | race.'})
 
@@ -50,7 +56,13 @@ class SetupDrafts:
         names = [item['identity']['name'] for item in draft['characters']]
         if name not in names:
             raise ValueError('Choose a character from the drafted party.')
-        draft['main_character'] = name
+        if draft.get('mode') in {'new_character', 'new_party_member'}:
+            if len(draft['characters']) != 1:
+                raise ValueError('Add exactly one character at a time mid-campaign.')
+            # Mid-campaign additions never replace the campaign's main character.
+            draft['character'] = name
+        else:
+            draft['main_character'] = name
         self.state.save({'draft': draft})
 
     def answer(self, text: str) -> None:
@@ -92,6 +104,8 @@ class SetupDrafts:
         if state['play_gate'] != 'setup_draft':
             raise RuntimeError('No editable party draft.')
         draft = state['draft']
+        if draft.get('mode') in {'new_character', 'new_party_member'} and draft['characters']:
+            raise ValueError('Mid-campaign additions take one character at a time; review or cancel.')
         draft.update(question='identity', partial={})
         self.state.save({'draft': draft, 'message': 'Identity: name | age | race.'})
 
