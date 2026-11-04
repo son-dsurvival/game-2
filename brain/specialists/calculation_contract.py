@@ -66,9 +66,15 @@ def _validate_difficulty(calc: dict[str, Any], status: str) -> None:
         reference = _number(calc.get("reaction_reference"), "difficulty.reaction_reference")
         expected += reference
     if abs(total - expected) > 0.001:
-        raise CalculationContractError(
-            f"difficulty total {total:g} does not equal components {expected:g}"
-        )
+        # Models occasionally mis-sum their own explicit components. The
+        # components are the evidence-backed source of truth; reconcile the
+        # total from them rather than blocking the whole turn on arithmetic.
+        calc.setdefault("reconciliations", []).append({
+            "field": "total",
+            "given": _intish(total),
+            "reconciled": _intish(expected),
+        })
+        calc["total"] = _intish(expected)
     # A complete handoff must select one value, not defer a range to Lead.
     if status == "complete" and any(isinstance(components[key], str) for key in required):
         raise CalculationContractError("complete difficulty calculation cannot contain ranges")
@@ -107,9 +113,12 @@ def _validate_modifier(calc: dict[str, Any], status: str) -> None:
         if component.get("included", True)
     )
     if not calc.get("team_action") and abs(action_total - (included_total + approach)) > 0.001:
-        raise CalculationContractError(
-            f"modifier action value {action_total:g} does not equal included components {included_total:g} plus approach {approach:g}"
-        )
+        calc.setdefault("reconciliations", []).append({
+            "field": "action_value_before_d20",
+            "given": _intish(action_total),
+            "reconciled": _intish(included_total + approach),
+        })
+        calc["action_value_before_d20"] = _intish(included_total + approach)
     participants = calc.get("participants", [])
     if participants is not None and not isinstance(participants, list):
         raise CalculationContractError("modifier participants must be a list")

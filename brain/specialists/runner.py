@@ -213,15 +213,13 @@ class SpecialistRunner:
             cache_result = None
 
         remaining = [item for item in prepared if item[0].name != "cache"]
-        cache_valid = (
-            isinstance(cache_result, dict)
-            and cache_result.get("status") == "complete"
-            and isinstance(cache_result.get("cache_delta"), dict)
-        )
-        if not cache_valid:
+        if isinstance(cache_result, dict) and cache_result.get("status") == "blocked":
             remaining = []
+        cache_delta = cache_result.get("cache_delta") if isinstance(cache_result, dict) else None
+        if not isinstance(cache_delta, dict):
+            cache_delta = {}
         for _definition, _section_inputs, _section_gaps, local_bundle in remaining:
-            local_bundle["game_cache"] = cache_result["cache_delta"]
+            local_bundle["game_cache"] = cache_delta
         with ThreadPoolExecutor(max_workers=max(1, len(remaining))) as executor:
             futures = [
                 executor.submit(copy_context().run, self._run_one, bundle_record, local_bundle, definition, section_inputs)
@@ -580,6 +578,11 @@ class SpecialistRunner:
                     "reason": f"{specialist_name} returned an incomplete citation.",
                     "citation": citation,
                 })
+                continue
+            if source in {"player_input", "conversation_history", "game_cache", "admin_request", "prior_cache", "declared_action"}:
+                # Advisory lanes may cite the frozen player input/prior cache as a
+                # first-class source; those are not file locations and need no range.
+                valid.append(citation)
                 continue
             citation_range = self._line_range(f"lines {location}" if not location.startswith("lines ") else location)
             if citation_range is None:

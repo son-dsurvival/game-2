@@ -74,6 +74,16 @@ reconciliation requirement; never write vague values such as 'full minus 12' as
 if they were an exact current total. Do not emit duplicate MP entries under
 personal, spell, and generic names for the same resource.
 
+time_changes is a JSON array of objects. Use EXACTLY this shape:
+{"phases_elapsed": 0, "day": null, "phase": null}
+"phases_elapsed" is a number and the single source of truth for time passing:
+0 for no advance, 0.5 for half a phase, 1 for one phase, and so on. Set "day"
+and "phase" to null unless the rules require an absolute target; if an absolute
+target is used, "phase" must be one of the exact nine phase labels. Never emit
+other field names such as time_consumed, delta_phases, from, to, or progress,
+and never use free-text phase labels such as 'next phase boundary'. A full
+phase means "phases_elapsed": 1, never a progress value of 1.0.
+
 Do not ask for clarification merely because an exact phase label, optional
 number, or minor historical detail is unavailable. However, a missing Task
 Value input is critical when a roll is required. If the difficulty specialist

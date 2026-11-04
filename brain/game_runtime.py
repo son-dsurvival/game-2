@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import re
 import uuid
 from concurrent.futures import Future, ThreadPoolExecutor
 from contextvars import copy_context
@@ -503,24 +504,65 @@ class CampaignPipeline:
         self._checkpoint(operation, 'resolve', pending_dice=operation['dice_result'])
 
     @staticmethod
+    def _phase_distance(current: Any, target: Any) -> float:
+        return (target.day - current.day) * len(PHASES) + (PHASES.index(target.phase) - PHASES.index(current.phase))
+
+    @staticmethod
+    def _elapsed_phases(change: dict[str, Any], current: Any, clock: PhaseClock) -> float:
+        for key in ('elapsed_phases', 'delta_phases', 'phases_elapsed', 'phases', 'phase_cost', 'time_consumed'):
+            value = change.get(key)
+            if value is None or isinstance(value, bool):
+                continue
+            if isinstance(value, str):
+                match = re.search(r'(\d+(?:\.\d+)?)', value)
+                if not match:
+                    continue
+                value = match.group(1)
+            try:
+                return float(value)
+            except (TypeError, ValueError):
+                continue
+        to = change.get('to')
+        if isinstance(to, dict) and to.get('phase') is not None and to.get('day') is not None:
+            try:
+                raw_progress = float(to.get('progress', 0))
+            except (TypeError, ValueError):
+                raw_progress = 0.0
+            if int(to['day']) == current.day and to['phase'] == current.phase and 0 < raw_progress < 1:
+                return raw_progress
+            if raw_progress >= 1.0:
+                return raw_progress
+            try:
+                return CampaignPipeline._phase_distance(current, clock.position(int(to['day']), to['phase'], 0.0))
+            except ValueError:
+                pass
+        after_phase = change.get('after_phase') or change.get('ending_phase') or change.get('phase')
+        after_day = change.get('after_day', change.get('day'))
+        if after_phase and after_day is not None and after_phase != current.phase:
+            try:
+                return CampaignPipeline._phase_distance(current, clock.position(int(after_day), after_phase, 0.0))
+            except ValueError:
+                pass
+        return 0.0
+
+    @staticmethod
     def _time(before: dict[str, Any], lead: dict[str, Any]) -> tuple[dict[str, Any], list[dict[str, Any]]]:
         clock = PhaseClock()
         start = clock.position(before['day'], before['phase'], before.get('progress', 0))
         current = start
         transitions: list[dict[str, Any]] = []
         for change in (lead.get('resolution_record') or lead).get('time_changes', []):
-            duration = change.get('phases_elapsed', change.get('phases', change.get('phase_cost')))
-            if duration is not None:
-                elapsed = float(duration)
-                if not math.isfinite(elapsed) or elapsed < 0 or elapsed > 9:
-                    raise ValueError('Invalid duration; multi-day actions require separate daily gates.')
-                steps = clock.advance(current, elapsed)
-                total = current.progress + elapsed
-                base = steps[-1].current if steps else current
-                after = clock.position(base.day, base.phase, round(total % 1, 8))
-            else:
-                after = clock.position(change.get('after_day', change.get('day', current.day)), change.get('after_phase', change.get('phase', current.phase)), change.get('after_progress', change.get('progress', current.progress)))
-                steps = clock.transitions_from_time_change(current, change)
+            if not isinstance(change, dict):
+                continue
+            elapsed = CampaignPipeline._elapsed_phases(change, current, clock)
+            if elapsed <= 0:
+                continue
+            if not math.isfinite(elapsed) or elapsed > 9:
+                raise ValueError('Invalid duration; multi-day actions require separate daily gates.')
+            steps = clock.advance(current, elapsed)
+            total = current.progress + elapsed
+            base = steps[-1].current if steps else current
+            after = clock.position(base.day, base.phase, round(total % 1, 8))
             if after.day > start.day + 1 or (after.day > start.day and (after.phase != PHASES[0] or after.progress)):
                 raise ValueError('An action must stop at the next daily review gate.')
             transitions.extend(step.to_dict() for step in steps)
