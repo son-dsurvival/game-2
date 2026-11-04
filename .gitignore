@@ -10,3 +10,4 @@ brain/state/*.md
 brain/state/pending_operations/
 brain/state/editor_transactions/
 brain/state/editor_receipts/
+outside game/audit/*.jsonl

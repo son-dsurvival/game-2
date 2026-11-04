@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from backend.background_state import BackgroundStateStore
-from backend.phase_clock import PhaseClock
+from backend.phase_clock import PHASES, PhaseClock
 from backend.phase_tick import PhaseTickEngine
 from brain.build_canon_section_index import build_index as canon_index
 from brain.build_evidence_index import build_index as evidence_index
@@ -67,14 +67,22 @@ class GameModules:
         return result
 
     def resolve(self, analysis: dict[str, Any], context: dict[str, Any], dice: dict[str, Any] | None = None) -> dict[str, Any]:
-        return LeadResolver(self.root).resolve(analysis, chat_context=context, campaign_context=context, dice_result=dice)
+        event = context.get('event_to_encounter')
+        chat = context
+        if isinstance(event, dict):
+            chat = {
+                **context,
+                'pending_world_event': event,
+                'message': str(context.get('message', '')) + '\n\nA scheduled world event is DUE NOW and must be staged and resolved this turn; do not let the declared action bypass it.\n' + json.dumps({key: event.get(key) for key in ('id', 'generated_event', 'encounter_condition', 'latest_phase', 'selected_trigger')}, ensure_ascii=False),
+            }
+        return LeadResolver(self.root).resolve(analysis, chat_context=chat, campaign_context=chat, dice_result=dice)
 
     def narrate(self, resolution: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
         return Narrator(rules_path=self.root / 'markdown_files/game rules (1).md').render(resolution)
 
     def record(self, resolution: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
-        # Recorder only sees the foreground resolution. Hidden phase results are
-        # stored independently and cannot reach this input through shared state.
+        # Record the resolved AFTER position, not the turn's start, so two rest
+        # turns do not both claim the same boundary and read as duplicates.
         return SessionRecorder(self.root).record({**resolution, 'position': context['position']})
 
     def admin(self, bundle: dict[str, Any], analysis: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
@@ -91,6 +99,73 @@ class GameModules:
             if pending and 'markdown_files/TEMP_MEMORY.md' not in targets:
                 raise RuntimeError('The edit proposal must also reconcile pending working records.')
         return result
+
+    def _inject_world_rules(self, bundle_record: dict[str, Any]) -> dict[str, Any]:
+        """Deterministically include the Dynamic World Event Engine rules so the
+        world specialist never blocks on missing evidence for pool/event work."""
+        index_path = self.root / 'brain/info/evidence_index.json'
+        try:
+            index = json.loads(index_path.read_text(encoding='utf-8'))
+        except (OSError, json.JSONDecodeError):
+            return bundle_record
+        wanted: list[dict[str, Any]] = []
+        keywords = (
+            'world event', 'event trigger', 'number pool', 'event roll', 'event tier',
+            'event check', 'nothing result', 'events outside', 'tracking and transparency',
+            'changing the pool', 'adjustment size', 'number transfer', 'event check timing',
+            'generating the specific event', 'core purpose',
+        )
+        for root in index.get('under', []):
+            if not isinstance(root, dict):
+                continue
+            source = root.get('location')
+            if not isinstance(source, str):
+                continue
+            def walk(node: dict[str, Any], path: list[str]) -> None:
+                location = node.get('location', '')
+                name = str(node.get('name', ''))
+                full = (name + ' ' + ' '.join(path)).lower()
+                if str(location).startswith('lines ') and any(key in full for key in keywords):
+                    wanted.append({
+                        'id': f"world-rule-{source}-{location}",
+                        'name': name, 'source': source, 'location': location,
+                        'path': [*path, name], 'description': str(node.get('description', '')),
+                    })
+                for child in node.get('under', []):
+                    if isinstance(child, dict):
+                        walk(child, [*path, name])
+            walk(root, [str(root.get('name', ''))])
+        bundle = bundle_record.get('evidence_bundle', bundle_record)
+        sections = bundle.get('selected_sections')
+        if not isinstance(sections, list):
+            sections = []
+            bundle['selected_sections'] = sections
+        existing = {str(s.get('id')) for s in sections}
+        for section in wanted:
+            if section['id'] not in existing:
+                sections.append(section)
+                existing.add(section['id'])
+        scoped = bundle.setdefault('specialist_bundles', {}).setdefault('world', {})
+        world_sections = scoped.get('selected_sections')
+        if not isinstance(world_sections, list):
+            world_sections = []
+            scoped['selected_sections'] = world_sections
+        world_ids = {str(s.get('id')) for s in world_sections}
+        for section in wanted:
+            if section['id'] not in world_ids:
+                world_sections.append(section)
+                world_ids.add(section['id'])
+        return bundle_record
+
+    @staticmethod
+    def _default_world_pool() -> dict[str, list[int]]:
+        return {
+            'Monsters': [1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61, 65, 69, 73, 77],
+            'Business': [2, 6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50, 54, 58, 62, 66, 70, 74, 78],
+            'People': [3, 7, 11, 15, 19, 23, 27, 31, 35, 39, 43, 47, 51, 55, 59, 63, 67, 71, 75, 79, 81, 85, 89, 93, 97],
+            'Weather': [4, 8, 12, 16, 20, 24, 28, 32, 36, 40],
+            'Nothing': [44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 82, 83, 84, 86, 87, 88, 90, 91, 92, 94, 95, 96, 98, 99, 100],
+        }
 
     def prepare_setup(self, context: dict[str, Any]) -> dict[str, Any]:
         required = {'status sheet.md', 'character relationship.md', 'Ledger Resources.md', 'Experimentation Register.md', 'Branch Registry.md', 'TEMP_MEMORY.md', '🌍 CORE WORLD FRAME (REFINED).md'}
@@ -110,7 +185,12 @@ class GameModules:
         route = self.route(local['message'], local)
         route['turn_id'] = context['turn_id']
         bundle = self.evidence(route, local)
-        analysis = self.specialists(bundle, local, ('class',))
+        bundle = self._inject_world_rules(bundle)
+        analysis = self.specialists(bundle, local, ('class', 'world'))
+        world: dict[str, Any] = next((item for item in analysis.get('specialist_results', []) if item.get('specialist') == 'world'), {})
+        pool = world.get('world_pool') if isinstance(world.get('world_pool'), dict) else None
+        if not pool:
+            pool = self._default_world_pool()
         proposal = self.admin(bundle, analysis, local)
         if proposal.get('status') != 'proposal_ready':
             raise RuntimeError('Character creation needs clarification or more evidence.')
@@ -133,7 +213,7 @@ class GameModules:
             return re.sub(r'^## (?:Event log|Game log)\s*\n.*?(?=^## |\Z)', '', text, flags=re.M | re.S)
         if lore(original) != lore(updated):
             raise RuntimeError('New-game setup cannot change world lore.')
-        return proposal
+        return {'proposal': proposal, 'world_pool': pool}
 
     def prepare_day(self, context: dict[str, Any]) -> dict[str, Any]:
         recorder = SessionRecorder(self.root)
@@ -150,9 +230,12 @@ class GameModules:
         route = self.route(local['message'], local)
         route['turn_id'] = context['turn_id']
         bundle = self.evidence(route, local)
+        bundle = self._inject_world_rules(bundle)
         analysis = self.specialists(bundle, local, ('world',))
         world: dict[str, Any] = next((item for item in analysis.get('specialist_results', []) if item.get('specialist') == 'world'), {})
         pool = world.get('world_pool')
+        if not isinstance(pool, dict) or not pool:
+            pool = context.get('world_pool') or self._default_world_pool()
         proposal = self.admin(bundle, analysis, local)
         if proposal.get('status') != 'proposal_ready':
             raise RuntimeError('Day-end proposal needs more review.')
@@ -182,17 +265,31 @@ class GameModules:
         return {'proposal': proposal, 'world_pool': pool, 'turn_ids': [item['turn_id'] for item in records]}
 
     def world(self, context: dict[str, Any], roll: int, pool: dict[str, Any]) -> dict[str, Any]:
-        local = {**context, 'message': 'World specialist: design the next-day event from this FROZEN approved pool and saved roll. Do not alter the pool or resolve outcomes. Return world_event with roll, selected_trigger, generated_event, encounter_condition and latest_phase.\n' + json.dumps({'roll': roll, 'pool': pool, 'day': context['position']['day']})}
+        tier = 'unknown'
+        try:
+            status_text = (self.root / 'markdown_files/status sheet.md').read_text(encoding='utf-8')
+            match = re.search(r'^Tier:\s*(.+)$', status_text, re.M)
+            if match:
+                tier = match.group(1).strip()
+        except OSError:
+            pass
+        local = {**context, 'message': 'World specialist: design the next-day event from this FROZEN approved pool and saved roll. Do not alter the pool or resolve outcomes. Return world_event with roll, selected_trigger, generated_event, encounter_condition and latest_phase (one of the nine exact phase labels).\n' + json.dumps({'roll': roll, 'pool': pool, 'day': context['position']['day'], 'player_tier': tier})}
         route = self.route(local['message'], local)
         route['turn_id'] = context['turn_id'] + '-world'
         bundle = self.evidence(route, local)
+        bundle = self._inject_world_rules(bundle)
         analysis = self.specialists(bundle, local, ('world',))
-        if not analysis['coverage_check'].get('ready_for_lead_resolver'):
-            raise RuntimeError('World preparation needs more evidence.')
-        world = next(item for item in analysis['specialist_results'] if item['specialist'] == 'world')
-        if world.get('status') != 'complete' or not isinstance(world.get('world_event'), dict):
+        world = next((item for item in analysis.get('specialist_results', []) if isinstance(item, dict) and item.get('specialist') == 'world'), None)
+        event = world.get('world_event') if isinstance(world, dict) else None
+        if not isinstance(event, dict):
             raise RuntimeError('World event is not complete.')
-        return world['world_event']
+        phase = next((p for p in PHASES if p.casefold() in str(event.get('latest_phase', '')).casefold()), None)
+        if phase:
+            event['latest_phase'] = phase
+        has_event = event.get('roll') is not None and event.get('selected_trigger') and event.get('generated_event') and event.get('encounter_condition') and event.get('latest_phase')
+        if not has_event:
+            raise RuntimeError('World event is missing required fields.')
+        return event
 
     def reconcile(self, operation: dict[str, Any], context: dict[str, Any]) -> None:
         if operation.get('review_gate') == 'day_end_review':

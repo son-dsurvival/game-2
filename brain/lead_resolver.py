@@ -170,10 +170,13 @@ or asking the player, interrupt must be an object with visibility='visible' and
 message containing ONLY the facts the player can observe. Do not reveal secret
 causes. Do not process phases after the interruption or award unearned rest.
 
-If campaign_context contains event_to_encounter, the scheduled event has reached
-its encounter condition or deadline. Stage the encounter now, without pre-deciding
-the player's response. Include encountered_event_id equal to its id in the resolved
-record. Do not advance beyond the encounter/deadline before returning player control.
+If campaign_context contains event_to_encounter or pending_world_event, the
+scheduled event has reached its encounter condition or deadline. You MUST stage
+that encounter now: set encountered_event_id to the event's id, make its
+immediate circumstances the subject of this turn, and resolve what happens in
+the moment without deciding the player's response for them. Do not advance
+beyond the encounter or treat the player's declared action as having bypassed
+it. The event cannot be skipped once it is due.
 A sleep/end-day action must stop at the next day boundary or earlier interruption;
 award only actually earned rest. Do not bulk-resolve several days.
 

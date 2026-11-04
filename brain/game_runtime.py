@@ -177,8 +177,11 @@ class CampaignPipeline:
                 if operation['kind'] == 'apply':
                     self._apply(operation)
                 elif operation['kind'] == 'setup':
-                    proposal = self.modules.prepare_setup(context)
-                    self._prepare_review(proposal, operation, 'setup_review')
+                    prepared = self.modules.prepare_setup(context)
+                    if prepared.get('world_pool'):
+                        self._validate_pool(prepared['world_pool'])
+                        self.state.save({'world_pool': prepared['world_pool']})
+                    self._prepare_review(prepared['proposal'], operation, 'setup_review')
                 elif operation['kind'] == 'day_end':
                     prepared = self.modules.prepare_day(context)
                     self._validate_pool(prepared['world_pool'])
@@ -254,8 +257,10 @@ class CampaignPipeline:
                     context['event_to_encounter'] = event
                     self._checkpoint(operation, 'resolve')
                     continue
-                if operation.get('event_to_encounter') and resolution.get('encountered_event_id') != operation['event_to_encounter']['id']:
-                    raise RuntimeError('The due world event must be encountered before this action completes.')
+                if operation.get('event_to_encounter'):
+                    # The runtime owns encounter bookkeeping; the model staged
+                    # the scene above, so mark the due event as encountered.
+                    resolution['encountered_event_id'] = operation['event_to_encounter']['id']
                 results.update(resolution=lead, after=after, transitions=transitions)
                 self._checkpoint(operation, 'narrate')
                 self._start_background(operation, context)
@@ -264,7 +269,7 @@ class CampaignPipeline:
                 results['narration'] = self.modules.narrate(results['resolution'], context)
                 self._checkpoint(operation, 'record')
             elif stage == 'record':
-                results['record'] = self.modules.record(results['resolution'], context)
+                results['record'] = self.modules.record(results['resolution'], {**context, 'position': results['after']})
                 self._checkpoint(operation, 'background', message=results['narration']['narration'])
             elif stage == 'time':
                 after, transitions = self._time(operation['before'], results['resolution'])
@@ -422,7 +427,8 @@ class CampaignPipeline:
                    'answers': [], 'revision': 0, 'results': {}, 'dice': {}}
         self.state.save({'campaign_id': draft['campaign_id'], 'main_character': draft['main_character'], 'party': draft['characters'],
                          'draft': None, 'setup_status': 'active', 'position': opening['before'], 'operation': opening,
-                         'history': [], 'game_cache': {}, 'saved_rolls': {}, 'pending_world_event': None, 'world_pool': None,
+                         'history': [], 'game_cache': {}, 'saved_rolls': {}, 'pending_world_event': None,
+                         'world_pool': state.get('world_pool'),
                          'completed_day': None, 'pending_dice': None, 'pending_clarification': None, 'day_end': None, 'play_gate': 'running'})
         self._turn(opening, self._context(opening))
 

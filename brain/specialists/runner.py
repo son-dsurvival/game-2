@@ -148,10 +148,11 @@ For the world specialist, when a new world event is generated, include a
 or become available. `latest_phase` must state the final phase in which that
 encounter can occur. If the roll selects Nothing or no event is being generated,
 `world_event` may be null. Do not put an event proposal only in free-form text.
-When asked to prepare day-end review before any roll, also return `world_pool`:
-an object mapping trigger names to explicit integer lists whose union is 1–100
-with no duplicates. Use established rules and state, not the example pool blindly.
-A supplied frozen pool must not be modified after its roll is known.
+When asked to prepare a world pool (new-game setup or day-end review), also
+return `world_pool`: an object mapping trigger names to explicit integer lists
+whose union is 1–100 with no duplicates. Use established rules and state, not
+the example pool blindly. A supplied frozen pool must not be modified after its
+roll is known.
 
 For the create specialist, include a `created_specialists` list only for safe,
 recurring uncovered branches. Each item must contain `name` (lowercase snake

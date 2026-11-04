@@ -24,6 +24,10 @@ from template_renderer import TemplateRenderer
 class AdminEditor:
     """Deterministic editor: compose per-file changes, then commit all or restore."""
 
+    # Lore files hold player-authored world content whose headings legitimately
+    # diverge from the starting template; edits are exact-text checked only.
+    LORE_FILES = {'🌍 CORE WORLD FRAME (REFINED).md'}
+
     def __init__(self, repo_root: str | Path = "."):
         self.root = Path(repo_root).resolve()
         self.audit = AuditLog(self.root / "outside game" / "audit" / "admin_operations.jsonl")
@@ -177,7 +181,7 @@ class AdminEditor:
                 if not exists or not old or current.count(old) != 1:
                     return {"error": f"change_{index} old_text did not match exactly once", "target_file": target, "matches": current.count(old)}
                 updated = current.replace(old, new, 1)
-                if template and campaign:
+                if template and campaign and path.name not in self.LORE_FILES:
                     self.templates.validate(updated, template)
         except (FileNotFoundError, ValueError) as exc:
             return {"error": f"change_{index} template validation failed: {exc}", "target_file": target}
