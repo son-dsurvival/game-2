@@ -252,10 +252,13 @@ class GameModules:
             '(name, age, race/ancestry), six starting stats named AGI, INT, STR, END, WIS, PRE totaling exactly 30, a description, '
             'and a class concept. If the player asks you to create or suggest a class, you may provide one. Do not write files, '
             'change rules, or invent unstated personal facts. Return JSON only with this shape:\n'
-            '{"assistant_message":"...", "complete":false, "draft":{"identity":{},"stats":{},"description":"","class":""}}\n'
+            '{"assistant_message":"...", "complete":false, "party_done":false, "main_character":null, "draft":{"identity":{},"stats":{},"description":"","class":""}}\n'
             'The draft object is a PATCH: omit fields not newly known. Set complete true only when every required field is present '
-            'and the stats total 30. If stats are missing or invalid, ask naturally for them.\n'
-            + json.dumps({'mode': draft.get('mode'), 'known': partial, 'history': history[-8:], 'player_message': player_message}, ensure_ascii=False)
+            'and the stats total 30. If stats are missing or invalid, ask naturally for them. If the player explicitly names '
+            'the main character or says the party is ready/done, set main_character and/or party_done. Never set those fields '
+            'based only on a guess.\n'
+            + json.dumps({'mode': draft.get('mode'), 'existing_characters': draft.get('characters', []), 'known': partial,
+                          'history': history[-8:], 'player_message': player_message}, ensure_ascii=False)
         )
         try:
             result = ModelGateway(self.root).complete(

@@ -153,6 +153,15 @@ def _auto_review_after_main(pipeline: CampaignPipeline, result: dict[str, Any], 
     return result
 
 
+def _auto_setup_review(pipeline: CampaignPipeline, result: dict[str, Any], enabled: bool) -> dict[str, Any]:
+    """Review a new-game party once the chatbot records an explicit completion."""
+    draft = result.get('draft')
+    if (enabled and result.get('status') == 'setup_draft' and isinstance(draft, dict)
+            and draft.get('mode') == 'new_game' and draft.get('party_done') and draft.get('main_character')):
+        return _stabilize(pipeline, pipeline.review_setup(), enabled)
+    return result
+
+
 def _auto_addition_review(pipeline: CampaignPipeline, result: dict[str, Any], enabled: bool) -> dict[str, Any]:
     """NPC/player additions are single-character operations, so review them once drafted."""
     draft = result.get('draft')
@@ -208,6 +217,7 @@ def process_input(pipeline: CampaignPipeline, text: str, *, auto: bool = True) -
         result = conversation[command]()
     else:
         result = pipeline.submit(text)
+        result = _auto_setup_review(pipeline, result, auto)
         result = _auto_addition_review(pipeline, result, auto)
     return _stabilize(pipeline, result, auto)
 

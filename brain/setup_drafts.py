@@ -26,7 +26,7 @@ class SetupDrafts:
         self.state.save({'draft': {'campaign_id': campaign_id or 'campaign-' + uuid.uuid4().hex,
                                    'characters': [], 'main_character': None, 'mode': mode,
                                    'previous_gate': current['play_gate'], 'question': 'identity',
-                                   'partial': {}, 'conversation': []},
+                                   'partial': {}, 'conversation': [], 'party_done': False},
                          'play_gate': 'setup_draft',
                          'message': 'Tell me about your character in your own words. Include anything you already know: name, age, ancestry, background, personality, abilities, or class idea.'})
 
@@ -46,7 +46,7 @@ class SetupDrafts:
         draft = state['draft']
         characters = [item for item in draft['characters'] if item['identity']['name'].casefold() != str(identity['name']).casefold()]
         characters.append({'identity': identity, 'stats': values, 'description': description, 'class': character_class})
-        draft.update(characters=characters, question='party', partial={}, conversation=[])
+        draft.update(characters=characters, question='party', partial={}, conversation=[], party_done=False)
         self.state.save({'draft': draft, 'proposal': None, 'operation': None, 'play_gate': 'setup_draft',
                          'message': 'Character drafted. Tell me about another character, or choose the main character when the party is ready.'})
 
@@ -117,6 +117,17 @@ class SetupDrafts:
         if assistant_message:
             conversation.append({'role': 'assistant', 'content': assistant_message})
 
+        main_hint = response.get('main_character')
+        if isinstance(main_hint, str) and main_hint.strip():
+            names = [item.get('identity', {}).get('name', '') for item in draft.get('characters', []) if isinstance(item, dict)]
+            matches = [name for name in names if name.casefold() == main_hint.casefold()]
+            if not matches:
+                matches = [name for name in names if name.casefold().startswith(main_hint.casefold())]
+            if len(matches) == 1:
+                draft['main_character'] = matches[0]
+        if response.get('party_done'):
+            draft['party_done'] = True
+
         if response.get('complete'):
             try:
                 self.add(partial.get('identity', {}), partial.get('stats', {}),
@@ -172,7 +183,7 @@ class SetupDrafts:
         draft = state['draft']
         if draft.get('mode') in {'new_character', 'new_party_member'} and draft['characters']:
             raise ValueError('Mid-campaign additions take one character at a time; review or cancel.')
-        draft.update(question='identity', partial={}, conversation=[])
+        draft.update(question='identity', partial={}, conversation=[], party_done=False)
         self.state.save({'draft': draft, 'message': 'Tell me about the next character in your own words.'})
 
     def cancel(self) -> None:

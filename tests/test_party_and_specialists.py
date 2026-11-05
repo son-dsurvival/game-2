@@ -95,6 +95,12 @@ class CharacterModeTests(unittest.TestCase):
             state = store.load()
             self.assertEqual(state['draft']['characters'][0]['identity']['name'], 'Kael')
             self.assertEqual(state['draft']['characters'][0]['stats']['STR'], 6)
+            drafts.apply_chat({'user_message': 'We are done; Femi is the main character.',
+                                'assistant_message': 'The party is ready for review.',
+                                'complete': False, 'party_done': True, 'main_character': 'Kael', 'draft': {}})
+            state = store.load()
+            self.assertEqual(state['draft']['main_character'], 'Kael')
+            self.assertTrue(state['draft']['party_done'])
 
     def test_mid_campaign_addition_takes_one_character_at_a_time(self):
         with tempfile.TemporaryDirectory() as directory:
