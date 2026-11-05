@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 from typing import Any
@@ -38,8 +37,102 @@ AUTO_RETRIES = 3
 AUTO_RESUMABLE = {'running', 'retry', 'background_pending'}
 
 
+def _position_text(position: object) -> str:
+    if not isinstance(position, dict):
+        return ''
+    day = position.get('day')
+    phase = position.get('phase')
+    progress = position.get('progress')
+    if day is None and phase is None:
+        return ''
+    return f'Day {day} — {phase} ({float(progress or 0) * 100:.0f}% through phase)'
+
+
+def _player_text(value: object) -> str:
+    """Render pipeline results as player-facing prose, never backend JSON."""
+    if isinstance(value, str):
+        return value
+    if not isinstance(value, dict):
+        return str(value)
+
+    status = str(value.get('status', ''))
+    lines: list[str] = []
+    message = value.get('message')
+    position = _position_text(value.get('position'))
+    draft = value.get('draft')
+    question = value.get('question')
+
+    if status == 'setup_draft':
+        lines.append('Character setup')
+        if isinstance(draft, dict):
+            characters = draft.get('characters') or []
+            names = [str(item.get('identity', {}).get('name')) for item in characters if isinstance(item, dict)]
+            if names:
+                lines.append('Drafted characters: ' + ', '.join(names))
+        if message:
+            lines.append(str(message))
+    elif status == 'awaiting_clarification':
+        lines.append('I need one clarification before continuing:')
+        if isinstance(question, dict):
+            prompt = question.get('question') or question.get('message')
+            if prompt:
+                lines.append(str(prompt))
+            conflicts = question.get('conflicts') or []
+            if conflicts:
+                lines.append('Details: ' + '; '.join(str(item) for item in conflicts))
+        elif question:
+            lines.append(str(question))
+    elif status in {'setup_review', 'character_review', 'admin_review', 'day_end_review'}:
+        lines.append('Review ready.')
+        proposal = value.get('proposal')
+        if isinstance(proposal, dict) and proposal.get('answer'):
+            lines.append(str(proposal['answer']))
+        if isinstance(proposal, dict):
+            changes = proposal.get('changes') or []
+            files = [str(change.get('target_file')) for change in changes if isinstance(change, dict) and change.get('target_file')]
+            if files:
+                lines.append('Files affected: ' + ', '.join(files))
+        if status == 'setup_review':
+            lines.append('Approve the new campaign with /approve-reset, or revise it with a message.')
+        elif status == 'day_end_review':
+            lines.append('Approve day-end promotion with /approve, or revise it with a message.')
+        else:
+            lines.append('Approve with /approve, or revise it with a message.')
+    elif status == 'retry':
+        lines.append('The game paused safely while processing.')
+        lines.append('It will retry automatically; use /retry to try again manually.')
+        if message:
+            lines.append(str(message))
+    elif status == 'setup_required':
+        lines.append('No campaign has been created yet.')
+        lines.append('Starting a new game...')
+    elif status == 'specialists' or value.get('specialist_proposals'):
+        proposals = value.get('specialist_proposals') or []
+        lines.append('Specialist proposals:')
+        if isinstance(proposals, list) and proposals:
+            for proposal in proposals:
+                if isinstance(proposal, dict):
+                    name = proposal.get('name', 'unnamed')
+                    purpose = proposal.get('purpose', 'no purpose recorded')
+                    lines.append(f'  - {name}: {purpose}')
+        else:
+            lines.append('  None stored.')
+    elif message:
+        lines.append(str(message))
+
+    if position and status not in {'setup_draft', 'setup_review', 'character_review', 'admin_review', 'day_end_review'}:
+        lines.append(position)
+
+    if not lines:
+        if status:
+            lines.append(status.replace('_', ' ').capitalize() + '.')
+        else:
+            lines.append('Done.')
+    return '\n'.join(lines)
+
+
 def _print(value: object) -> None:
-    print(json.dumps(value, ensure_ascii=False, indent=2, default=str))
+    print(_player_text(value))
 
 
 def _stabilize(pipeline: CampaignPipeline, result: dict[str, Any], enabled: bool = True) -> dict[str, Any]:
