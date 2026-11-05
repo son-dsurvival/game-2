@@ -208,17 +208,9 @@ class FrontendService:
             'position': result.get('position', {}),
             'text': _player_text(result, include_preview=False),
         }
-        proposal = result.get('proposal')
-        if isinstance(proposal, dict):
-            preview = []
-            for change in proposal.get('changes') or []:
-                if not isinstance(change, dict) or not str(change.get('target_file', '')).startswith('markdown_files/'):
-                    continue
-                content = change.get('new_text')
-                if isinstance(content, str):
-                    preview.append({'target_file': change.get('target_file'), 'action': change.get('action', 'update'), 'content': content})
-            if preview:
-                public['preview'] = preview
+        preview = result.get('proposal_preview')
+        if isinstance(preview, list) and preview:
+            public['preview'] = preview
         question = result.get('question')
         if isinstance(question, dict):
             public['question'] = {'question': question.get('question', '')}

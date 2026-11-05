@@ -47,8 +47,19 @@ class CampaignPipeline:
             result['draft'] = {key: value for key, value in state['draft'].items() if key != 'previous_gate'}
         if state.get('pending_clarification'):
             result['question'] = state['pending_clarification']
-        if state.get('proposal'):
-            result['proposal'] = state['proposal']
+        proposal = state.get('proposal')
+        if isinstance(proposal, dict):
+            result['proposal_preview'] = [
+                {
+                    'target_file': change.get('target_file'),
+                    'action': change.get('action', 'update'),
+                    'content': change.get('new_text', ''),
+                }
+                for change in proposal.get('changes', [])
+                if isinstance(change, dict)
+                and str(change.get('target_file', '')).startswith('markdown_files/')
+                and isinstance(change.get('new_text'), str)
+            ]
         if state.get('specialist_proposals'):
             result['specialist_proposals'] = list(state['specialist_proposals'].values())
         return result

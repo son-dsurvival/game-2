@@ -76,6 +76,8 @@ class PipelineTests(unittest.TestCase):
             pipeline = CampaignPipeline(root, modules=ScriptedGame())
             review = pipeline.submit('{correct my notes}')
             self.assertEqual(review['status'], 'admin_review')
+            self.assertEqual(review['proposal_preview'][0]['target_file'], 'markdown_files/notes.md')
+            self.assertEqual(review['proposal_preview'][0]['content'], 'after')
             self.assertEqual(target.read_text(encoding='utf-8'), 'before')
             applied = pipeline.approve()
             self.assertEqual(applied['status'], 'open')

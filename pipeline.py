@@ -85,21 +85,20 @@ def _player_text(value: object, *, include_preview: bool = True) -> str:
             lines.append(str(question))
     elif status in {'setup_review', 'character_review', 'admin_review', 'day_end_review'}:
         lines.append('Review ready.')
-        proposal = value.get('proposal')
-        if isinstance(proposal, dict) and proposal.get('answer'):
-            lines.append(str(proposal['answer']))
-        if isinstance(proposal, dict):
-            changes = proposal.get('changes') or []
-            files = [str(change.get('target_file')) for change in changes if isinstance(change, dict) and change.get('target_file')]
+        preview = value.get('proposal_preview')
+        if message:
+            lines.append(str(message))
+        if isinstance(preview, list):
+            files = [str(item.get('target_file')) for item in preview if isinstance(item, dict) and item.get('target_file')]
             if files:
                 lines.append('Files affected: ' + ', '.join(files))
             if include_preview:
-                for change in changes:
-                    if not isinstance(change, dict) or not str(change.get('target_file', '')).startswith('markdown_files/'):
+                for item in preview:
+                    if not isinstance(item, dict) or not item.get('target_file'):
                         continue
-                    content = change.get('new_text')
+                    content = item.get('content')
                     if isinstance(content, str) and content:
-                        lines.append(f"\n--- Proposed {change['target_file']} ---\n{content}")
+                        lines.append(f"\n--- Proposed {item['target_file']} ---\n{content}")
         if status == 'setup_review':
             lines.append('Approve the new campaign with /approve-reset, or revise it with a message.')
         elif status == 'day_end_review':
