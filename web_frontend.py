@@ -28,8 +28,8 @@ HTML = r'''<!doctype html>
     :root { color-scheme: dark; --bg:#101318; --panel:#191e27; --panel2:#222936; --text:#edf2f7; --muted:#9ba8b7; --accent:#73b7ff; --line:#303b4a; }
     * { box-sizing:border-box; }
     body { margin:0; min-height:100vh; background:var(--bg); color:var(--text); font:15px/1.5 system-ui, sans-serif; }
-    .shell { display:grid; grid-template-columns:270px minmax(0,1fr); min-height:100vh; }
-    aside { padding:24px 18px; background:var(--panel); border-right:1px solid var(--line); }
+    .shell { display:grid; grid-template-columns:270px minmax(0,1fr); height:100vh; min-height:100vh; }
+    aside { position:sticky; top:0; height:100vh; overflow-y:auto; z-index:10; padding:24px 18px; background:var(--panel); border-right:1px solid var(--line); }
     h1 { margin:0 0 4px; font-size:21px; }
     .subtitle { margin:0 0 28px; color:var(--muted); }
     .label { margin:18px 0 6px; color:var(--muted); font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
@@ -38,8 +38,8 @@ HTML = r'''<!doctype html>
     .actions { display:grid; gap:7px; }
     button { border:1px solid var(--line); border-radius:7px; padding:9px 10px; background:var(--panel2); color:var(--text); cursor:pointer; text-align:left; }
     button:hover { border-color:var(--accent); }
-    main { display:flex; flex-direction:column; width:min(100%, 1000px); padding:28px clamp(18px, 5vw, 64px); }
-    #transcript { flex:1; overflow:auto; padding:4px 0 24px; }
+    main { display:flex; flex-direction:column; min-height:0; height:100vh; width:min(100%, 1000px); padding:28px clamp(18px, 5vw, 64px); }
+    #transcript { flex:1; min-height:0; overflow:auto; padding:4px 0 24px; }
     .entry { margin:0 0 18px; white-space:pre-wrap; }
     .entry.user { color:var(--accent); }
     .entry.system { color:var(--text); }
@@ -48,7 +48,7 @@ HTML = r'''<!doctype html>
     form { display:flex; gap:10px; border-top:1px solid var(--line); padding-top:18px; }
     textarea { flex:1; min-height:48px; max-height:160px; resize:vertical; border:1px solid var(--line); border-radius:8px; padding:12px; background:var(--panel); color:var(--text); font:inherit; }
     form button { align-self:stretch; background:var(--accent); color:#07111d; border-color:var(--accent); font-weight:700; text-align:center; min-width:82px; }
-    @media (max-width:700px) { .shell { display:block; } aside { border-right:0; border-bottom:1px solid var(--line); } .actions { grid-template-columns:repeat(2, 1fr); } main { min-height:65vh; } }
+    @media (max-width:700px) { .shell { display:block; height:100vh; } aside { height:auto; max-height:44vh; border-right:0; border-bottom:1px solid var(--line); } .actions { grid-template-columns:repeat(2, 1fr); } main { height:56vh; min-height:56vh; } }
   </style>
 </head>
 <body>
