@@ -25,8 +25,10 @@ class SetupDrafts:
         campaign_id = current.get('campaign_id') if mode != 'new_game' else None
         self.state.save({'draft': {'campaign_id': campaign_id or 'campaign-' + uuid.uuid4().hex,
                                    'characters': [], 'main_character': None, 'mode': mode,
-                                   'previous_gate': current['play_gate'], 'question': 'identity', 'partial': {}},
-                         'play_gate': 'setup_draft', 'message': 'Identity: enter name | age | race.'})
+                                   'previous_gate': current['play_gate'], 'question': 'identity',
+                                   'partial': {}, 'conversation': []},
+                         'play_gate': 'setup_draft',
+                         'message': 'Tell me about your character in your own words. Include anything you already know: name, age, ancestry, background, personality, abilities, or class idea.'})
 
     def add(self, identity: dict[str, Any], stats: dict[str, Any], description: str, character_class: str) -> None:
         state = self.state.load()
@@ -44,9 +46,9 @@ class SetupDrafts:
         draft = state['draft']
         characters = [item for item in draft['characters'] if item['identity']['name'].casefold() != str(identity['name']).casefold()]
         characters.append({'identity': identity, 'stats': values, 'description': description, 'class': character_class})
-        draft.update(characters=characters, question='party', partial={})
+        draft.update(characters=characters, question='party', partial={}, conversation=[])
         self.state.save({'draft': draft, 'proposal': None, 'operation': None, 'play_gate': 'setup_draft',
-                         'message': 'Character drafted. /add for another, /main NAME, or /review.'})
+                         'message': 'Character drafted. Tell me about another character, or choose the main character when the party is ready.'})
 
     def choose(self, name: str) -> None:
         state = self.state.load()
@@ -63,6 +65,48 @@ class SetupDrafts:
             draft['character'] = name
         else:
             draft['main_character'] = name
+        self.state.save({'draft': draft})
+
+    def apply_chat(self, response: dict[str, Any]) -> None:
+        """Apply an AI-extracted setup turn, while keeping all validation local."""
+        state = self.state.load()
+        draft = state.get('draft')
+        if not draft or state['play_gate'] != 'setup_draft':
+            raise RuntimeError('No character question is pending.')
+        patch_value = response.get('draft')
+        patch: dict[str, Any] = patch_value if isinstance(patch_value, dict) else {}
+        partial_value = draft.get('partial')
+        partial: dict[str, Any] = partial_value if isinstance(partial_value, dict) else {}
+        draft['partial'] = partial
+        for field in ('identity', 'stats', 'description', 'class'):
+            value = patch.get(field)
+            if value not in (None, '', {}):
+                if field in {'identity', 'stats'} and isinstance(value, dict):
+                    existing_value = partial.get(field)
+                    existing: dict[str, Any] = existing_value if isinstance(existing_value, dict) else {}
+                    partial[field] = {**existing, **value}
+                else:
+                    partial[field] = value
+        conversation_value = draft.get('conversation')
+        conversation: list[dict[str, str]] = conversation_value if isinstance(conversation_value, list) else []
+        draft['conversation'] = conversation
+        conversation.append({'role': 'user', 'content': str(response.get('user_message', ''))})
+        assistant_message = str(response.get('assistant_message', '')).strip()
+        if assistant_message:
+            conversation.append({'role': 'assistant', 'content': assistant_message})
+
+        if response.get('complete'):
+            try:
+                self.add(partial.get('identity', {}), partial.get('stats', {}),
+                         str(partial.get('description', '')), str(partial.get('class', '')))
+                return
+            except (TypeError, ValueError) as exc:
+                draft['message'] = f'{assistant_message}\nBefore I finalize that character: {exc}'.strip()
+        else:
+            draft['message'] = assistant_message or 'Tell me a little more about the character.'
+        # The chatbot uses the persisted partial/conversation; identity is also
+        # the deterministic fallback if the provider is temporarily unavailable.
+        draft['question'] = 'identity'
         self.state.save({'draft': draft})
 
     def answer(self, text: str) -> None:
@@ -96,7 +140,7 @@ class SetupDrafts:
             self.add(partial['identity'], partial['stats'], partial['description'], text)
             return
         else:
-            raise ValueError('Use /add, /main NAME, /review, or /cancel-setup.')
+            raise ValueError('Tell me about the character, or use /add, /main NAME, /review, or /cancel-setup.')
         self.state.save({'draft': draft, 'message': message})
 
     def another(self) -> None:
@@ -106,8 +150,8 @@ class SetupDrafts:
         draft = state['draft']
         if draft.get('mode') in {'new_character', 'new_party_member'} and draft['characters']:
             raise ValueError('Mid-campaign additions take one character at a time; review or cancel.')
-        draft.update(question='identity', partial={})
-        self.state.save({'draft': draft, 'message': 'Identity: name | age | race.'})
+        draft.update(question='identity', partial={}, conversation=[])
+        self.state.save({'draft': draft, 'message': 'Tell me about the next character in your own words.'})
 
     def cancel(self) -> None:
         state = self.state.load()

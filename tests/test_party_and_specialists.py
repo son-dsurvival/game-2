@@ -77,6 +77,25 @@ class CharacterModeTests(unittest.TestCase):
             self.assertEqual(state['draft']['mode'], 'new_character')
             self.assertEqual(state['draft']['campaign_id'], 'campaign-one')
 
+    def test_chat_setup_accumulates_natural_language_patches_before_validation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = RuntimeStateStore(directory)
+            store.save({'play_gate': 'setup_required'})
+            drafts = SetupDrafts(store)
+            drafts.begin('new_game')
+            drafts.apply_chat({'user_message': 'I want Kael, a human frontier hunter.',
+                                'assistant_message': 'What age and starting stats should Kael have?',
+                                'complete': False,
+                                'draft': {'identity': {'name': 'Kael', 'race': 'Human'},
+                                          'description': 'A frontier hunter.', 'class': 'Hunter'}})
+            drafts.apply_chat({'user_message': 'He is 24. Use AGI 6 INT 6 STR 6 END 6 WIS 3 PRE 3.',
+                                'assistant_message': 'Kael is ready.', 'complete': True,
+                                'draft': {'identity': {'age': 24},
+                                          'stats': {'AGI': 6, 'INT': 6, 'STR': 6, 'END': 6, 'WIS': 3, 'PRE': 3}}})
+            state = store.load()
+            self.assertEqual(state['draft']['characters'][0]['identity']['name'], 'Kael')
+            self.assertEqual(state['draft']['characters'][0]['stats']['STR'], 6)
+
     def test_mid_campaign_addition_takes_one_character_at_a_time(self):
         with tempfile.TemporaryDirectory() as directory:
             store = RuntimeStateStore(directory)

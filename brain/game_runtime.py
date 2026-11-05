@@ -67,6 +67,11 @@ class CampaignPipeline:
                 return self._revise(message, state)
             if state['play_gate'] == 'setup_draft':
                 from brain.setup_drafts import SetupDrafts
+                if hasattr(self.modules, 'setup_chat'):
+                    response = self.modules.setup_chat(state.get('draft') or {}, message)
+                    if response.get('status') != 'fallback':
+                        SetupDrafts(self.state).apply_chat(response)
+                        return self.view()
                 SetupDrafts(self.state).answer(message)
                 return self.view()
             if state['play_gate'] == 'awaiting_clarification':

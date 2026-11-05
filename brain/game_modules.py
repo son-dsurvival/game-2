@@ -16,6 +16,7 @@ from brain.build_evidence_index import build_index as evidence_index
 from brain.evidence_bundle import EvidenceBundleBuilder
 from brain.dice import DiceJournal
 from brain.lead_resolver import LeadResolver
+from brain.model_gateway import ModelGateway
 from brain.narrator import Narrator
 from brain.persistence import atomic_json
 from brain.recorder import SessionRecorder
@@ -237,6 +238,41 @@ class GameModules:
             updated = original.rstrip() + '\n\n' + section + '\n'
         change = {'target_file': 'markdown_files/Branch Registry.md', 'action': 'update', 'old_text': original, 'new_text': updated, 'reason': 'Install approved Create Specialist proposal.'}
         return {'status': 'proposal_ready', 'answer': f'Install specialist {definition.name}?', 'changes': [change], 'evidence': [], 'instructions': [], 'questions': [], 'conflicts': [], 'approval_required': True}
+
+    def setup_chat(self, draft: dict[str, Any], player_message: str) -> dict[str, Any]:
+        """Use the model as a conversational collector, not as the validator."""
+        partial_value = draft.get('partial')
+        partial: dict[str, Any] = partial_value if isinstance(partial_value, dict) else {}
+        history_value = draft.get('conversation')
+        history: list[Any] = history_value if isinstance(history_value, list) else []
+        prompt = (
+            'You are a warm, concise tabletop game-master assistant collecting ONE character for campaign setup. '
+            'Have a natural conversation instead of presenting a form. Extract only information the player stated or clearly accepted. '
+            'Ask for whatever is still missing, but do not ask for fields already known. A complete character requires identity '
+            '(name, age, race/ancestry), six starting stats named AGI, INT, STR, END, WIS, PRE totaling exactly 30, a description, '
+            'and a class concept. If the player asks you to create or suggest a class, you may provide one. Do not write files, '
+            'change rules, or invent unstated personal facts. Return JSON only with this shape:\n'
+            '{"assistant_message":"...", "complete":false, "draft":{"identity":{},"stats":{},"description":"","class":""}}\n'
+            'The draft object is a PATCH: omit fields not newly known. Set complete true only when every required field is present '
+            'and the stats total 30. If stats are missing or invalid, ask naturally for them.\n'
+            + json.dumps({'mode': draft.get('mode'), 'known': partial, 'history': history[-8:], 'player_message': player_message}, ensure_ascii=False)
+        )
+        try:
+            result = ModelGateway(self.root).complete(
+                stage='setup.chat',
+                messages=[{'role': 'system', 'content': prompt}],
+                json_mode=True,
+                temperature=0.2,
+                max_retries=1,
+            )
+            parsed = json.loads(result.content)
+            if not isinstance(parsed, dict):
+                raise ValueError('Setup chatbot returned a non-object response.')
+            parsed['user_message'] = player_message
+            return parsed
+        except (OSError, RuntimeError, ValueError, json.JSONDecodeError):
+            # The deterministic collector remains available if the provider is down.
+            return {'status': 'fallback'}
 
     def prepare_setup(self, context: dict[str, Any]) -> dict[str, Any]:
         required = {'status sheet.md', 'character relationship.md', 'Ledger Resources.md', 'Experimentation Register.md', 'Branch Registry.md', 'TEMP_MEMORY.md', '🌍 CORE WORLD FRAME (REFINED).md'}
