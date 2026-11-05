@@ -76,6 +76,10 @@ class CharacterModeTests(unittest.TestCase):
             state = store.load()
             self.assertEqual(state['draft']['mode'], 'new_character')
             self.assertEqual(state['draft']['campaign_id'], 'campaign-one')
+            self.assertEqual(state['draft']['main_character'], None)
+            store.save({'main_character': 'Kael', 'play_gate': 'open', 'draft': None, 'operation': None})
+            SetupDrafts(store).begin('new_party_member')
+            self.assertEqual(store.load()['draft']['main_character'], 'Kael')
 
     def test_chat_setup_accumulates_natural_language_patches_before_validation(self):
         with tempfile.TemporaryDirectory() as directory:

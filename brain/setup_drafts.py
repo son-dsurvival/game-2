@@ -23,12 +23,16 @@ class SetupDrafts:
         if mode != 'new_game' and current['play_gate'] != 'open':
             raise RuntimeError('Adding characters requires an active campaign.')
         campaign_id = current.get('campaign_id') if mode != 'new_game' else None
+        main_character = current.get('main_character') if mode != 'new_game' else None
+        prompt = ('Tell me about your character in your own words. Include anything you already know: name, age, ancestry, '
+                  'background, personality, abilities, or class idea.')
+        if main_character:
+            prompt += f' The campaign main character is already {main_character}; it will not change.'
         self.state.save({'draft': {'campaign_id': campaign_id or 'campaign-' + uuid.uuid4().hex,
-                                   'characters': [], 'main_character': None, 'mode': mode,
+                                   'characters': [], 'main_character': main_character, 'mode': mode,
                                    'previous_gate': current['play_gate'], 'question': 'identity',
                                    'partial': {}, 'conversation': [], 'party_done': False},
-                         'play_gate': 'setup_draft',
-                         'message': 'Tell me about your character in your own words. Include anything you already know: name, age, ancestry, background, personality, abilities, or class idea.'})
+                         'play_gate': 'setup_draft', 'message': prompt})
 
     def add(self, identity: dict[str, Any], stats: dict[str, Any], description: str, character_class: str) -> None:
         state = self.state.load()
@@ -47,8 +51,11 @@ class SetupDrafts:
         characters = [item for item in draft['characters'] if item['identity']['name'].casefold() != str(identity['name']).casefold()]
         characters.append({'identity': identity, 'stats': values, 'description': description, 'class': character_class})
         draft.update(characters=characters, question='party', partial={}, conversation=[], party_done=False)
+        message = 'Character drafted. Tell me about another character, or choose the main character when the party is ready.'
+        if draft.get('main_character'):
+            message = f'Character drafted. {draft["main_character"]} remains the campaign main character.'
         self.state.save({'draft': draft, 'proposal': None, 'operation': None, 'play_gate': 'setup_draft',
-                         'message': 'Character drafted. Tell me about another character, or choose the main character when the party is ready.'})
+                         'message': message})
 
     def choose(self, name: str) -> None:
         state = self.state.load()

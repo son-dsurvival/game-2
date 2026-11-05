@@ -257,7 +257,8 @@ class GameModules:
             'and the stats total 30. If stats are missing or invalid, ask naturally for them. If the player explicitly names '
             'the main character or says the party is ready/done, set main_character and/or party_done. Never set those fields '
             'based only on a guess.\n'
-            + json.dumps({'mode': draft.get('mode'), 'existing_characters': draft.get('characters', []), 'known': partial,
+            + json.dumps({'mode': draft.get('mode'), 'main_character': draft.get('main_character'),
+                          'existing_characters': draft.get('characters', []), 'known': partial,
                           'history': history[-8:], 'player_message': player_message}, ensure_ascii=False)
         )
         try:
