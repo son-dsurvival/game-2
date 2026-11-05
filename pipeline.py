@@ -98,6 +98,8 @@ def _player_text(value: object) -> str:
             lines.append('Approve day-end promotion with /approve, or revise it with a message.')
         else:
             lines.append('Approve with /approve, or revise it with a message.')
+    elif status in {'running', 'background_pending'}:
+        lines.append('The system is thinking…')
     elif status == 'retry':
         lines.append('The game paused safely while processing.')
         lines.append('It will retry automatically; use /retry to try again manually.')
@@ -249,6 +251,8 @@ def main() -> None:
             print('Progress saved.')
             break
         try:
+            if text not in {'/help', '/quit'}:
+                print('System: thinking…')
             result = process_input(pipeline, text, auto=auto)
             if result.get('status') == 'quit':
                 print(result.get('message', 'Progress saved.'))

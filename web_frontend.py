@@ -86,19 +86,24 @@ HTML = r'''<!doctype html>
   const positionEl = document.querySelector('#position');
 
   function addEntry(kind, text) {
-    if (!text) return;
+    if (!text) return null;
     const entry = document.createElement('div');
     entry.className = `entry ${kind}`;
     const tag = document.createElement('span');
     tag.className = 'tag';
-    tag.textContent = kind === 'user' ? 'You' : kind === 'error' ? 'Error' : 'Game';
+    tag.textContent = kind === 'user' ? 'You' : kind === 'error' ? 'Error' : 'System';
     entry.append(tag, document.createTextNode(text));
     transcript.appendChild(entry);
     transcript.scrollTop = transcript.scrollHeight;
+    return entry;
   }
 
-  function applyState(data, userText='') {
-    if (userText) addEntry('user', userText);
+  function setBusy(busy) {
+    input.disabled = busy;
+    document.querySelectorAll('button').forEach(button => button.disabled = busy);
+  }
+
+  function applyState(data) {
     statusEl.textContent = (data.status || 'unknown').replaceAll('_', ' ');
     const p = data.position || {};
     positionEl.textContent = p.day ? `Day ${p.day} — ${p.phase}` : '—';
@@ -106,13 +111,21 @@ HTML = r'''<!doctype html>
   }
 
   async function send(text) {
-    if (!text.trim()) return;
+    text = text.trim();
+    if (!text || input.disabled) return;
     input.value = '';
+    addEntry('user', text);
+    const thinking = addEntry('system', 'The system is thinking…');
+    setBusy(true);
     try {
       const response = await fetch('/api/input', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text}) });
       const data = await response.json();
-      applyState(data, text);
-    } catch (error) { addEntry('error', 'The frontend could not reach the game server.'); }
+      if (thinking) thinking.remove();
+      applyState(data);
+    } catch (error) {
+      if (thinking) thinking.remove();
+      addEntry('error', 'The frontend could not reach the game server.');
+    } finally { setBusy(false); }
   }
 
   document.querySelector('#input-form').addEventListener('submit', event => { event.preventDefault(); send(input.value); });
