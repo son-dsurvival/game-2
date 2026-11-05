@@ -67,12 +67,21 @@ class CampaignPipeline:
                 return self._revise(message, state)
             if state['play_gate'] == 'setup_draft':
                 from brain.setup_drafts import SetupDrafts
+                drafts = SetupDrafts(self.state)
                 if hasattr(self.modules, 'setup_chat'):
-                    response = self.modules.setup_chat(state.get('draft') or {}, message)
+                    # Never lose the player's message just because the model is
+                    # slow, unavailable, or returns an unusable response.
+                    drafts.record_chat_input(message)
+                    response = self.modules.setup_chat(self.state.load().get('draft') or {}, message)
                     if response.get('status') != 'fallback':
-                        SetupDrafts(self.state).apply_chat(response)
+                        drafts.apply_chat(response)
                         return self.view()
-                SetupDrafts(self.state).answer(message)
+                    try:
+                        drafts.answer(message)
+                    except ValueError:
+                        drafts.save_chat_message('I saved that message, but the setup assistant is temporarily unavailable. Try again, or use name | age | race for the deterministic fallback.')
+                    return self.view()
+                drafts.answer(message)
                 return self.view()
             if state['play_gate'] == 'awaiting_clarification':
                 operation = state['operation']

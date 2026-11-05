@@ -67,6 +67,26 @@ class SetupDrafts:
             draft['main_character'] = name
         self.state.save({'draft': draft})
 
+    def record_chat_input(self, text: str) -> None:
+        """Persist the player's setup message before any model call."""
+        state = self.state.load()
+        draft = state.get('draft')
+        if not draft or state['play_gate'] != 'setup_draft':
+            raise RuntimeError('No character question is pending.')
+        conversation_value = draft.get('conversation')
+        conversation: list[dict[str, str]] = conversation_value if isinstance(conversation_value, list) else []
+        conversation.append({'role': 'user', 'content': text})
+        draft['conversation'] = conversation
+        self.state.save({'draft': draft})
+
+    def save_chat_message(self, message: str) -> None:
+        state = self.state.load()
+        draft = state.get('draft')
+        if not draft or state['play_gate'] != 'setup_draft':
+            raise RuntimeError('No character question is pending.')
+        draft['message'] = message
+        self.state.save({'draft': draft, 'message': message})
+
     def apply_chat(self, response: dict[str, Any]) -> None:
         """Apply an AI-extracted setup turn, while keeping all validation local."""
         state = self.state.load()
@@ -90,7 +110,9 @@ class SetupDrafts:
         conversation_value = draft.get('conversation')
         conversation: list[dict[str, str]] = conversation_value if isinstance(conversation_value, list) else []
         draft['conversation'] = conversation
-        conversation.append({'role': 'user', 'content': str(response.get('user_message', ''))})
+        user_message = str(response.get('user_message', '')).strip()
+        if user_message and not (conversation and conversation[-1].get('role') == 'user' and conversation[-1].get('content') == user_message):
+            conversation.append({'role': 'user', 'content': user_message})
         assistant_message = str(response.get('assistant_message', '')).strip()
         if assistant_message:
             conversation.append({'role': 'assistant', 'content': assistant_message})
@@ -107,7 +129,7 @@ class SetupDrafts:
         # The chatbot uses the persisted partial/conversation; identity is also
         # the deterministic fallback if the provider is temporarily unavailable.
         draft['question'] = 'identity'
-        self.state.save({'draft': draft})
+        self.state.save({'draft': draft, 'message': draft.get('message', '')})
 
     def answer(self, text: str) -> None:
         state = self.state.load()

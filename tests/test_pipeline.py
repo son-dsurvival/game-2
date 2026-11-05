@@ -255,6 +255,21 @@ class PipelineTests(unittest.TestCase):
             review = pipeline.propose_specialist('beast_taming')
             self.assertEqual(review['status'], 'admin_review')
             self.assertEqual(pipeline.approve()['status'], 'open')
+    def test_setup_chat_persists_player_message_when_model_is_unavailable(self):
+        class OfflineChat(ScriptedGame):
+            def setup_chat(self, draft, message):
+                return {'status': 'fallback'}
+
+        with tempfile.TemporaryDirectory() as root:
+            RuntimeStateStore(root).save({'play_gate': 'setup_required'})
+            pipeline = CampaignPipeline(root, modules=OfflineChat())
+            pipeline.begin_setup()
+            result = pipeline.submit('I want a quiet human ranger named Kael.')
+            self.assertEqual(result['status'], 'setup_draft')
+            state = RuntimeStateStore(root).load()
+            self.assertEqual(state['draft']['conversation'][-1]['content'], 'I want a quiet human ranger named Kael.')
+            self.assertIn('saved that message', state['message'])
+
     def test_setup_question_surfaces_and_resumes_same_draft(self):
         with tempfile.TemporaryDirectory() as root:
             Path(root, 'markdown_files').mkdir()
