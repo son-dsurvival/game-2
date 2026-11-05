@@ -37,6 +37,10 @@ HTML = r'''<!doctype html>
     #position { color:var(--muted); font-size:13px; }
     .actions { display:grid; gap:7px; }
     button { border:1px solid var(--line); border-radius:7px; padding:9px 10px; background:var(--panel2); color:var(--text); cursor:pointer; text-align:left; }
+    button:disabled { cursor:wait; opacity:.55; }
+    .files { display:grid; gap:5px; max-height:31vh; overflow-y:auto; }
+    .files a { color:var(--accent); font-size:13px; overflow-wrap:anywhere; text-decoration:none; }
+    .files a:hover { text-decoration:underline; }
     button:hover { border-color:var(--accent); }
     main { display:flex; flex-direction:column; min-height:0; height:100vh; width:min(100%, 1000px); padding:28px clamp(18px, 5vw, 64px); }
     #transcript { flex:1; min-height:0; overflow:auto; padding:4px 0 24px; }
@@ -70,6 +74,8 @@ HTML = r'''<!doctype html>
         <button data-command="/specialists">Specialists</button>
         <button data-command="/retry">Retry</button>
       </div>
+      <div class="label">Campaign files</div>
+      <div id="files" class="files">Loading…</div>
     </aside>
     <main>
       <section id="transcript" aria-live="polite"></section>
@@ -84,6 +90,7 @@ HTML = r'''<!doctype html>
   const input = document.querySelector('#input');
   const statusEl = document.querySelector('#status');
   const positionEl = document.querySelector('#position');
+  const filesEl = document.querySelector('#files');
 
   function addEntry(kind, text) {
     if (!text) return null;
@@ -138,6 +145,18 @@ HTML = r'''<!doctype html>
   });
   document.querySelectorAll('[data-command]').forEach(button => button.addEventListener('click', () => send(button.dataset.command)));
   fetch('/api/state').then(response => response.json()).then(data => applyState(data)).catch(() => addEntry('error', 'The game server is unavailable.'));
+  fetch('/api/files').then(response => response.json()).then(data => {
+    filesEl.replaceChildren();
+    for (const name of data.files || []) {
+      const link = document.createElement('a');
+      link.href = `/api/file?name=${encodeURIComponent(name)}`;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.textContent = name;
+      filesEl.appendChild(link);
+    }
+    if (!filesEl.children.length) filesEl.textContent = 'No Markdown files found.';
+  }).catch(() => { filesEl.textContent = 'Campaign files unavailable.'; });
 </script>
 </body>
 </html>'''
@@ -184,6 +203,29 @@ class FrontendService:
         except (ValueError, RuntimeError) as exc:
             return {'status': 'error', 'position': {}, 'text': str(exc), 'error': True}
 
+    def list_files(self) -> list[str]:
+        directory = self.pipeline.root / 'markdown_files'
+        if not directory.is_dir():
+            return []
+        return sorted(
+            path.relative_to(directory).as_posix()
+            for path in directory.rglob('*.md')
+            if path.is_file()
+        )
+
+    def read_file(self, name: str) -> str:
+        if not name or Path(name).is_absolute() or '..' in Path(name).parts:
+            raise ValueError('Invalid campaign file.')
+        directory = (self.pipeline.root / 'markdown_files').resolve()
+        path = (directory / Path(name)).resolve()
+        try:
+            path.relative_to(directory)
+        except ValueError as exc:
+            raise ValueError('Invalid campaign file.') from exc
+        if path.suffix.casefold() != '.md' or not path.is_file():
+            raise FileNotFoundError('Campaign file not found.')
+        return path.read_text(encoding='utf-8')
+
 
 class Handler(BaseHTTPRequestHandler):
     service: FrontendService
@@ -202,6 +244,20 @@ class Handler(BaseHTTPRequestHandler):
             self._send(HTTPStatus.OK, 'text/html; charset=utf-8', HTML.encode('utf-8'))
         elif path == '/api/state':
             self._send(HTTPStatus.OK, 'application/json; charset=utf-8', json.dumps(self.service.state(), ensure_ascii=False).encode('utf-8'))
+        elif path == '/api/files':
+            body = json.dumps({'files': self.service.list_files()}, ensure_ascii=False).encode('utf-8')
+            self._send(HTTPStatus.OK, 'application/json; charset=utf-8', body)
+        elif path == '/api/file':
+            from urllib.parse import parse_qs
+            name = parse_qs(urlparse(self.path).query).get('name', [''])[0]
+            try:
+                content = self.service.read_file(name)
+            except FileNotFoundError:
+                self._send(HTTPStatus.NOT_FOUND, 'text/plain; charset=utf-8', b'Campaign file not found.')
+            except ValueError:
+                self._send(HTTPStatus.BAD_REQUEST, 'text/plain; charset=utf-8', b'Invalid campaign file.')
+            else:
+                self._send(HTTPStatus.OK, 'text/plain; charset=utf-8', content.encode('utf-8'))
         else:
             self._send(HTTPStatus.NOT_FOUND, 'text/plain; charset=utf-8', b'Not found')
 
