@@ -44,6 +44,7 @@ HTML = r'''<!doctype html>
     body { margin:0; min-height:100vh; background:var(--bg); color:var(--text); font:15px/1.5 system-ui, sans-serif; }
     .file-bar { position:sticky; top:0; z-index:30; display:flex; align-items:center; gap:16px; min-height:52px; padding:9px 18px; background:var(--panel2); border-bottom:1px solid var(--line); }
     .file-bar strong { flex:0 0 auto; color:var(--text); font-size:13px; }
+    .file-bar strong a { color:var(--text); text-decoration:none; }
     .file-links { display:flex; gap:14px; min-width:0; overflow-x:auto; white-space:nowrap; }
     .file-links a { color:var(--accent); font-size:13px; text-decoration:none; }
     .file-links a:hover { text-decoration:underline; }
@@ -80,8 +81,8 @@ HTML = r'''<!doctype html>
 </head>
 <body>
   <nav class="file-bar" aria-label="Campaign Markdown navigation">
-    <strong>Campaign files</strong>
-    <div id="file-links" class="file-links">Loading…</div>
+    <strong><a href="/">Campaign terminal</a></strong>
+    <div id="file-links" class="file-links">Campaign files: Loading…</div>
   </nav>
   <div class="shell">
     <aside>
@@ -300,7 +301,7 @@ nav strong {{ flex:0 0 auto; }} nav a {{ color:var(--accent); text-decoration:no
 main {{ width:min(1100px,100%); margin:0 auto; padding:28px 20px 60px; }} h1 {{ margin:0 0 6px; font-size:25px; }} .description {{ margin:0 0 22px; color:var(--muted); }}
 pre {{ margin:0; padding:20px; overflow:auto; border:1px solid var(--line); border-radius:9px; background:var(--panel); white-space:pre-wrap; font:13px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; }}
 </style></head><body>
-<nav aria-label="Campaign Markdown navigation"><strong>Campaign files</strong>{''.join(links)}</nav>
+<nav aria-label="Campaign Markdown navigation"><strong><a href="/" style="color:inherit;text-decoration:none">Campaign terminal</a></strong>{''.join(links)}</nav>
 <main><h1>{html.escape(name)}</h1><p class="description">{html.escape(description)}</p><pre>{html.escape(content)}</pre></main>
 </body></html>'''
 
