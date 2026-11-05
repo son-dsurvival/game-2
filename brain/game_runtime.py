@@ -245,7 +245,7 @@ class CampaignPipeline:
             if state['play_gate'] != 'setup_draft':
                 raise RuntimeError('Start a character draft before review.')
             mode = draft.get('mode', 'new_game')
-            if mode == 'new_game' and not draft.get('main_character'):
+            if mode == 'new_game' and (not draft.get('main_character') or not draft.get('party_done')):
                 raise RuntimeError('Finish the party and choose its main character before review.')
             if mode != 'new_game' and not draft.get('characters'):
                 raise RuntimeError('Draft the character before review.')

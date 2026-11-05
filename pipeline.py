@@ -14,6 +14,8 @@ HELP = """Commands:
   {message}            out-of-game administrative request
   /status              show the saved stage
   /retry               resume unfinished work
+  {pause}              pause roleplay and enter outside-game mode
+  {resume}             resume roleplay from a paused/new-day gate
   /new-game            start a new campaign (replaces the current one on approve)
   /new-character       add a player character to the active campaign
   /new-party-member    add an NPC companion to the active campaign
@@ -105,6 +107,14 @@ def _player_text(value: object, *, include_preview: bool = True) -> str:
             lines.append('Approve day-end promotion with /approve, or revise it with a message.')
         else:
             lines.append('Approve with /approve, or revise it with a message.')
+    elif status in {'new_game_pending', 'new_day_pending', 'paused', 'day_end_pending'}:
+        lines.append('Outside-game mode.')
+        if message:
+            lines.append(str(message))
+        if status == 'day_end_pending':
+            lines.append('Use /review to prepare the completed day for approval.')
+        elif status in {'new_game_pending', 'new_day_pending', 'paused'}:
+            lines.append('Use {resume} when you have finished reviewing the saved state.')
     elif status in {'running', 'background_pending'}:
         lines.append('The system is thinking…')
     elif status == 'retry':
@@ -157,7 +167,10 @@ def _stabilize(pipeline: CampaignPipeline, result: dict[str, Any], enabled: bool
 
 def _auto_review_after_main(pipeline: CampaignPipeline, result: dict[str, Any], enabled: bool) -> dict[str, Any]:
     """Move a deliberately completed draft into review automatically."""
-    if enabled and result.get('status') == 'setup_draft' and result.get('draft'):
+    if (enabled and result.get('status') == 'setup_draft'
+            and isinstance(result.get('draft'), dict)
+            and result['draft'].get('party_done')
+            and result['draft'].get('main_character')):
         return _stabilize(pipeline, pipeline.review_setup(), enabled)
     return result
 
@@ -199,6 +212,10 @@ def process_input(pipeline: CampaignPipeline, text: str, *, auto: bool = True) -
         raise ValueError('Enter a message.')
     if text == '/help':
         return {'status': 'help', 'message': HELP}
+    if text.casefold() in {'{pause}', '/pause'}:
+        return pipeline.pause()
+    if text.casefold() in {'{resume}', '/resume'}:
+        return pipeline.resume_play()
     if text == '/quit':
         return {'status': 'quit', 'message': 'Progress saved.'}
 
@@ -210,7 +227,7 @@ def process_input(pipeline: CampaignPipeline, text: str, *, auto: bool = True) -
         '/new-character': pipeline.new_character,
         '/new-party-member': pipeline.new_party_member,
         '/add': pipeline.another_character,
-        '/review': pipeline.review_setup,
+        '/review': pipeline.review_current,
         '/approve': pipeline.approve,
         '/approve-reset': lambda: pipeline.approve(confirm_reset=True),
         '/cancel-setup': pipeline.cancel_setup,
