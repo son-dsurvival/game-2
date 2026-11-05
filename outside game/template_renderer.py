@@ -47,6 +47,9 @@ class TemplateRenderer:
             raise ValueError("Campaign Markdown must remain human-readable; JSON blocks are not allowed")
         if require_no_directives and re.search(r"\{check [^}]+\}|\{(?:party|non-party) relationship blocks\}", content, re.I):
             raise ValueError("Unrendered template directive remains in the document")
+        unresolved = sorted(set(re.findall(r"\{[^{}\n]+\}", content)))
+        if unresolved:
+            raise ValueError(f"Unresolved template values remain: {', '.join(unresolved[:8])}")
         template = self._read(template_name)
         required_headings = {
             self._heading_key(line)
