@@ -106,6 +106,20 @@ class CharacterModeTests(unittest.TestCase):
             self.assertEqual(state['draft']['main_character'], 'Kael')
             self.assertTrue(state['draft']['party_done'])
 
+    def test_choosing_new_game_main_character_completes_party_draft(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = RuntimeStateStore(directory)
+            store.save({'play_gate': 'setup_required'})
+            drafts = SetupDrafts(store)
+            drafts.begin('new_game')
+            drafts.add({'name': 'Femi', 'age': 25, 'race': 'Human'},
+                       {'AGI': 5, 'INT': 5, 'STR': 5, 'END': 5, 'WIS': 5, 'PRE': 5},
+                       'An analytical engineer.', 'Cognitive Linker')
+            drafts.choose('Femi')
+            state = store.load()
+            self.assertEqual(state['draft']['main_character'], 'Femi')
+            self.assertTrue(state['draft']['party_done'])
+
     def test_mid_campaign_addition_takes_one_character_at_a_time(self):
         with tempfile.TemporaryDirectory() as directory:
             store = RuntimeStateStore(directory)

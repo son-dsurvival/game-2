@@ -72,6 +72,10 @@ class SetupDrafts:
             draft['character'] = name
         else:
             draft['main_character'] = name
+            # Choosing the main character explicitly closes the new-game
+            # party-drafting question. The player can still use /add first
+            # if they want to add more characters.
+            draft['party_done'] = True
         # Any conversational partial belongs to an unfinished character turn;
         # choosing the main character explicitly completes that ambiguity.
         draft['partial'] = {}
