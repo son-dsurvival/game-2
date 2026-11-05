@@ -13,6 +13,7 @@ from backend.phase_clock import PHASES, PhaseClock
 from backend.phase_tick import PhaseTickEngine
 from brain.build_canon_section_index import build_index as canon_index
 from brain.build_evidence_index import build_index as evidence_index
+from brain.branch_discovery import BranchDiscovery
 from brain.evidence_bundle import EvidenceBundleBuilder
 from brain.dice import DiceJournal
 from brain.lead_resolver import LeadResolver
@@ -278,10 +279,49 @@ class GameModules:
             # The deterministic collector remains available if the provider is down.
             return {'status': 'fallback'}
 
+    def _attach_setup_sources(self, bundle: dict[str, Any], filenames: set[str]) -> None:
+        """Give setup's Admin Agent exact private sources; never ask the player for them."""
+        evidence = bundle.get('evidence_bundle')
+        if not isinstance(evidence, dict):
+            return
+        sources = evidence.setdefault('admin_sources', [])
+        if not isinstance(sources, list):
+            sources = []
+            evidence['admin_sources'] = sources
+        template_names = {
+            'status sheet.md': 'character_status',
+            'character relationship.md': 'character_relationship',
+            'Ledger Resources.md': 'ledger_resources',
+            'Experimentation Register.md': 'experimentation_register',
+            'Branch Registry.md': 'branch_registry',
+            '🌍 CORE WORLD FRAME (REFINED).md': 'core_world_frame',
+        }
+        source_paths: list[tuple[str, Path]] = []
+        for filename in sorted(filenames):
+            campaign_path = self.root / 'markdown_files' / filename
+            if campaign_path.is_file():
+                source_paths.append((f'markdown_files/{filename}', campaign_path))
+            template_name = template_names.get(filename)
+            if template_name:
+                template_path = self.root / 'outside game' / 'templates' / f'{template_name}.md'
+                if template_path.is_file():
+                    source_paths.append((f'outside game/templates/{template_name}.md', template_path))
+        known = {str(item.get('source')) for item in sources if isinstance(item, dict)}
+        for relative, path in source_paths:
+            if relative in known:
+                continue
+            try:
+                content = path.read_text(encoding='utf-8')
+            except (OSError, UnicodeDecodeError):
+                continue
+            sources.append({'source': relative, 'kind': 'setup_exact_source', 'content': content})
+
     def prepare_setup(self, context: dict[str, Any]) -> dict[str, Any]:
         required = {'status sheet.md', 'character relationship.md', 'Ledger Resources.md', 'Experimentation Register.md', 'Branch Registry.md', 'TEMP_MEMORY.md', '🌍 CORE WORLD FRAME (REFINED).md'}
         task = (
             'Prepare a NEW CAMPAIGN replacement proposal, not an edit to existing characters. '
+            'The private admin_sources include the exact current campaign files and registered templates; use them directly. '
+            'Never ask the player to provide file contents, template names, or backend details. '
             'Use the approved draft inputs below to derive rule-compliant classes, equipment, money, skills, '
             'relationships, all status values, and penalties below 3. Do not rebalance zero stats. '
             'Respect established world lore and rules. Include ALL characters and designate the main character; '
@@ -297,6 +337,7 @@ class GameModules:
         route['turn_id'] = context['turn_id']
         bundle = self.evidence(route, local)
         bundle = self._inject_world_rules(bundle)
+        self._attach_setup_sources(bundle, required)
         analysis = self.specialists(bundle, local, ('class', 'world'))
         world: dict[str, Any] = next((item for item in analysis.get('specialist_results', []) if item.get('specialist') == 'world'), {})
         pool = world.get('world_pool') if isinstance(world.get('world_pool'), dict) else None
@@ -402,6 +443,17 @@ class GameModules:
         if not has_event:
             raise RuntimeError('World event is missing required fields.')
         return event
+
+    def discover_branches(self, context: dict[str, Any]) -> dict[str, Any]:
+        """Run the cross-source branch detector at a durable day boundary."""
+        data = {
+            "player_input": context.get("message", ""),
+            "conversation_history": context.get("history", []),
+            "game_cache": context.get("game_cache", {}),
+            "resolved_turns": context.get("completed_day"),
+            "day_end_records": context.get("completed_day"),
+        }
+        return BranchDiscovery(self.root).discover(data)
 
     def reconcile(self, operation: dict[str, Any], context: dict[str, Any]) -> None:
         if operation.get('review_gate') == 'day_end_review':
