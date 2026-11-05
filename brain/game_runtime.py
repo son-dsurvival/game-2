@@ -33,6 +33,24 @@ class CampaignPipeline:
         with runtime_lease(self.root):
             if hasattr(self.modules, 'recover'):
                 self.modules.recover()
+            state = self.state.load()
+            draft = state.get('draft') or {}
+            operation = state.get('operation') or {}
+            # Recover a setup draft that was incorrectly advanced before the
+            # party-completion gate was enforced. Never discard a proposal.
+            if (state.get('play_gate') == 'awaiting_clarification'
+                    and operation.get('kind') == 'setup'
+                    and not state.get('proposal')
+                    and draft.get('mode') == 'new_game'
+                    and draft.get('party_done') is True
+                    and draft.get('main_character')
+                    and draft.get('characters')):
+                self.state.save({
+                    'operation': None,
+                    'pending_clarification': None,
+                    'play_gate': 'setup_draft',
+                    'message': 'Character setup is complete. Choose the main character to prepare the proposal.',
+                })
             return self.view()
 
     def view(self) -> dict[str, Any]:
