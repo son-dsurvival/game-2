@@ -64,11 +64,22 @@ class CampaignPipeline:
             result['specialist_proposals'] = list(state['specialist_proposals'].values())
         return result
 
+    OUTSIDE_PLAY_GATES = {
+        'setup_required', 'setup_draft', 'setup_review', 'character_review',
+        'admin_review', 'day_end_pending', 'day_end_review',
+        'new_game_pending', 'new_day_pending', 'paused',
+    }
+
     def submit(self, message: str) -> dict[str, Any]:
         if not message.strip():
             raise ValueError('Enter a message.')
         with runtime_lease(self.root):
             state = self.state.load()
+            normalized = message.strip().casefold()
+            if normalized == '{pause}':
+                return self._pause_locked(state)
+            if normalized in {'{resume}', '/resume'}:
+                return self._resume_play_locked(state)
             if state.get('operation') and state['play_gate'] in {'running', 'retry', 'background_pending'}:
                 self._drive()
                 state = self.state.load()
@@ -96,6 +107,15 @@ class CampaignPipeline:
                 return self.view()
             if state['play_gate'] == 'awaiting_clarification':
                 operation = state['operation']
+                if operation.get('kind') == 'setup':
+                    draft = state.get('draft') or {}
+                    if (draft.get('mode') == 'new_game' and draft.get('main_character')
+                            and draft.get('characters')):
+                        # Recover drafts created before main-character selection
+                        # began marking the party complete.
+                        draft['party_done'] = True
+                        self.state.save({'draft': draft})
+                        state = self.state.load()
                 operation['answers'].append(message)
                 operation['revision'] += 1
                 if operation['kind'] in {'setup', 'character'}:
@@ -108,13 +128,19 @@ class CampaignPipeline:
                 self.state.save({'operation': operation, 'pending_clarification': None, 'play_gate': 'running'})
             else:
                 is_admin = message.strip().startswith('{') and message.strip().endswith('}')
-                if not is_admin:
+                outside_gate = state['play_gate'] in self.OUTSIDE_PLAY_GATES
+                if not is_admin and not outside_gate:
                     self.require_open_play()
-                elif state['play_gate'] not in {'open', 'day_end_review', 'admin_review', 'character_review'}:
+                elif (is_admin and state['play_gate'] not in {'open', *self.OUTSIDE_PLAY_GATES}):
                     raise RuntimeError('Finish or resume the pending operation before administrative edits.')
+                routed_message = message
+                if outside_gate and not is_admin:
+                    # Once outside roleplay, plain text is administrative text;
+                    # the player is not required to add braces repeatedly.
+                    routed_message = '{' + message + '}'
                 operation = {
                     'id': 'turn-' + uuid.uuid4().hex, 'kind': 'turn', 'stage': 'route',
-                    'message': message, 'answers': [], 'revision': 0, 'results': {},
+                    'message': routed_message, 'answers': [], 'revision': 0, 'results': {},
                     'before': state['position'], 'dice': {}, 'return_gate': state['play_gate'],
                 }
                 self.state.save({'operation': operation, 'play_gate': 'running', 'message': ''})
@@ -122,6 +148,46 @@ class CampaignPipeline:
 
     def begin_setup(self) -> dict[str, Any]:
         return self._begin_character_mode('new_game')
+
+    def pause(self) -> dict[str, Any]:
+        with runtime_lease(self.root):
+            return self._pause_locked(self.state.load())
+
+    def resume_play(self) -> dict[str, Any]:
+        with runtime_lease(self.root):
+            return self._resume_play_locked(self.state.load())
+
+    def _pause_locked(self, state: dict[str, Any]) -> dict[str, Any]:
+        if state.get('play_gate') != 'open':
+            raise RuntimeError(f'Only open roleplay can be paused; current stage is {state.get("play_gate")}.')
+        if state.get('operation'):
+            raise RuntimeError('The current operation must finish before pausing roleplay.')
+        self.state.save({'play_gate': 'paused', 'paused_from': 'open',
+                         'message': 'Roleplay is paused outside the game. Use {resume} to continue.'})
+        return self.view()
+
+    def _resume_play_locked(self, state: dict[str, Any]) -> dict[str, Any]:
+        gate = state.get('play_gate')
+        if gate == 'world_event_pending':
+            if not state.get('operation'):
+                raise RuntimeError('The pending world event has no resumable operation.')
+            self._drive()
+            state = self.state.load()
+            gate = state.get('play_gate')
+        if gate == 'paused' or gate == 'new_day_pending':
+            self.state.save({'play_gate': 'open', 'paused_from': None,
+                             'message': 'Roleplay resumed. The next player message is in-game.'})
+            return self.view()
+        if gate == 'new_game_pending':
+            return self._start_opening(state)
+        if gate == 'open':
+            return self.view()
+        raise RuntimeError(f'Roleplay cannot resume from runtime stage: {gate}')
+
+    def review_current(self) -> dict[str, Any]:
+        if self.state.load().get('play_gate') == 'day_end_pending':
+            return self.prepare_day_end()
+        return self.review_setup()
 
     def new_character(self) -> dict[str, Any]:
         return self._begin_character_mode('new_character')
@@ -477,7 +543,11 @@ class CampaignPipeline:
 
     def _prepare_review(self, proposal: dict[str, Any], operation: dict[str, Any], gate: str) -> None:
         from brain.game_modules import admin_module
-        proposal = {**proposal, 'status': 'proposal_ready', 'proposal_id': operation['id'] + '-v' + str(operation['revision'])}
+        proposal = {**proposal, 'status': 'proposal_ready',
+                    'proposal_id': operation['id'] + '-v' + str(operation['revision']),
+                    # Every campaign Markdown proposal crosses the Admin Agent
+                    # boundary before it can be version-bound or approved.
+                    'proposed_by': proposal.get('proposed_by', 'admin_agent')}
         bound = admin_module('approval').bind_source_versions(proposal, repo_root=self.root)
         self.state.save({'proposal': bound, 'operation': operation, 'play_gate': gate, 'message': proposal.get('answer', 'Review the complete proposed changes.'), 'pending_clarification': None})
 
@@ -526,7 +596,12 @@ class CampaignPipeline:
             self._checkpoint(operation, 'world', play_gate='world_event_pending')
             self._world(operation)
         else:
-            self.state.save({'operation': None, 'play_gate': operation.get('return_gate', 'open') if operation.get('return_gate') == 'day_end_review' else 'open'})
+            return_gate = operation.get('return_gate', 'open')
+            if return_gate not in self.OUTSIDE_PLAY_GATES:
+                return_gate = 'open'
+            self.state.save({'operation': None, 'play_gate': return_gate,
+                             'message': 'Administrative changes saved; roleplay remains paused outside the game.'
+                             if return_gate in self.OUTSIDE_PLAY_GATES else 'Administrative changes saved.'})
 
     def _activate_character(self, operation: dict[str, Any]) -> None:
         state = self.state.load()
@@ -574,15 +649,27 @@ class CampaignPipeline:
             atomic_text(journal, '\n'.join(retained) + ('\n' if retained else ''))
         for name in ('background_state.json', 'background_visible.md', 'pipeline_cache.json', 'session_context.json', 'dice.json'):
             (self.root / 'brain/state' / name).unlink(missing_ok=True)
-        opening = {'id': 'opening-' + draft['campaign_id'], 'kind': 'turn', 'stage': 'route', 'before': {'day': 1, 'phase': PHASES[0], 'progress': 0},
-                   'message': 'Begin the approved new campaign. Design the first scenario from the saved party backgrounds and established world lore. Introduce the situation without deciding the player response. No time elapses for this introduction.',
-                   'answers': [], 'revision': 0, 'results': {}, 'dice': {}}
         self.state.save({'campaign_id': draft['campaign_id'], 'main_character': draft['main_character'], 'party': draft['characters'],
-                         'draft': None, 'setup_status': 'active', 'position': opening['before'], 'operation': opening,
+                         'draft': None, 'setup_status': 'active', 'position': {'day': 1, 'phase': PHASES[0], 'progress': 0}, 'operation': None,
                          'history': [], 'game_cache': {}, 'saved_rolls': {}, 'pending_world_event': None,
                          'world_pool': state.get('world_pool'),
-                         'completed_day': None, 'pending_dice': None, 'pending_clarification': None, 'day_end': None, 'play_gate': 'running'})
-        self._turn(opening, self._context(opening))
+                         'completed_day': None, 'pending_dice': None, 'pending_clarification': None, 'day_end': None,
+                         'play_gate': 'new_game_pending', 'paused_from': 'new_game_pending',
+                         'message': 'Setup changes are stored. Review them, then use {resume} to begin roleplay.'})
+
+    def _start_opening(self, state: dict[str, Any]) -> dict[str, Any]:
+        draft = state.get('draft') or {}
+        campaign_id = state.get('campaign_id') or draft.get('campaign_id')
+        if not campaign_id:
+            raise RuntimeError('Cannot start roleplay without an approved campaign.')
+        opening = {'id': 'opening-' + campaign_id, 'kind': 'turn', 'stage': 'route',
+                   'before': {'day': 1, 'phase': PHASES[0], 'progress': 0},
+                   'message': 'Begin the approved new campaign. Design the first scenario from the saved party backgrounds and established world lore. Introduce the situation without deciding the player response. No time elapses for this introduction.',
+                   'answers': [], 'revision': 0, 'results': {}, 'dice': {}, 'return_gate': 'open'}
+        self.state.save({'operation': opening, 'play_gate': 'running', 'paused_from': None,
+                         'message': 'Beginning the approved campaign.'})
+        self._drive()
+        return self.view()
 
     def _event_due(self, event: dict[str, Any], position: dict[str, Any]) -> bool:
         if position['day'] > event['day']:
@@ -630,9 +717,10 @@ class CampaignPipeline:
         if owner.casefold() == 'nothing':
             # The established rules explicitly allow this category. Never reroll
             # or fabricate an event to disguise that rule-defined result.
-            self.state.save({'pending_world_event': None, 'operation': None, 'play_gate': 'open', 'proposal': None,
+            self.state.save({'pending_world_event': None, 'operation': None, 'play_gate': 'new_day_pending', 'proposal': None,
+                             'paused_from': 'new_day_pending',
                              'last_world_check': {'day': state['position']['day'], 'roll': roll, 'trigger': owner},
-                             'message': 'Day-end changes saved. The next day is ready.'})
+                             'message': 'Day-end changes are stored. Review complete; use {resume} to begin the next day.'})
             return
         event = self.modules.world(self._context(operation), roll, pool)
         if event.get('roll') != roll or event.get('selected_trigger') != owner:
@@ -640,8 +728,9 @@ class CampaignPipeline:
         if not event.get('encounter_condition') or event.get('latest_phase') not in PHASES or not event.get('generated_event'):
             raise ValueError('World event is missing its setup, encounter condition, or deadline.')
         event = {**event, 'id': 'event-' + operation['id'], 'day': state['position']['day'], 'status': 'pending'}
-        self.state.save({'pending_world_event': event, 'operation': None, 'play_gate': 'open', 'proposal': None,
-                         'message': 'Day-end changes saved. The next day is ready.'})
+        self.state.save({'pending_world_event': event, 'operation': None, 'play_gate': 'new_day_pending', 'proposal': None,
+                         'paused_from': 'new_day_pending',
+                         'message': 'Day-end changes are stored. Review complete; use {resume} to begin the next day.'})
 
     def _roll(self, operation: dict[str, Any], request: dict[str, Any]) -> None:
         sides = request.get('sides', 20)

@@ -238,7 +238,7 @@ class GameModules:
         else:
             updated = original.rstrip() + '\n\n' + section + '\n'
         change = {'target_file': 'markdown_files/Branch Registry.md', 'action': 'update', 'old_text': original, 'new_text': updated, 'reason': 'Install approved Create Specialist proposal.'}
-        return {'status': 'proposal_ready', 'answer': f'Install specialist {definition.name}?', 'changes': [change], 'evidence': [], 'instructions': [], 'questions': [], 'conflicts': [], 'approval_required': True}
+        return {'status': 'proposal_ready', 'answer': f'Install specialist {definition.name}?', 'changes': [change], 'evidence': [], 'instructions': [], 'questions': [], 'conflicts': [], 'approval_required': True, 'proposed_by': 'admin_agent'}
 
     def setup_chat(self, draft: dict[str, Any], player_message: str) -> dict[str, Any]:
         """Use the model as a conversational collector, not as the validator."""
@@ -347,7 +347,9 @@ class GameModules:
         bundle = self.evidence(route, local)
         bundle = self._inject_world_rules(bundle)
         self._attach_setup_sources(bundle, required)
-        analysis = self.specialists(bundle, local, ('class', 'world'))
+        # Review possible pre-existing effect modifiers during new-game
+        # setup. The specialist may propose none; it never grants one.
+        analysis = self.specialists(bundle, local, ('class', 'world', 'modifier_creation'))
         world: dict[str, Any] = next((item for item in analysis.get('specialist_results', []) if item.get('specialist') == 'world'), {})
         pool = world.get('world_pool') if isinstance(world.get('world_pool'), dict) else None
         if not pool:
@@ -359,9 +361,19 @@ class GameModules:
         changes = proposal['changes']
         targets = {item['target_file'] for item in changes}
         expected = {'markdown_files/' + name for name in required}
+        world_path = 'markdown_files/🌍 CORE WORLD FRAME (REFINED).md'
+        # A model may omit the world-frame change when both logs are already
+        # empty. Keep the review complete by adding an explicit no-op change so
+        # the player still sees that file in the proposal.
+        if targets == expected - {world_path}:
+            original = (self.root / world_path).read_text(encoding='utf-8')
+            changes.append({'target_file': world_path, 'action': 'update',
+                            'old_text': original, 'new_text': original,
+                            'reason': 'No world-lore or log changes are required; preserve the exact approved frame.'})
+            proposal['changes'] = changes
+            targets.add(world_path)
         if targets != expected:
             raise RuntimeError('Setup must replace all campaign records without editing rules or templates.')
-        world_path = 'markdown_files/🌍 CORE WORLD FRAME (REFINED).md'
         original = (self.root / world_path).read_text(encoding='utf-8')
         updated = original
         for change in changes:
