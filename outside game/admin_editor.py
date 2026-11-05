@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import shutil
 import sys
 import uuid
@@ -181,7 +182,7 @@ class AdminEditor:
                 if not exists or not old or current.count(old) != 1:
                     return {"error": f"change_{index} old_text did not match exactly once", "target_file": target, "matches": current.count(old)}
                 updated = current.replace(old, new, 1)
-                if template and campaign and path.name not in self.LORE_FILES:
+                if template and campaign and path.name not in self.LORE_FILES and action != 'fill':
                     removed = self._headings(current) - self._headings(updated)
                     if removed:
                         return {"error": f"change_{index} would remove existing headings", "target_file": target, "removed": sorted(removed)[:6]}
@@ -189,6 +190,10 @@ class AdminEditor:
             return {"error": f"change_{index} template validation failed: {exc}", "target_file": target}
         if "```json" in updated.casefold():
             return {"error": f"change_{index} would write a JSON blob into Markdown"}
+        if template and campaign:
+            unresolved = sorted(set(re.findall(r"\{[^{}\n]+\}", updated)))
+            if unresolved:
+                return {"error": f"change_{index} leaves unresolved template values", "target_file": target, "values": unresolved[:8]}
         return {"updated": updated, "template": template}
 
     @staticmethod
