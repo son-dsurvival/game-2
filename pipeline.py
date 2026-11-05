@@ -23,6 +23,7 @@ HELP = """Commands:
   /approve             approve the pending proposal
   /approve-reset       approve a full-campaign replacement
   /cancel-setup        cancel drafting; the active campaign is preserved
+  /cancel-operation    cancel an unapplied review/proposal without file changes
   /end-day             sleep until tomorrow / end the day
   /specialists         list stored Create Specialist proposals
   /install NAME        propose installing a stored specialist
@@ -207,6 +208,7 @@ def process_input(pipeline: CampaignPipeline, text: str, *, auto: bool = True) -
         '/approve': pipeline.approve,
         '/approve-reset': lambda: pipeline.approve(confirm_reset=True),
         '/cancel-setup': pipeline.cancel_setup,
+        '/cancel-operation': pipeline.cancel_pending,
         '/end-day': pipeline.end_day,
         '/specialists': pipeline.specialist_proposals,
     }

@@ -148,6 +148,19 @@ class CampaignPipeline:
             SetupDrafts(self.state).cancel()
             return self.view()
 
+    def cancel_pending(self) -> dict[str, Any]:
+        """Cancel an unapplied review/proposal without changing campaign files."""
+        with runtime_lease(self.root):
+            state = self.state.load()
+            if state['play_gate'] not in {'admin_review', 'day_end_review', 'setup_review', 'character_review', 'retry'}:
+                raise RuntimeError('There is no pending operation to cancel.')
+            draft = state.get('draft') or {}
+            previous = draft.get('previous_gate') or (state.get('operation') or {}).get('return_gate') or 'open'
+            self.state.save({'operation': None, 'proposal': None, 'pending_clarification': None,
+                             'draft': None if draft else state.get('draft'), 'play_gate': previous,
+                             'message': 'Pending operation cancelled; no campaign files were changed.'})
+            return self.view()
+
     def review_setup(self) -> dict[str, Any]:
         with runtime_lease(self.root):
             state = self.state.load()
@@ -485,6 +498,11 @@ class CampaignPipeline:
             self.modules.reconcile(operation, self._context(operation))
         if hasattr(self.modules, 'refresh'):
             self.modules.refresh()
+        if operation.get('review_gate') == 'day_end_review' and hasattr(self.modules, 'discover_branches'):
+            discovery = self.modules.discover_branches(self._context(operation))
+            if hasattr(self.modules, 'refresh'):
+                self.modules.refresh()
+            self.state.save({'branch_discovery': discovery})
         state = self.state.load()
         self.state.save({'proposal': None, 'last_receipt': operation['receipt'],
                          'message': 'Approved changes saved.', 'state_version': state.get('state_version', 0) + 1})
