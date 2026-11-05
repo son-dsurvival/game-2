@@ -431,14 +431,25 @@ class CampaignPipeline:
         return self._drive()
 
     def _hold_clarification(self, response: dict[str, Any], operation: dict[str, Any], stage: str) -> None:
-        """Surface setup/character questions and keep the draft operation resumable."""
-        questions = [str(q) for q in (response.get('questions') or []) if str(q).strip()]
-        if not questions and response.get('answer'):
-            questions = [str(response['answer'])]
+        """Surface only player-safe setup questions; never expose backend evidence requests."""
+        raw_questions = [str(q).strip() for q in (response.get('questions') or []) if str(q).strip()]
+        internal_markers = (
+            'template', 'exact current', 'status sheet', 'ledger', 'experimentation register',
+            'core world frame', 'event log section', 'file contents', 'markdown', 'backend',
+            'normal xp', 'class xp', 'classless', 'registered',
+        )
+        safe_questions = [
+            question for question in raw_questions
+            if not any(marker in question.casefold() for marker in internal_markers)
+        ]
+        if safe_questions:
+            prompt = '\n'.join(safe_questions)
+        else:
+            prompt = ('I need one more player-facing clarification about the characters—such as an unresolved '
+                      'identity, relationship, ancestry, or class concept—before I can prepare the starting party.')
         operation['stage'] = stage
         self._checkpoint(operation, stage, play_gate='awaiting_clarification',
-                         pending_clarification={'question': '\n'.join(questions) or 'Please add more detail to the draft.',
-                                                'conflicts': response.get('conflicts') or [], 'source': 'setup'})
+                         pending_clarification={'question': prompt, 'conflicts': [], 'source': 'setup'})
 
     def _prepare_review(self, proposal: dict[str, Any], operation: dict[str, Any], gate: str) -> None:
         from brain.game_modules import admin_module

@@ -65,6 +65,10 @@ class SetupDrafts:
             draft['character'] = name
         else:
             draft['main_character'] = name
+        # Any conversational partial belongs to an unfinished character turn;
+        # choosing the main character explicitly completes that ambiguity.
+        draft['partial'] = {}
+        draft['question'] = 'party'
         self.state.save({'draft': draft})
 
     def record_chat_input(self, text: str) -> None:
