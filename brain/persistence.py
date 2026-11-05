@@ -4,9 +4,22 @@ from __future__ import annotations
 import json
 import os
 import tempfile
+import time
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Iterator
+
+
+def _replace_with_retry(temporary: Path, target: Path) -> None:
+    """Windows can briefly deny os.replace when a scanner or handle holds the file."""
+    for attempt in range(10):
+        try:
+            os.replace(temporary, target)
+            return
+        except PermissionError:
+            if attempt == 9:
+                raise
+            time.sleep(0.02 * (attempt + 1))
 
 
 def atomic_text(path: Path, text: str) -> None:
@@ -18,7 +31,7 @@ def atomic_text(path: Path, text: str) -> None:
             handle.write(text)
             handle.flush()
             os.fsync(handle.fileno())
-        os.replace(temporary, path)
+        _replace_with_retry(temporary, path)
     finally:
         temporary.unlink(missing_ok=True)
 

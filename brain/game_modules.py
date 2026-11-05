@@ -204,7 +204,8 @@ class GameModules:
         analysis = self.specialists(bundle, local, ('character',))
         proposal = self.admin(bundle, analysis, local)
         if proposal.get('status') != 'proposal_ready':
-            raise RuntimeError('Character addition needs clarification or more evidence.')
+            return {'status': 'needs_clarification', 'questions': proposal.get('questions') or [], 'answer': proposal.get('answer', ''),
+                    'conflicts': proposal.get('conflicts') or []}
         allowed = {'markdown_files/status sheet.md', 'markdown_files/Ledger Resources.md', 'markdown_files/character relationship.md', 'markdown_files/TEMP_MEMORY.md'}
         targets = {c.get('target_file') for c in proposal.get('changes', []) if isinstance(c, dict)}
         if not targets or not targets <= allowed:
@@ -263,7 +264,8 @@ class GameModules:
             pool = self._default_world_pool()
         proposal = self.admin(bundle, analysis, local)
         if proposal.get('status') != 'proposal_ready':
-            raise RuntimeError('Character creation needs clarification or more evidence.')
+            return {'status': 'needs_clarification', 'questions': proposal.get('questions') or [], 'answer': proposal.get('answer', ''),
+                    'conflicts': proposal.get('conflicts') or []}
         changes = proposal['changes']
         targets = {item['target_file'] for item in changes}
         expected = {'markdown_files/' + name for name in required}

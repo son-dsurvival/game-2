@@ -33,6 +33,13 @@ class ScriptedGame:
     def prepare_day(self, context):
         return {'proposal': self.admin({}, {}, context), 'world_pool': {'People': list(range(1, 101))}, 'turn_ids': []}
 
+    def prepare_setup(self, context):
+        if not context.get('answers'):
+            return {'status': 'needs_clarification', 'questions': ['Which region is the party from?']}
+        return {'proposal': {'status': 'proposal_ready', 'answer': 'Start the campaign?',
+                             'changes': [{'target_file': 'markdown_files/TEMP_MEMORY.md', 'action': 'update', 'old_text': 'before', 'new_text': 'started'}]},
+                'world_pool': {'People': list(range(1, 101))}}
+
     def prepare_character_addition(self, context):
         return {'status': 'proposal_ready', 'answer': 'Add the character?',
                 'changes': [{'target_file': 'markdown_files/TEMP_MEMORY.md', 'action': 'update', 'old_text': 'before', 'new_text': 'after'}]}
@@ -248,6 +255,22 @@ class PipelineTests(unittest.TestCase):
             review = pipeline.propose_specialist('beast_taming')
             self.assertEqual(review['status'], 'admin_review')
             self.assertEqual(pipeline.approve()['status'], 'open')
+    def test_setup_question_surfaces_and_resumes_same_draft(self):
+        with tempfile.TemporaryDirectory() as root:
+            Path(root, 'markdown_files').mkdir()
+            Path(root, 'markdown_files/TEMP_MEMORY.md').write_text('before', encoding='utf-8')
+            RuntimeStateStore(root).save({'play_gate': 'setup_required'})
+            pipeline = CampaignPipeline(root, modules=ScriptedGame())
+            pipeline.begin_setup()
+            pipeline.add_character({'name': 'Kael', 'age': 24, 'race': 'Human'},
+                                   {'AGI': 6, 'INT': 6, 'STR': 6, 'END': 6, 'WIS': 3, 'PRE': 3},
+                                   'A frontier hunter.', 'Hunter')
+            pipeline.select_main('Kael')
+            review = pipeline.review_setup()
+            self.assertEqual(review['status'], 'awaiting_clarification')
+            self.assertIn('region', review['question']['question'])
+            resumed = pipeline.submit('The northern frontier')
+            self.assertEqual(resumed['status'], 'setup_review')
 
 
 if __name__ == '__main__':

@@ -73,9 +73,13 @@ class CampaignPipeline:
                 operation = state['operation']
                 operation['answers'].append(message)
                 operation['revision'] += 1
-                operation['stage'] = 'evidence'
-                for key in ('evidence', 'specialists', 'resolution'):
-                    operation['results'].pop(key, None)
+                if operation['kind'] in {'setup', 'character'}:
+                    operation['stage'] = 'prepare_setup' if operation['kind'] == 'setup' else 'prepare_character'
+                    operation['results'] = {}
+                else:
+                    operation['stage'] = 'evidence'
+                    for key in ('evidence', 'specialists', 'resolution'):
+                        operation['results'].pop(key, None)
                 self.state.save({'operation': operation, 'pending_clarification': None, 'play_gate': 'running'})
             else:
                 is_admin = message.strip().startswith('{') and message.strip().endswith('}')
@@ -201,13 +205,19 @@ class CampaignPipeline:
                     self._apply(operation)
                 elif operation['kind'] == 'setup':
                     prepared = self.modules.prepare_setup(context)
-                    if prepared.get('world_pool'):
-                        self._validate_pool(prepared['world_pool'])
-                        self.state.save({'world_pool': prepared['world_pool']})
-                    self._prepare_review(prepared['proposal'], operation, 'setup_review')
+                    if prepared.get('status') == 'needs_clarification':
+                        self._hold_clarification(prepared, operation, 'prepare_setup')
+                    else:
+                        if prepared.get('world_pool'):
+                            self._validate_pool(prepared['world_pool'])
+                            self.state.save({'world_pool': prepared['world_pool']})
+                        self._prepare_review(prepared['proposal'], operation, 'setup_review')
                 elif operation['kind'] == 'character':
                     proposal = self.modules.prepare_character_addition(context)
-                    self._prepare_review(proposal, operation, 'character_review')
+                    if proposal.get('status') == 'needs_clarification':
+                        self._hold_clarification(proposal, operation, 'prepare_character')
+                    else:
+                        self._prepare_review(proposal, operation, 'character_review')
                 elif operation['kind'] == 'specialist':
                     proposal = self.modules.prepare_specialist_install(context, operation['specialist'])
                     self._prepare_review(proposal, operation, 'admin_review')
@@ -405,6 +415,16 @@ class CampaignPipeline:
             operation['message'] = '{Revise the entire pending proposal, checking rules and dependent outcomes. ' + message + '}'
         self.state.save({'operation': operation, 'play_gate': 'running', 'message': 'Rechecking the revised proposal.'})
         return self._drive()
+
+    def _hold_clarification(self, response: dict[str, Any], operation: dict[str, Any], stage: str) -> None:
+        """Surface setup/character questions and keep the draft operation resumable."""
+        questions = [str(q) for q in (response.get('questions') or []) if str(q).strip()]
+        if not questions and response.get('answer'):
+            questions = [str(response['answer'])]
+        operation['stage'] = stage
+        self._checkpoint(operation, stage, play_gate='awaiting_clarification',
+                         pending_clarification={'question': '\n'.join(questions) or 'Please add more detail to the draft.',
+                                                'conflicts': response.get('conflicts') or [], 'source': 'setup'})
 
     def _prepare_review(self, proposal: dict[str, Any], operation: dict[str, Any], gate: str) -> None:
         from brain.game_modules import admin_module
