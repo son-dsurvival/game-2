@@ -49,7 +49,7 @@ def _position_text(position: object) -> str:
     return f'Day {day} — {phase} ({float(progress or 0) * 100:.0f}% through phase)'
 
 
-def _player_text(value: object) -> str:
+def _player_text(value: object, *, include_preview: bool = True) -> str:
     """Render pipeline results as player-facing prose, never backend JSON."""
     if isinstance(value, str):
         return value
@@ -93,6 +93,13 @@ def _player_text(value: object) -> str:
             files = [str(change.get('target_file')) for change in changes if isinstance(change, dict) and change.get('target_file')]
             if files:
                 lines.append('Files affected: ' + ', '.join(files))
+            if include_preview:
+                for change in changes:
+                    if not isinstance(change, dict) or not str(change.get('target_file', '')).startswith('markdown_files/'):
+                        continue
+                    content = change.get('new_text')
+                    if isinstance(content, str) and content:
+                        lines.append(f"\n--- Proposed {change['target_file']} ---\n{content}")
         if status == 'setup_review':
             lines.append('Approve the new campaign with /approve-reset, or revise it with a message.')
         elif status == 'day_end_review':
