@@ -9,7 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 from http import HTTPStatus
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -144,7 +144,8 @@ HTML = r'''<!doctype html>
     // Shift+Enter keeps the browser's default textarea behavior: insert a newline.
   });
   document.querySelectorAll('[data-command]').forEach(button => button.addEventListener('click', () => send(button.dataset.command)));
-  fetch('/api/state').then(response => response.json()).then(data => applyState(data)).catch(() => addEntry('error', 'The game server is unavailable.'));
+  setBusy(true);
+  fetch('/api/state').then(response => response.json()).then(data => applyState(data)).catch(() => addEntry('error', 'The game server is unavailable.')).finally(() => setBusy(false));
   fetch('/api/files').then(response => response.json()).then(data => {
     filesEl.replaceChildren();
     for (const name of data.files || []) {
@@ -293,7 +294,9 @@ def main() -> None:
     args = parser.parse_args()
 
     Handler.service = FrontendService(args.root.resolve(), auto=not args.no_auto)
-    server = ThreadingHTTPServer((args.host, args.port), Handler)
+    # One campaign has one writer. Queue browser requests instead of allowing
+    # concurrent clicks to race for the runtime lease.
+    server = HTTPServer((args.host, args.port), Handler)
     print(f'Campaign frontend: http://{args.host}:{args.port}/')
     try:
         server.serve_forever()
