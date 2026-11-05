@@ -129,6 +129,13 @@ HTML = r'''<!doctype html>
   }
 
   document.querySelector('#input-form').addEventListener('submit', event => { event.preventDefault(); send(input.value); });
+  input.addEventListener('keydown', event => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      document.querySelector('#input-form').requestSubmit();
+    }
+    // Shift+Enter keeps the browser's default textarea behavior: insert a newline.
+  });
   document.querySelectorAll('[data-command]').forEach(button => button.addEventListener('click', () => send(button.dataset.command)));
   fetch('/api/state').then(response => response.json()).then(data => applyState(data)).catch(() => addEntry('error', 'The game server is unavailable.'));
 </script>
