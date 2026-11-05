@@ -174,6 +174,44 @@ def _initial_state(pipeline: CampaignPipeline, *, auto: bool, start_new_game: bo
     return result
 
 
+def process_input(pipeline: CampaignPipeline, text: str, *, auto: bool = True) -> dict[str, Any]:
+    """Process one terminal/browser input using the shared pipeline behavior."""
+    text = text.strip()
+    if not text:
+        raise ValueError('Enter a message.')
+    if text == '/help':
+        return {'status': 'help', 'message': HELP}
+    if text == '/quit':
+        return {'status': 'quit', 'message': 'Progress saved.'}
+
+    command, _, argument = text.partition(' ')
+    conversation: dict[str, Any] = {
+        '/status': pipeline.resume,
+        '/retry': pipeline.continue_run,
+        '/new-game': pipeline.begin_setup,
+        '/new-character': pipeline.new_character,
+        '/new-party-member': pipeline.new_party_member,
+        '/add': pipeline.another_character,
+        '/review': pipeline.review_setup,
+        '/approve': pipeline.approve,
+        '/approve-reset': lambda: pipeline.approve(confirm_reset=True),
+        '/cancel-setup': pipeline.cancel_setup,
+        '/end-day': pipeline.end_day,
+        '/specialists': pipeline.specialist_proposals,
+    }
+    if command == '/main':
+        result = pipeline.select_main(argument.strip())
+        result = _auto_review_after_main(pipeline, result, auto)
+    elif command == '/install':
+        result = pipeline.propose_specialist(argument.strip())
+    elif command in conversation and not argument:
+        result = conversation[command]()
+    else:
+        result = pipeline.submit(text)
+        result = _auto_addition_review(pipeline, result, auto)
+    return _stabilize(pipeline, result, auto)
+
+
 def main() -> None:
     if hasattr(sys.stdout, 'reconfigure'):
         sys.stdout.reconfigure(encoding='utf-8')
@@ -201,38 +239,11 @@ def main() -> None:
             print('Progress saved.')
             break
         try:
-            command, _, argument = text.partition(' ')
-            conversation: dict[str, Any] = {
-                '/status': pipeline.resume,
-                '/retry': pipeline.continue_run,
-                '/new-game': pipeline.begin_setup,
-                '/new-character': pipeline.new_character,
-                '/new-party-member': pipeline.new_party_member,
-                '/add': pipeline.another_character,
-                '/review': pipeline.review_setup,
-                '/approve': pipeline.approve,
-                '/approve-reset': lambda: pipeline.approve(confirm_reset=True),
-                '/cancel-setup': pipeline.cancel_setup,
-                '/end-day': pipeline.end_day,
-                '/specialists': pipeline.specialist_proposals,
-            }
-            if text == '/help':
-                print(HELP)
-                continue
-
-            result: dict[str, Any]
-            if command == '/main':
-                result = pipeline.select_main(argument.strip())
-                result = _auto_review_after_main(pipeline, result, auto)
-            elif command == '/install':
-                result = pipeline.propose_specialist(argument.strip())
-            elif command in conversation and not argument:
-                result = conversation[command]()
-            else:
-                result = pipeline.submit(text)
-                result = _auto_addition_review(pipeline, result, auto)
-
-            _print(_stabilize(pipeline, result, auto))
+            result = process_input(pipeline, text, auto=auto)
+            if result.get('status') == 'quit':
+                print(result.get('message', 'Progress saved.'))
+                break
+            _print(result)
         except (ValueError, RuntimeError) as exc:
             print(f'Error: {exc}')
 

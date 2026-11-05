@@ -1,0 +1,231 @@
+"""Small browser frontend for the resumable campaign pipeline.
+
+Run:
+    python web_frontend.py
+Then open http://127.0.0.1:8000/
+"""
+from __future__ import annotations
+
+import argparse
+import json
+from http import HTTPStatus
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from typing import Any
+from urllib.parse import urlparse
+
+from pipeline import _initial_state, _player_text, process_input
+from brain.game_runtime import CampaignPipeline
+
+
+HTML = r'''<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Campaign Terminal</title>
+  <style>
+    :root { color-scheme: dark; --bg:#101318; --panel:#191e27; --panel2:#222936; --text:#edf2f7; --muted:#9ba8b7; --accent:#73b7ff; --line:#303b4a; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:var(--bg); color:var(--text); font:15px/1.5 system-ui, sans-serif; }
+    .shell { display:grid; grid-template-columns:270px minmax(0,1fr); min-height:100vh; }
+    aside { padding:24px 18px; background:var(--panel); border-right:1px solid var(--line); }
+    h1 { margin:0 0 4px; font-size:21px; }
+    .subtitle { margin:0 0 28px; color:var(--muted); }
+    .label { margin:18px 0 6px; color:var(--muted); font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
+    #status { color:var(--accent); font-weight:650; }
+    #position { color:var(--muted); font-size:13px; }
+    .actions { display:grid; gap:7px; }
+    button { border:1px solid var(--line); border-radius:7px; padding:9px 10px; background:var(--panel2); color:var(--text); cursor:pointer; text-align:left; }
+    button:hover { border-color:var(--accent); }
+    main { display:flex; flex-direction:column; width:min(100%, 1000px); padding:28px clamp(18px, 5vw, 64px); }
+    #transcript { flex:1; overflow:auto; padding:4px 0 24px; }
+    .entry { margin:0 0 18px; white-space:pre-wrap; }
+    .entry.user { color:var(--accent); }
+    .entry.system { color:var(--text); }
+    .entry.error { color:#ff9d9d; }
+    .entry .tag { display:block; margin-bottom:3px; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.08em; }
+    form { display:flex; gap:10px; border-top:1px solid var(--line); padding-top:18px; }
+    textarea { flex:1; min-height:48px; max-height:160px; resize:vertical; border:1px solid var(--line); border-radius:8px; padding:12px; background:var(--panel); color:var(--text); font:inherit; }
+    form button { align-self:stretch; background:var(--accent); color:#07111d; border-color:var(--accent); font-weight:700; text-align:center; min-width:82px; }
+    @media (max-width:700px) { .shell { display:block; } aside { border-right:0; border-bottom:1px solid var(--line); } .actions { grid-template-columns:repeat(2, 1fr); } main { min-height:65vh; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <h1>Campaign Terminal</h1>
+      <p class="subtitle">A resumable world</p>
+      <div class="label">Status</div><div id="status">Connecting…</div>
+      <div class="label">Position</div><div id="position">—</div>
+      <div class="label">Quick actions</div>
+      <div class="actions">
+        <button data-command="/new-game">New game</button>
+        <button data-command="/new-character">New character</button>
+        <button data-command="/new-party-member">New party member</button>
+        <button data-command="/review">Review</button>
+        <button data-command="/approve">Approve</button>
+        <button data-command="/approve-reset">Approve reset</button>
+        <button data-command="/end-day">End day</button>
+        <button data-command="/specialists">Specialists</button>
+        <button data-command="/retry">Retry</button>
+      </div>
+    </aside>
+    <main>
+      <section id="transcript" aria-live="polite"></section>
+      <form id="input-form">
+        <textarea id="input" placeholder="Describe what you do, or answer the current question…" autofocus></textarea>
+        <button type="submit">Send</button>
+      </form>
+    </main>
+  </div>
+<script>
+  const transcript = document.querySelector('#transcript');
+  const input = document.querySelector('#input');
+  const statusEl = document.querySelector('#status');
+  const positionEl = document.querySelector('#position');
+
+  function addEntry(kind, text) {
+    if (!text) return;
+    const entry = document.createElement('div');
+    entry.className = `entry ${kind}`;
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.textContent = kind === 'user' ? 'You' : kind === 'error' ? 'Error' : 'Game';
+    entry.append(tag, document.createTextNode(text));
+    transcript.appendChild(entry);
+    transcript.scrollTop = transcript.scrollHeight;
+  }
+
+  function applyState(data, userText='') {
+    if (userText) addEntry('user', userText);
+    statusEl.textContent = (data.status || 'unknown').replaceAll('_', ' ');
+    const p = data.position || {};
+    positionEl.textContent = p.day ? `Day ${p.day} — ${p.phase}` : '—';
+    addEntry(data.error ? 'error' : 'system', data.text || 'Done.');
+  }
+
+  async function send(text) {
+    if (!text.trim()) return;
+    input.value = '';
+    try {
+      const response = await fetch('/api/input', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text}) });
+      const data = await response.json();
+      applyState(data, text);
+    } catch (error) { addEntry('error', 'The frontend could not reach the game server.'); }
+  }
+
+  document.querySelector('#input-form').addEventListener('submit', event => { event.preventDefault(); send(input.value); });
+  document.querySelectorAll('[data-command]').forEach(button => button.addEventListener('click', () => send(button.dataset.command)));
+  fetch('/api/state').then(response => response.json()).then(data => applyState(data)).catch(() => addEntry('error', 'The game server is unavailable.'));
+</script>
+</body>
+</html>'''
+
+
+class FrontendService:
+    def __init__(self, root: Path, *, auto: bool = True):
+        self.pipeline = CampaignPipeline(root)
+        self.auto = auto
+
+    @staticmethod
+    def _public(result: dict[str, Any]) -> dict[str, Any]:
+        """Expose only player-safe state; never send raw proposals or backend data."""
+        public: dict[str, Any] = {
+            'status': result.get('status', ''),
+            'position': result.get('position', {}),
+            'text': _player_text(result),
+        }
+        question = result.get('question')
+        if isinstance(question, dict):
+            public['question'] = {'question': question.get('question', '')}
+        draft = result.get('draft')
+        if isinstance(draft, dict):
+            characters = draft.get('characters') or []
+            public['draft'] = {
+                'mode': draft.get('mode'),
+                'question': draft.get('question'),
+                'characters': [item.get('identity', {}).get('name') for item in characters if isinstance(item, dict)],
+            }
+        proposals = result.get('specialist_proposals')
+        if isinstance(proposals, list):
+            public['specialist_proposals'] = [
+                {'name': item.get('name'), 'purpose': item.get('purpose')}
+                for item in proposals if isinstance(item, dict)
+            ]
+        return public
+
+    def state(self) -> dict[str, Any]:
+        return self._public(_initial_state(self.pipeline, auto=self.auto, start_new_game=True))
+
+    def input(self, text: str) -> dict[str, Any]:
+        try:
+            return self._public(process_input(self.pipeline, text, auto=self.auto))
+        except (ValueError, RuntimeError) as exc:
+            return {'status': 'error', 'position': {}, 'text': str(exc), 'error': True}
+
+
+class Handler(BaseHTTPRequestHandler):
+    service: FrontendService
+
+    def _send(self, status: int, content_type: str, body: bytes) -> None:
+        self.send_response(status)
+        self.send_header('Content-Type', content_type)
+        self.send_header('Content-Length', str(len(body)))
+        self.send_header('Cache-Control', 'no-store')
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_GET(self) -> None:  # noqa: N802
+        path = urlparse(self.path).path
+        if path == '/':
+            self._send(HTTPStatus.OK, 'text/html; charset=utf-8', HTML.encode('utf-8'))
+        elif path == '/api/state':
+            self._send(HTTPStatus.OK, 'application/json; charset=utf-8', json.dumps(self.service.state(), ensure_ascii=False).encode('utf-8'))
+        else:
+            self._send(HTTPStatus.NOT_FOUND, 'text/plain; charset=utf-8', b'Not found')
+
+    def do_POST(self) -> None:  # noqa: N802
+        if urlparse(self.path).path != '/api/input':
+            self._send(HTTPStatus.NOT_FOUND, 'text/plain; charset=utf-8', b'Not found')
+            return
+        try:
+            length = int(self.headers.get('Content-Length', '0'))
+            if length <= 0 or length > 64 * 1024:
+                raise ValueError('Request is empty or too large.')
+            payload = json.loads(self.rfile.read(length).decode('utf-8'))
+            text = payload.get('text') if isinstance(payload, dict) else None
+            if not isinstance(text, str):
+                raise ValueError('Input must be text.')
+            result = self.service.input(text)
+            self._send(HTTPStatus.OK if not result.get('error') else HTTPStatus.BAD_REQUEST,
+                       'application/json; charset=utf-8', json.dumps(result, ensure_ascii=False).encode('utf-8'))
+        except (ValueError, json.JSONDecodeError) as exc:
+            body = json.dumps({'status': 'error', 'text': str(exc), 'error': True}).encode('utf-8')
+            self._send(HTTPStatus.BAD_REQUEST, 'application/json; charset=utf-8', body)
+
+    def log_message(self, format: str, *args: object) -> None:
+        print(f'[web] {format % args}')
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description='Browser frontend for the campaign pipeline')
+    parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parent)
+    parser.add_argument('--host', default='127.0.0.1')
+    parser.add_argument('--port', type=int, default=8000)
+    parser.add_argument('--no-auto', action='store_true', help='disable safe automatic pipeline behavior')
+    args = parser.parse_args()
+
+    Handler.service = FrontendService(args.root.resolve(), auto=not args.no_auto)
+    server = ThreadingHTTPServer((args.host, args.port), Handler)
+    print(f'Campaign frontend: http://{args.host}:{args.port}/')
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print('\nFrontend stopped.')
+    finally:
+        server.server_close()
+
+
+if __name__ == '__main__':
+    main()
