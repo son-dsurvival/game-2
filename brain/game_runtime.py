@@ -14,8 +14,89 @@ from typing import Any
 from backend.phase_clock import PHASES, PhaseClock
 from brain.model_gateway import model_scope
 from brain.dice import DiceJournal
-from brain.persistence import runtime_lease
+from brain.persistence import atomic_json, atomic_text, runtime_lease
+from brain.player_clarification import PlayerClarification
 from brain.runtime_state import RuntimeStateStore
+
+
+NEW_GAME_EMPTY_FILES = {
+    'status sheet.md': '# Character Status\n\nNo characters have been established for this new game yet.\n',
+    'Ledger Resources.md': '# Ledger Resources\n\nNo campaign resources have been established for this new game yet.\n',
+    'character relationship.md': '# Character Relationships\n\nNo character or party relationships have been established for this new game yet.\n',
+    'Experimentation Register.md': '# Experimentation Register\n\n## Active Experiments\n\nNone.\n\n## Completed Experiments\n\nNone.\n\nNo effect modifiers have been earned in this new game.\n',
+    'TEMP_MEMORY.md': '# Temporary Campaign Memory\n\nNo temporary campaign records exist for this new game yet.\n',
+}
+
+
+JOURNAL_STAGE_NAMES = {
+    'route': 'route',
+    'evidence': 'evidence_prepared',
+    'specialists': 'specialists_run',
+    'admin': 'admin_analysis',
+    'resolve': 'lead_resolver_decision',
+    'narrate': 'narration_generated',
+    'record': 'recorder',
+    'background': 'background_processing',
+    'finish': 'turn_completed',
+    'prepare_setup': 'setup_batches',
+    'prepare_character': 'character_proposal',
+    'prepare_specialist': 'specialist_analysis',
+    'prepare_day': 'day_end_preparation',
+    'apply': 'proposal_application',
+    'reconcile': 'reconciliation',
+    'world': 'world_event_processing',
+}
+
+
+PROPOSAL_FILE_SUMMARIES = {
+    'status sheet.md': 'Set up each character’s identity, Tier 0 status, derived values, background-based stat modifiers, skills, and equipment.',
+    'Ledger Resources.md': 'Record starting money, resources, equipment assumptions, and shared household assets.',
+    'character relationship.md': 'Record the main character, party membership, and starting relationship assumptions.',
+    'Experimentation Register.md': 'Start the experimentation record with no earned effect modifiers or experiments.',
+    'Branch Registry.md': 'Reset branch records for the new campaign without unlocking unearned branches.',
+    'TEMP_MEMORY.md': 'Start temporary campaign memory with no carried-over pending records.',
+    '🌍 CORE WORLD FRAME (REFINED).md': 'Preserve established lore and prepare the new campaign event and game logs.',
+}
+
+_PREVIEW_REDACTIONS = (
+    'template', 'evidence', 'citation', 'backend', 'admin agent',
+    'reason', 'old_text', 'new_text', 'source path', 'line range',
+)
+_PREVIEW_NUMERIC_ASSIGNMENT = re.compile(
+    r'^([^=]{1,100})=\s*.*=\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))\s*$'
+)
+
+
+def _player_safe_change_preview(change: dict[str, Any], *, limit: int = 80) -> list[str]:
+    """Return proposed player-facing content without private implementation data."""
+    text = change.get('new_text')
+    if not isinstance(text, str) or not text.strip():
+        return ['A file change is proposed, but no readable preview is available.']
+    preview: list[str] = []
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line:
+            if preview and preview[-1] != '':
+                preview.append('')
+            continue
+        lowered = line.casefold()
+        if any(term in lowered for term in _PREVIEW_REDACTIONS):
+            continue
+        if '=' in line:
+            numeric = _PREVIEW_NUMERIC_ASSIGNMENT.match(line)
+            if numeric:
+                line = f'{numeric.group(1).strip()}: {numeric.group(2)}'
+            else:
+                # Do not expose formulas or implementation assignments.
+                continue
+        preview.append(line)
+        if len(preview) >= limit:
+            break
+    while preview and preview[-1] == '':
+        preview.pop()
+    if len(text.splitlines()) > limit:
+        preview.append('…additional proposed content omitted from this preview.')
+    return preview or ['The proposed file contains no additional player-facing text.']
 
 
 class CampaignPipeline:
@@ -53,6 +134,45 @@ class CampaignPipeline:
                 })
             return self.view()
 
+    def status_report(self) -> dict[str, Any]:
+        with runtime_lease(self.root):
+            state = self.state.load()
+            result = self.view()
+            operation_value = state.get('operation')
+            operation: dict[str, Any] = operation_value if isinstance(operation_value, dict) else {}
+            raw_operation_id = operation.get('id')
+            operation_id: str | None = str(raw_operation_id) if raw_operation_id else None
+            all_events = self.state.journal_events()
+            if not operation_id:
+                completed: dict[str, Any] = next((item for item in reversed(all_events) if item.get('operation_id')), {})
+                raw_completed_id = completed.get('operation_id')
+                operation_id = str(raw_completed_id) if raw_completed_id else None
+            events = self.state.journal_events(operation_id=operation_id) if operation_id else []
+            stage_event: dict[str, Any] = next((item for item in reversed(events) if item.get('event') in {'stage_started', 'stage_retry_started', 'stage_waiting', 'stage_failed'}), {})
+            latest: dict[str, Any] = events[-1] if events else {}
+            latest_operation: dict[str, Any] = next((item for item in reversed(events) if item.get('operation_type')), {})
+            original_event: dict[str, Any] = next((item for item in events if item.get('original_input')), {})
+            gate_value = state.get('play_gate')
+            gate = str(gate_value) if gate_value else None
+            request_status = {
+                'running': 'in_progress', 'background_pending': 'in_progress',
+                'awaiting_clarification': 'awaiting_clarification',
+                'retry': 'failed',
+                'setup_review': 'awaiting_approval', 'character_review': 'awaiting_approval',
+                'admin_review': 'awaiting_approval', 'day_end_review': 'awaiting_approval',
+            }.get(gate or '', 'completed' if not operation else 'in_progress')
+            result.update({
+                'status': 'status',
+                'request_status': request_status,
+                'operation_type': operation.get('operation_type') or latest_operation.get('operation_type') or ('out_of_game' if operation.get('is_admin') else 'gameplay'),
+                'operation_id': operation_id,
+                'current_stage': stage_event.get('stage') or (self._journal_stage(operation.get('stage')) if operation else latest.get('stage')),
+                'previous_stage': stage_event.get('previous_stage'),
+                'next_stage': stage_event.get('next_stage'),
+                'original_input': operation.get('original_input') or operation.get('message') or original_event.get('original_input') or latest.get('exact_input'),
+            })
+            return result
+
     def view(self) -> dict[str, Any]:
         state = self.state.load()
         operation = state.get('operation') or {}
@@ -61,23 +181,44 @@ class CampaignPipeline:
             'position': state['position'], 'message': state.get('message', ''),
             'turn_id': operation.get('id'), 'stage': operation.get('stage'),
         }
+        if state.get('failure_reason'):
+            result['failure_reason'] = state['failure_reason']
         if state.get('draft'):
-            result['draft'] = {key: value for key, value in state['draft'].items() if key != 'previous_gate'}
+            result['draft'] = {
+                key: value for key, value in state['draft'].items()
+                if key not in {'previous_gate', 'previous_message', 'previous_position'}
+            }
         if state.get('pending_clarification'):
             result['question'] = state['pending_clarification']
         proposal = state.get('proposal')
         if isinstance(proposal, dict):
-            result['proposal_preview'] = [
-                {
-                    'target_file': change.get('target_file'),
-                    'action': change.get('action', 'update'),
-                    'content': change.get('new_text', ''),
-                }
-                for change in proposal.get('changes', [])
+            if isinstance(proposal.get('diagnosis'), dict):
+                result['diagnosis'] = proposal['diagnosis']
+            changes = [
+                change for change in proposal.get('changes', [])
                 if isinstance(change, dict)
                 and str(change.get('target_file', '')).startswith('markdown_files/')
-                and isinstance(change.get('new_text'), str)
             ]
+            index = state.get('proposal_file_index', 0)
+            index = index if isinstance(index, int) and index >= 0 else 0
+            result['proposal_files_total'] = len(changes)
+            result['proposal_files_reviewed'] = min(index, len(changes))
+            if index < len(changes):
+                change = changes[index]
+                target = str(change.get('target_file'))
+                filename = Path(target).name
+                result['proposal_file'] = {
+                    'number': index + 1,
+                    'total': len(changes),
+                    'target_file': target,
+                    'filename': filename,
+                    'action': change.get('action', 'update'),
+                    'summary': PROPOSAL_FILE_SUMMARIES.get(
+                        filename,
+                        'Apply the reviewed change to this campaign record.',
+                    ),
+                    'preview': _player_safe_change_preview(change),
+                }
         if state.get('specialist_proposals'):
             result['specialist_proposals'] = list(state['specialist_proposals'].values())
         return result
@@ -88,11 +229,91 @@ class CampaignPipeline:
         'new_game_pending', 'new_day_pending', 'paused',
     }
 
+    def record_command(self, text: str) -> None:
+        with runtime_lease(self.root):
+            state = self.state.load()
+            operation_value = state.get('operation')
+            operation: dict[str, Any] = operation_value if isinstance(operation_value, dict) else {}
+            self.state.append_event(
+                'command_received',
+                operation_id=operation.get('id'),
+                command=text.split(' ', 1)[0] if text else '',
+                exact_input=text,
+                operation_type='out_of_game' if text.startswith('{') and text.endswith('}') else 'command',
+                position_before=state.get('position'),
+                play_gate_before=state.get('play_gate'),
+            )
+
+    def begin_player_interaction(self, text: str) -> str:
+        with runtime_lease(self.root):
+            state = self.state.load()
+            operation_value = state.get('operation')
+            operation: dict[str, Any] = operation_value if isinstance(operation_value, dict) else {}
+            interaction_id = 'interaction-' + uuid.uuid4().hex
+            self.state.append_event(
+                'player_input_received',
+                interaction_id=interaction_id,
+                operation_id=operation.get('id'),
+                exact_input=text,
+                position_before=state.get('position'),
+                play_gate_before=state.get('play_gate'),
+                status='in_progress',
+            )
+            return interaction_id
+
+    def complete_player_interaction(self, interaction_id: str, text: str, result: dict[str, Any], output: str) -> None:
+        with runtime_lease(self.root):
+            state = self.state.load()
+            operation_value = state.get('operation')
+            operation: dict[str, Any] = operation_value if isinstance(operation_value, dict) else {}
+            self.state.append_event(
+                'player_output_emitted',
+                interaction_id=interaction_id,
+                operation_id=result.get('turn_id') or operation.get('id'),
+                output=output,
+                result_status=result.get('status'),
+                position_after=result.get('position') or state.get('position'),
+                play_gate_after=state.get('play_gate'),
+                status='completed',
+            )
+            self.state.append_player_exchange(
+                result.get('position') if isinstance(result.get('position'), dict) else state.get('position'),
+                text,
+                output,
+            )
+
+    def fail_player_interaction(self, interaction_id: str, text: str, error: Exception) -> None:
+        with runtime_lease(self.root):
+            state = self.state.load()
+            output = f'Error: {error}'
+            self.state.append_event(
+                'player_output_failed',
+                interaction_id=interaction_id,
+                error_type=type(error).__name__,
+                error=str(error),
+                position_after=state.get('position'),
+                play_gate_after=state.get('play_gate'),
+                status='failed',
+            )
+            self.state.append_player_exchange(state.get('position'), text, output)
+
     def submit(self, message: str) -> dict[str, Any]:
         if not message.strip():
             raise ValueError('Enter a message.')
         with runtime_lease(self.root):
             state = self.state.load()
+            current_operation_value = state.get('operation')
+            current_operation: dict[str, Any] = current_operation_value if isinstance(current_operation_value, dict) else {}
+            self.state.append_event(
+                'command_received',
+                operation_id=current_operation.get('id'),
+                operation_type='out_of_game' if (
+                    message.strip().startswith('{') and message.strip().endswith('}')
+                ) or state.get('play_gate') in self.OUTSIDE_PLAY_GATES else 'gameplay',
+                exact_input=message,
+                position_before=state.get('position'),
+                play_gate_before=state.get('play_gate'),
+            )
             normalized = message.strip().casefold()
             if normalized == '{pause}':
                 return self._pause_locked(state)
@@ -136,6 +357,13 @@ class CampaignPipeline:
                         state = self.state.load()
                 operation['answers'].append(message)
                 operation['revision'] += 1
+                operation['stage_run_id'] = uuid.uuid4().hex
+                self._journal_operation_event(
+                    'clarification_answered', operation,
+                    exact_response=message,
+                    stage=self._journal_stage(operation.get('stage')),
+                    status='in_progress',
+                )
                 if operation['kind'] in {'setup', 'character'}:
                     operation['stage'] = 'prepare_setup' if operation['kind'] == 'setup' else 'prepare_character'
                     operation['results'] = {}
@@ -158,14 +386,79 @@ class CampaignPipeline:
                     routed_message = '{' + message + '}'
                 operation = {
                     'id': 'turn-' + uuid.uuid4().hex, 'kind': 'turn', 'stage': 'route',
-                    'message': routed_message, 'answers': [], 'revision': 0, 'results': {},
+                    'operation_type': 'out_of_game' if is_admin or outside_gate else 'gameplay',
+                    'is_admin': is_admin,
+                    'attempt_id': uuid.uuid4().hex, 'stage_run_id': uuid.uuid4().hex,
+                    'message': routed_message, 'original_input': message, 'answers': [], 'revision': 0, 'results': {},
                     'before': state['position'], 'dice': {}, 'return_gate': state['play_gate'],
                 }
                 self.state.save({'operation': operation, 'play_gate': 'running', 'message': ''})
+                self._journal_operation_event(
+                    'operation_started', operation,
+                    original_input=message,
+                    status='in_progress',
+                    stage=self._journal_stage(operation['stage']),
+                    position_before=state.get('position'),
+                )
             return self._drive()
 
     def begin_setup(self) -> dict[str, Any]:
-        return self._begin_character_mode('new_game')
+        with runtime_lease(self.root):
+            previous = self.state.load()
+            self._hard_reset_new_game()
+            from brain.setup_drafts import SetupDrafts
+            SetupDrafts(self.state).begin('new_game')
+            state = self.state.load()
+            draft = state.get('draft') or {}
+            self.state.append_event(
+                'new_campaign_started',
+                campaign_id=draft.get('campaign_id'),
+                previous_campaign_id=previous.get('campaign_id'),
+                position=state.get('position'),
+                status='in_progress',
+            )
+            return self.view()
+
+    def _hard_reset_new_game(self) -> None:
+        """Immediately start a new campaign without touching preserved world files."""
+        previous_campaign_id = None
+        try:
+            previous_campaign_id = self.state.load().get('campaign_id')
+        except RuntimeError:
+            raise
+        # A new campaign intentionally starts a fresh journal. The reset event
+        # is the first record of the new campaign and contains only the old ID.
+        self.state.journal_path.unlink(missing_ok=True)
+        for filename, content in NEW_GAME_EMPTY_FILES.items():
+            atomic_text(self.root / 'markdown_files' / filename, content)
+        for filename in (
+            'background_state.json', 'background_visible.md', 'pipeline_cache.json',
+            'session_context.json', 'dice.json', 'model_calls.jsonl', 'runtime_errors.jsonl',
+            'player_prompt_history.txt',
+        ):
+            (self.root / 'brain/state' / filename).unlink(missing_ok=True)
+        receipts = self.root / 'brain/state/editor_receipts'
+        if receipts.is_dir():
+            for receipt in receipts.glob('*.json'):
+                receipt.unlink(missing_ok=True)
+        reset_state = {
+            'schema_version': 1,
+            'setup_status': 'new',
+            'play_gate': 'setup_required',
+            'position': {'day': 1, 'phase': PHASES[0], 'progress': 0.0},
+            'pending_dice': None, 'pending_clarification': None,
+            'day_end': None, 'pending_world_event': None, 'last_receipt': None,
+            'draft': None, 'proposal': None, 'operation': None,
+            'history': [], 'party': [], 'main_character': None,
+            'game_cache': {}, 'saved_rolls': {}, 'specialist_proposals': {},
+        }
+        atomic_json(self.state.path, reset_state)
+        self.state.append_event(
+            'campaign_reset_started',
+            previous_campaign_id=previous_campaign_id,
+            position=reset_state['position'],
+            status='in_progress',
+        )
 
     def pause(self) -> dict[str, Any]:
         with runtime_lease(self.root):
@@ -182,6 +475,13 @@ class CampaignPipeline:
             raise RuntimeError('The current operation must finish before pausing roleplay.')
         self.state.save({'play_gate': 'paused', 'paused_from': 'open',
                          'message': 'Roleplay is paused outside the game. Use {resume} to continue.'})
+        self.state.append_event(
+            'gate_changed',
+            operation_type='out_of_game',
+            previous_gate='open',
+            new_gate='paused',
+            status='completed',
+        )
         return self.view()
 
     def _resume_play_locked(self, state: dict[str, Any]) -> dict[str, Any]:
@@ -193,8 +493,15 @@ class CampaignPipeline:
             state = self.state.load()
             gate = state.get('play_gate')
         if gate == 'paused' or gate == 'new_day_pending':
-            self.state.save({'play_gate': 'open', 'paused_from': None,
-                             'message': 'Roleplay resumed. The next player message is in-game.'})
+            message = state.get('last_in_game_narration') or state.get('message') or 'Roleplay resumed.'
+            self.state.save({'play_gate': 'open', 'paused_from': None, 'message': message})
+            self.state.append_event(
+                'gate_changed',
+                operation_type='out_of_game',
+                previous_gate=gate,
+                new_gate='open',
+                status='completed',
+            )
             return self.view()
         if gate == 'new_game_pending':
             return self._start_opening(state)
@@ -203,7 +510,12 @@ class CampaignPipeline:
         raise RuntimeError(f'Roleplay cannot resume from runtime stage: {gate}')
 
     def review_current(self) -> dict[str, Any]:
-        if self.state.load().get('play_gate') == 'day_end_pending':
+        state = self.state.load()
+        if state.get('play_gate') in {'setup_review', 'character_review', 'admin_review', 'day_end_review'}:
+            # Re-display the current proposal file without rebuilding or
+            # advancing the review cursor.
+            return self.view()
+        if state.get('play_gate') == 'day_end_pending':
             return self.prepare_day_end()
         return self.review_setup()
 
@@ -254,6 +566,14 @@ class CampaignPipeline:
             self.state.save({'operation': None, 'proposal': None, 'pending_clarification': None,
                              'draft': None if draft else state.get('draft'), 'play_gate': previous,
                              'message': 'Pending operation cancelled; no campaign files were changed.'})
+            self.state.append_event(
+                'operation_cancelled',
+                operation_id=(state.get('operation') or {}).get('id'),
+                operation_type='out_of_game',
+                previous_gate=state.get('play_gate'),
+                restored_gate=previous,
+                status='cancelled_by_player',
+            )
             return self.view()
 
     def review_setup(self) -> dict[str, Any]:
@@ -270,9 +590,17 @@ class CampaignPipeline:
             kind = 'setup' if mode == 'new_game' else 'character'
             stage = 'prepare_setup' if kind == 'setup' else 'prepare_character'
             operation = {'id': kind + '-' + uuid.uuid4().hex, 'kind': kind, 'stage': stage,
-                         'before': state['position'], 'message': 'Prepare the character addition for review.',
+                         'operation_type': 'out_of_game', 'attempt_id': uuid.uuid4().hex, 'stage_run_id': uuid.uuid4().hex,
+                         'before': state['position'], 'message': 'Prepare the character addition for review.', 'original_input': '/review',
                          'answers': [], 'revision': 0, 'results': {}, 'dice': {}}
             self.state.save({'operation': operation, 'play_gate': 'running'})
+            self._journal_operation_event(
+                'operation_started', operation,
+                original_input=operation['message'],
+                status='in_progress',
+                stage=self._journal_stage(stage),
+                position_before=state.get('position'),
+            )
             return self._drive()
 
     def end_day(self) -> dict[str, Any]:
@@ -283,7 +611,69 @@ class CampaignPipeline:
             return self._drive()
 
     def continue_run(self) -> dict[str, Any]:
+        """Continue the exact saved checkpoint for internal recovery."""
         with runtime_lease(self.root):
+            return self._drive()
+
+    def retry(self) -> dict[str, Any]:
+        """Retry only the most recently failed stage from its saved snapshot."""
+        with runtime_lease(self.root):
+            state = self.state.load()
+            previous = state.get('operation')
+            if state.get('play_gate') != 'retry' or not isinstance(previous, dict):
+                raise RuntimeError('There is no failed task to retry.')
+            operation_id = str(previous.get('id', ''))
+            failed = self.state.latest_event(
+                operation_id=operation_id,
+                events={'stage_failed'},
+            )
+            if not isinstance(failed, dict):
+                raise RuntimeError('The failed stage record is unavailable; state was left unchanged.')
+            failed_run_id = failed.get('stage_run_id')
+            started = next((item for item in reversed(self.state.journal_events(operation_id=operation_id))
+                            if item.get('event') == 'stage_started' and item.get('stage_run_id') == failed_run_id), None)
+            if not isinstance(started, dict) or not isinstance(started.get('snapshot'), dict):
+                raise RuntimeError('The failed stage snapshot is unavailable; state was left unchanged.')
+            snapshot = started['snapshot']
+            saved_operation = snapshot.get('operation')
+            if not isinstance(saved_operation, dict) or not saved_operation.get('message'):
+                raise RuntimeError('The failed stage input is unavailable; state was left unchanged.')
+            operation = {
+                **saved_operation,
+                'attempt_id': uuid.uuid4().hex,
+                'stage_run_id': uuid.uuid4().hex,
+                'revision': int(saved_operation.get('revision', 0) or 0) + 1,
+            }
+            restored = {
+                **snapshot,
+                'operation': operation,
+                'play_gate': 'running',
+                'pending_dice': snapshot.get('pending_dice'),
+                'pending_clarification': None,
+                'failure_reason': None,
+                'message': f"Retrying {self._journal_stage(operation.get('stage'))} from its saved pre-stage state.",
+            }
+            self.state.replace(restored)
+            self._journal_operation_event(
+                'stage_retry_started',
+                operation,
+                attempt_id=operation.get('attempt_id'),
+                retry_of=failed.get('event_id'),
+                stage_run_id=operation.get('stage_run_id'),
+                internal_stage=operation.get('stage'),
+                stage=self._journal_stage(operation.get('stage')),
+                previous_stage=self._journal_stage(operation.get('previous_stage')) if operation.get('previous_stage') else None,
+                snapshot=restored,
+                original_input=operation.get('message'),
+                status='started',
+            )
+            self._journal_operation_event(
+                'operation_restarted',
+                operation,
+                retry_of=failed.get('event_id'),
+                stage=self._journal_stage(operation.get('stage')),
+                status='in_progress',
+            )
             return self._drive()
 
     def _context(self, operation: dict[str, Any]) -> dict[str, Any]:
@@ -299,23 +689,115 @@ class CampaignPipeline:
             'event_to_encounter': operation.get('event_to_encounter'),
             'party': state.get('party', []), 'main_character': state.get('main_character'),
             'specialist_proposals': state.get('specialist_proposals', {}),
+            'evidence_note': operation.get('evidence_note'),
+            'internal_specialists': operation.get('internal_specialists', []),
+            'setup_batches': operation.get('setup_batches', []),
         }
 
+    @staticmethod
+    def _journal_stage(stage: object) -> str:
+        return JOURNAL_STAGE_NAMES.get(str(stage), str(stage))
+
+    @staticmethod
+    def _operation_type(operation: dict[str, Any]) -> str:
+        return str(operation.get('operation_type') or ('out_of_game' if operation.get('is_admin') else 'gameplay'))
+
+    def _journal_operation_event(self, event: str, operation: dict[str, Any], **fields: Any) -> None:
+        self.state.append_event(
+            event,
+            operation_id=operation.get('id'),
+            turn_id=operation.get('id') if self._operation_type(operation) == 'gameplay' else None,
+            request_id=operation.get('id') if self._operation_type(operation) == 'out_of_game' else None,
+            operation_type=self._operation_type(operation),
+            **fields,
+        )
+
+    def _ensure_stage_started(self, operation: dict[str, Any]) -> dict[str, Any]:
+        """Create a durable pre-stage snapshot before any stage work runs."""
+        state = self.state.load()
+        current = state.get('operation')
+        if not isinstance(current, dict):
+            return operation
+        operation = current
+        changed = False
+        if not operation.get('stage_run_id'):
+            operation['stage_run_id'] = uuid.uuid4().hex
+            self.state.save({'operation': operation})
+            state = self.state.load()
+            changed = True
+        run_id = operation['stage_run_id']
+        existing = self.state.latest_event(operation_id=operation.get('id'), events={'stage_started', 'stage_waiting'})
+        if not changed and existing and existing.get('stage_run_id') == run_id and existing.get('internal_stage') == operation.get('stage'):
+            return operation
+        self._journal_operation_event(
+            'stage_started',
+            operation,
+            attempt_id=operation.get('attempt_id', operation.get('id')),
+            stage_run_id=run_id,
+            internal_stage=operation.get('stage'),
+            stage=self._journal_stage(operation.get('stage')),
+            previous_stage=self._journal_stage(operation.get('previous_stage')) if operation.get('previous_stage') else None,
+            original_input=operation.get('message'),
+            snapshot=state,
+            status='started',
+        )
+        return operation
+
     def _checkpoint(self, operation: dict[str, Any], stage: str, **changes: Any) -> None:
+        journal_status = changes.pop('_journal_status', 'completed')
+        completed_stage = operation.get('stage')
+        completed_run_id = operation.get('stage_run_id')
+        information = {
+            'changes': changes,
+            'results': operation.get('results', {}),
+        }
+        operation['previous_stage'] = completed_stage
         operation['stage'] = stage
-        self.state.save({'operation': operation, **changes})
+        if journal_status == 'completed':
+            operation['stage_run_id'] = uuid.uuid4().hex
+        saved = self.state.save({'operation': operation, 'failure_reason': None, **changes})
+        self._journal_operation_event(
+            'stage_completed' if journal_status == 'completed' else 'stage_failed' if journal_status == 'failed' else 'stage_waiting',
+            operation,
+            attempt_id=operation.get('attempt_id', operation.get('id')),
+            stage_run_id=completed_run_id,
+            internal_stage=completed_stage,
+            stage=self._journal_stage(completed_stage),
+            next_stage=self._journal_stage(stage),
+            information=information,
+            snapshot=saved,
+            status=journal_status,
+        )
+        if journal_status == 'completed':
+            self._journal_operation_event(
+                'stage_started',
+                operation,
+                attempt_id=operation.get('attempt_id', operation.get('id')),
+                stage_run_id=operation.get('stage_run_id'),
+                internal_stage=stage,
+                stage=self._journal_stage(stage),
+                previous_stage=self._journal_stage(completed_stage),
+                original_input=operation.get('message'),
+                snapshot=saved,
+                status='started',
+            )
 
     def _drive(self) -> dict[str, Any]:
         state = self.state.load()
         if not state.get('operation') and state['play_gate'] == 'sleep_pending':
             position = state['position']
-            operation = {'id': 'rest-' + uuid.uuid4().hex, 'kind': 'turn', 'sleep': True, 'stage': 'route', 'before': position,
+            operation = {'id': 'rest-' + uuid.uuid4().hex, 'kind': 'turn', 'sleep': True, 'stage': 'route',
+                         'operation_type': 'gameplay', 'attempt_id': uuid.uuid4().hex, 'stage_run_id': uuid.uuid4().hex,
+                         'before': position,
                          'message': f"Rest only until the next phase boundary ({1 - position.get('progress', 0)} phase). Award only earned rest. Respect each NPC's explicit orders and sleep schedule; use AI decisions where no schedule exists. Stop if interrupted. Do not resolve the remainder of the night.",
                          'answers': [], 'revision': 0, 'results': {}, 'dice': {}}
             self.state.save({'operation': operation, 'play_gate': 'running'})
+            self._journal_operation_event('operation_started', operation, original_input=operation['message'], status='in_progress', stage=self._journal_stage(operation['stage']), position_before=position)
             state = self.state.load()
         if not state.get('operation') or state['play_gate'] in {'awaiting_clarification', 'day_end_review', 'admin_review', 'setup_review', 'character_review'}:
             return self.view()
+        operation = self._ensure_stage_started(state['operation'])
+        state = self.state.load()
         operation = state['operation']
         context = self._context(operation)
         scope = {key: context[key] for key in ('campaign_id', 'turn_id', 'revision', 'position')}
@@ -327,8 +809,13 @@ class CampaignPipeline:
                     self._apply(operation)
                 elif operation['kind'] == 'setup':
                     prepared = self.modules.prepare_setup(context)
+                    if prepared.get('batch_progress'):
+                        operation['setup_batches'] = prepared['batch_progress']
+                        self.state.save({'operation': operation})
                     if prepared.get('status') == 'needs_clarification':
-                        self._hold_clarification(prepared, operation, 'prepare_setup')
+                        if self._retry_internal(operation, prepared, context, role='admin'):
+                            return self._drive()
+                        self._hold_agent_clarification(prepared, operation, 'prepare_setup')
                     else:
                         if prepared.get('world_pool'):
                             self._validate_pool(prepared['world_pool'])
@@ -337,7 +824,9 @@ class CampaignPipeline:
                 elif operation['kind'] == 'character':
                     proposal = self.modules.prepare_character_addition(context)
                     if proposal.get('status') == 'needs_clarification':
-                        self._hold_clarification(proposal, operation, 'prepare_character')
+                        if self._retry_internal(operation, proposal, context, role='admin'):
+                            return self._drive()
+                        self._hold_agent_clarification(proposal, operation, 'prepare_character')
                     else:
                         self._prepare_review(proposal, operation, 'character_review')
                 elif operation['kind'] == 'specialist':
@@ -369,7 +858,36 @@ class CampaignPipeline:
                     }, ensure_ascii=False) + '\n')
             except OSError:
                 pass
-            self.state.save({'play_gate': 'retry', 'message': 'Processing stopped safely. Use /retry to resume this step.'})
+            safe_reason = str(exc).strip().replace('\n', ' ')
+            if len(safe_reason) > 320:
+                safe_reason = safe_reason[:317] + '...'
+            failed_state = self.state.load()
+            failed_operation_value = failed_state.get('operation')
+            failed_operation: dict[str, Any] = failed_operation_value if isinstance(failed_operation_value, dict) else operation
+            self._journal_operation_event(
+                'stage_failed',
+                failed_operation,
+                attempt_id=failed_operation.get('attempt_id', failed_operation.get('id')),
+                stage_run_id=failed_operation.get('stage_run_id'),
+                internal_stage=failed_operation.get('stage'),
+                stage=self._journal_stage(failed_operation.get('stage')),
+                previous_stage=self._journal_stage(failed_operation.get('previous_stage')) if failed_operation.get('previous_stage') else None,
+                snapshot=failed_state,
+                status='failed',
+                failure_reason=safe_reason or type(exc).__name__,
+            )
+            self.state.save({
+                'play_gate': 'retry',
+                'failure_reason': safe_reason or type(exc).__name__,
+                'message': 'Processing stopped safely. Use /retry to resume this step.',
+            })
+            self._journal_operation_event(
+                'operation_failed',
+                failed_operation,
+                stage=self._journal_stage(failed_operation.get('stage')),
+                status='failed',
+                failure_reason=safe_reason or type(exc).__name__,
+            )
         return self.view()
 
     def _turn(self, operation: dict[str, Any], context: dict[str, Any]) -> None:
@@ -394,9 +912,20 @@ class CampaignPipeline:
                 if response.get('status') == 'proposal_ready':
                     self._prepare_review(response, operation, 'admin_review')
                 elif response.get('status') == 'answered':
-                    self.state.save({'operation': None, 'play_gate': operation.get('return_gate', 'open'), 'message': response.get('answer', '')})
-                elif response.get('status') == 'needs_clarification':
-                    self._checkpoint(operation, 'admin', play_gate='awaiting_clarification', pending_clarification={'question': '\n'.join(response.get('questions', []))})
+                    answer = response.get('answer', '')
+                    self.state.save({'operation': None, 'play_gate': operation.get('return_gate', 'open'),
+                                     'message': answer,
+                                     'last_admin_diagnosis': response.get('diagnosis', {})})
+                    self._journal_operation_event(
+                        'operation_completed', operation,
+                        stage='admin_operation_completed',
+                        status='completed',
+                        answer=answer,
+                    )
+                elif response.get('status') in {'needs_clarification', 'blocked'}:
+                    if self._retry_internal(operation, response, context, role='admin'):
+                        continue
+                    self._hold_agent_clarification(response, operation, 'admin')
                 else:
                     raise RuntimeError('Administrative analysis is incomplete.')
                 return
@@ -406,18 +935,22 @@ class CampaignPipeline:
                 resolution = lead.get('resolution_record') or lead
                 status = lead.get('status')
                 if status == 'needs_clarification':
+                    if self._retry_internal(operation, lead, context, role='lead'):
+                        continue
                     question = lead.get('player_question') or resolution.get('clarification_request') or {'question': 'Please clarify your action.'}
-                    self._checkpoint(operation, 'resolve', play_gate='awaiting_clarification', pending_clarification=question)
+                    self._hold_agent_clarification(lead, operation, 'resolve', question=question)
                     return
                 if status == 'awaiting_dice':
                     request = resolution.get('dice_request') or {}
                     self._roll(operation, request)
                     continue
-                if status == 'blocked' and lead.get('evidence_expansion_request') and operation.get('expansions', 0) < 2:
-                    operation['expansions'] = operation.get('expansions', 0) + 1
-                    operation['evidence_note'] = lead['evidence_expansion_request'].get('evidence_note')
-                    self._checkpoint(operation, 'evidence')
-                    continue
+                if status == 'blocked':
+                    if self._retry_internal(operation, lead, context, role='lead'):
+                        continue
+                    if lead.get('evidence_expansion_request'):
+                        self._hold_agent_clarification(lead, operation, 'resolve')
+                        return
+                    raise RuntimeError('Resolution is not complete.')
                 if status != 'resolved':
                     raise RuntimeError('Resolution is not complete.')
                 after, transitions = self._time(operation['before'], lead)
@@ -481,6 +1014,7 @@ class CampaignPipeline:
                     'position': after, 'history': history, 'operation': None,
                     'play_gate': gate, 'sleep_until_day': state.get('sleep_until_day') if keep_sleeping else None,
                     'review_after_interrupt': review_due and interrupted,
+                    'last_in_game_narration': message,
                     'message': message, 'state_version': state.get('state_version', 0) + 1,
                     'game_cache': results['record'].get('cache_delta') or state.get('game_cache', {}),
                     'pending_dice': None, 'pending_clarification': None,
@@ -489,10 +1023,101 @@ class CampaignPipeline:
                     'pending_world_event': None if operation.get('event_to_encounter') else state.get('pending_world_event'),
                     'specialist_proposals': specialist_proposals,
                 })
+                self._journal_operation_event(
+                    'operation_completed', operation,
+                    stage='recorder',
+                    position_after=after,
+                    status='completed',
+                    result=message,
+                )
                 return
             else:
                 raise RuntimeError('Unknown saved stage.')
         raise RuntimeError('Continuation limit reached; requires review.')
+
+    def _retry_internal(self, operation: dict[str, Any], response: dict[str, Any], context: dict[str, Any], *, role: str) -> bool:
+        """Give internal evidence and specialist lanes a bounded second chance."""
+        resolution_value = response.get('resolution_record')
+        resolution: dict[str, Any] = resolution_value if isinstance(resolution_value, dict) else {}
+        diagnosis_value = response.get('diagnosis')
+        diagnosis: dict[str, Any] = diagnosis_value if isinstance(diagnosis_value, dict) else {}
+        if not diagnosis and isinstance(response.get('result_reason'), dict):
+            diagnosis = dict(response['result_reason'])
+        clarification = response.get('clarification_request') if isinstance(response.get('clarification_request'), dict) else resolution.get('clarification_request')
+        if isinstance(clarification, dict):
+            diagnosis = {**diagnosis, **clarification}
+        expansion_value = response.get('evidence_expansion_request')
+        expansion: dict[str, Any] = expansion_value if isinstance(expansion_value, dict) else {}
+        internal_search = bool(diagnosis.get('internal_search')) or bool(expansion)
+        request = str(diagnosis.get('evidence_request') or expansion.get('evidence_note') or '').strip()
+        if not internal_search or not request:
+            return False
+        round_key = f'{role}_internal_round'
+        round_number = int(operation.get(round_key, 0) or 0)
+        if round_number >= 2:
+            return False
+        specialists = diagnosis.get('specialists', [])
+        if not isinstance(specialists, list):
+            specialists = []
+        operation[round_key] = round_number + 1
+        operation['evidence_note'] = (
+            f'{role.title()} reported an unresolved issue: {diagnosis.get("issue", "internal information is missing")}.\n'
+            f'Why it matters: {diagnosis.get("why", "the result is not yet defensible")}.\n'
+            f'Internal evidence request: {request}'
+        )
+        operation['internal_specialists'] = [str(item) for item in specialists if isinstance(item, str)]
+        context['internal_specialists'] = operation['internal_specialists']
+        operation['results'].pop('evidence', None)
+        operation['results'].pop('specialists', None)
+        if role == 'lead':
+            operation['results'].pop('resolution', None)
+        self._checkpoint(operation, 'evidence')
+        return True
+
+    def _hold_agent_clarification(
+        self,
+        response: dict[str, Any],
+        operation: dict[str, Any],
+        stage: str,
+        *,
+        question: Any = None,
+    ) -> None:
+        diagnosis = response.get('diagnosis') if isinstance(response.get('diagnosis'), dict) else {}
+        reason = response.get('result_reason') if isinstance(response.get('result_reason'), dict) else {}
+        expansion = response.get('evidence_expansion_request') if isinstance(response.get('evidence_expansion_request'), dict) else {}
+        if not diagnosis and expansion:
+            diagnosis = {
+                'issue': 'Required internal evidence is still unresolved.',
+                'why': expansion.get('evidence_note') or 'The available specialist evidence was not sufficient for a defensible result.',
+                'player_question': '',
+            }
+        candidate: dict[str, Any] = dict(response)
+        if isinstance(question, dict):
+            candidate.update(question)
+        presented = PlayerClarification.present(candidate)
+        if not presented:
+            self._checkpoint(
+                operation, stage, play_gate='retry', pending_clarification=None,
+                message='The game is resolving an internal evidence question; no private backend details are required from the player.',
+                _journal_status='failed',
+            )
+            return
+        operation['stage'] = stage
+        question_payload = {
+            **presented,
+            'source': 'admin_agent' if stage in {'admin', 'prepare_setup', 'prepare_character'} else 'lead_resolver',
+        }
+        self._checkpoint(
+            operation, stage, play_gate='awaiting_clarification',
+            pending_clarification=question_payload,
+            _journal_status='awaiting_clarification',
+        )
+        self._journal_operation_event(
+            'clarification_requested', operation,
+            stage=self._journal_stage(stage),
+            question=question_payload,
+            status='awaiting_clarification',
+        )
 
     def _start_background(self, operation: dict[str, Any], context: dict[str, Any]) -> None:
         if not operation['results'].get('transitions'):
@@ -506,6 +1131,17 @@ class CampaignPipeline:
             with model_scope(self.root, metadata):
                 return self.modules.background(operation['results']['transitions'], hidden_context)
         self._background[operation['id']] = self._executor.submit(copy_context().run, work)
+
+    def close_session(self) -> None:
+        with runtime_lease(self.root):
+            state = self.state.load()
+            self.state.append_event(
+                'session_closed',
+                operation_id=(state.get('operation') or {}).get('id') if isinstance(state.get('operation'), dict) else None,
+                play_gate=state.get('play_gate'),
+                position=state.get('position'),
+                status='completed',
+            )
 
     def close(self) -> None:
         self._executor.shutdown(wait=True)
@@ -529,7 +1165,15 @@ class CampaignPipeline:
         operation.pop('receipt', None)
         operation['revision'] += 1
         operation['answers'].append(message)
+        operation['stage_run_id'] = uuid.uuid4().hex
         operation['results'] = {}
+        self._journal_operation_event(
+            'proposal_revision_received', operation,
+            exact_input=message,
+            status='in_progress',
+        )
+        if state['play_gate'] == 'setup_review':
+            operation.pop('setup_batches', None)
         gate = state['play_gate']
         operation['kind'] = 'day_end' if gate == 'day_end_review' else 'setup' if gate == 'setup_review' else 'turn'
         operation['stage'] = 'prepare_day' if gate == 'day_end_review' else 'prepare_setup' if gate == 'setup_review' else 'route'
@@ -539,25 +1183,35 @@ class CampaignPipeline:
         return self._drive()
 
     def _hold_clarification(self, response: dict[str, Any], operation: dict[str, Any], stage: str) -> None:
-        """Surface only player-safe setup questions; never expose backend evidence requests."""
-        raw_questions = [str(q).strip() for q in (response.get('questions') or []) if str(q).strip()]
-        internal_markers = (
-            'template', 'exact current', 'status sheet', 'ledger', 'experimentation register',
-            'core world frame', 'event log section', 'file contents', 'markdown', 'backend',
-            'normal xp', 'class xp', 'classless', 'registered',
-        )
-        safe_questions = [
-            question for question in raw_questions
-            if not any(marker in question.casefold() for marker in internal_markers)
-        ]
-        if safe_questions:
-            prompt = '\n'.join(safe_questions)
-        else:
-            prompt = ('I need one more player-facing clarification about the characters—such as an unresolved '
-                      'identity, relationship, ancestry, or class concept—before I can prepare the starting party.')
+        """Expose only a safe player question; internal failures are retried."""
+        state = self.state.load()
+        draft = state.get('draft') or {}
+        fallback = None
+        if stage == 'prepare_setup' and draft.get('mode') == 'new_game':
+            fallback = PlayerClarification.from_setup_draft(draft)
+        if fallback is None and stage == 'prepare_character':
+            fallback = 'Please provide the missing player-facing detail for this character.'
+        presented = PlayerClarification.present(response, fallback=fallback)
         operation['stage'] = stage
-        self._checkpoint(operation, stage, play_gate='awaiting_clarification',
-                         pending_clarification={'question': prompt, 'conflicts': [], 'source': 'setup'})
+        if not presented:
+            self._checkpoint(
+                operation, stage, play_gate='retry', pending_clarification=None,
+                message='The game is rechecking the setup proposal; no private file or rule details are required from the player.',
+                _journal_status='failed',
+            )
+            return
+        question_payload = {**presented, 'source': 'setup'}
+        self._checkpoint(
+            operation, stage, play_gate='awaiting_clarification',
+            pending_clarification=question_payload,
+            _journal_status='awaiting_clarification',
+        )
+        self._journal_operation_event(
+            'clarification_requested', operation,
+            stage=self._journal_stage(stage),
+            question=question_payload,
+            status='awaiting_clarification',
+        )
 
     def _prepare_review(self, proposal: dict[str, Any], operation: dict[str, Any], gate: str) -> None:
         from brain.game_modules import admin_module
@@ -567,7 +1221,46 @@ class CampaignPipeline:
                     # boundary before it can be version-bound or approved.
                     'proposed_by': proposal.get('proposed_by', 'admin_agent')}
         bound = admin_module('approval').bind_source_versions(proposal, repo_root=self.root)
-        self.state.save({'proposal': bound, 'operation': operation, 'play_gate': gate, 'message': proposal.get('answer', 'Review the complete proposed changes.'), 'pending_clarification': None})
+        self.state.save({'proposal': bound, 'proposal_file_index': 0, 'operation': operation, 'play_gate': gate, 'message': 'Review the proposed campaign records one file at a time.', 'pending_clarification': None})
+        self._journal_operation_event(
+            'proposal_created', operation,
+            proposal_id=bound.get('proposal_id'),
+            stage='proposal_or_answer',
+            status='awaiting_approval',
+            proposed_files=[change.get('target_file') for change in bound.get('changes', []) if isinstance(change, dict)],
+        )
+
+    def next_proposal_file(self) -> dict[str, Any]:
+        with runtime_lease(self.root):
+            state = self.state.load()
+            if state.get('play_gate') not in {'setup_review', 'character_review', 'admin_review', 'day_end_review'}:
+                raise RuntimeError('There is no proposal being reviewed.')
+            proposal_for_total_value = state.get('proposal')
+            proposal_for_total: dict[str, Any] = proposal_for_total_value if isinstance(proposal_for_total_value, dict) else {}
+            total = sum(
+                1 for change in proposal_for_total.get('changes', [])
+                if isinstance(change, dict) and str(change.get('target_file', '')).startswith('markdown_files/')
+            )
+            index = state.get('proposal_file_index', 0)
+            index = index if isinstance(index, int) and index >= 0 else 0
+            next_index = min(index + 1, total)
+            self.state.save({'proposal_file_index': next_index})
+            operation_value = state.get('operation')
+            operation: dict[str, Any] = operation_value if isinstance(operation_value, dict) else {}
+            proposal_value = state.get('proposal')
+            proposal: dict[str, Any] = proposal_value if isinstance(proposal_value, dict) else {}
+            changes = [change for change in proposal.get('changes', []) if isinstance(change, dict)]
+            reviewed = changes[index] if index < len(changes) else {}
+            self._journal_operation_event(
+                'proposal_file_reviewed', operation,
+                proposal_id=proposal.get('proposal_id'),
+                filename=reviewed.get('target_file'),
+                file_number=index + 1,
+                review_position_before=index,
+                review_position_after=next_index,
+                status='completed',
+            )
+            return self.view()
 
     def approve(self, *, confirm_reset: bool = False) -> dict[str, Any]:
         from brain.game_modules import admin_module
@@ -581,6 +1274,13 @@ class CampaignPipeline:
             operation['approved'] = admin_module('approval').approve_proposal(state['proposal'])
             operation['review_gate'] = state['play_gate']
             operation['kind'] = 'apply'
+            operation['operation_type'] = 'out_of_game'
+            self._journal_operation_event(
+                'approval_requested', operation,
+                proposal_id=state['proposal'].get('proposal_id'),
+                approval_type='full_campaign_replacement' if state['play_gate'] == 'setup_review' else 'campaign_change',
+                status='in_progress',
+            )
             self._checkpoint(operation, 'apply', play_gate='running')
             return self._drive()
 
@@ -617,21 +1317,34 @@ class CampaignPipeline:
             return_gate = operation.get('return_gate', 'open')
             if return_gate not in self.OUTSIDE_PLAY_GATES:
                 return_gate = 'open'
-            self.state.save({'operation': None, 'play_gate': return_gate,
-                             'message': 'Administrative changes saved; roleplay remains paused outside the game.'
-                             if return_gate in self.OUTSIDE_PLAY_GATES else 'Administrative changes saved.'})
+            final_message = 'Administrative changes saved; roleplay remains paused outside the game.' if return_gate in self.OUTSIDE_PLAY_GATES else 'Administrative changes saved.'
+            self.state.save({'operation': None, 'play_gate': return_gate, 'message': final_message})
+            self._journal_operation_event(
+                'operation_completed', operation,
+                stage='admin_operation_completed',
+                status='completed',
+                receipt=operation.get('receipt'),
+                message=final_message,
+            )
 
     def _activate_character(self, operation: dict[str, Any]) -> None:
         state = self.state.load()
         draft = state['draft']
         character = draft['characters'][0]
         party = [*(state.get('party') or []), character]
+        message = draft.get('previous_message') or state.get('last_in_game_narration') or 'Character added to the party.'
         self.state.save({
             'party': party, 'draft': None, 'operation': None, 'proposal': None,
-            'play_gate': 'open', 'message': 'Character added to the party.',
+            'play_gate': 'open', 'message': message,
             'last_receipt': operation['receipt'],
             'state_version': state.get('state_version', 0) + 1,
         })
+        self._journal_operation_event(
+            'operation_completed', operation,
+            stage='admin_operation_completed',
+            status='completed',
+            message=message,
+        )
 
     def specialist_proposals(self) -> list[dict[str, Any]]:
         with runtime_lease(self.root):
@@ -646,9 +1359,11 @@ class CampaignPipeline:
             if not isinstance(stored, dict):
                 raise ValueError('No stored specialist proposal by that name.')
             operation = {'id': 'specialist-' + uuid.uuid4().hex, 'kind': 'specialist', 'stage': 'prepare_specialist',
-                         'before': state['position'], 'message': f'Install specialist {name}.',
+                         'operation_type': 'out_of_game', 'attempt_id': uuid.uuid4().hex, 'stage_run_id': uuid.uuid4().hex,
+                         'before': state['position'], 'message': f'Install specialist {name}.', 'original_input': f'/install {name}',
                          'answers': [], 'revision': 0, 'results': {}, 'dice': {}, 'specialist': stored}
             self.state.save({'operation': operation, 'play_gate': 'running'})
+            self._journal_operation_event('operation_started', operation, original_input=operation['message'], status='in_progress', stage=self._journal_stage(operation['stage']), position_before=state.get('position'))
             return self._drive()
 
     def _activate_setup(self, operation: dict[str, Any]) -> None:
@@ -674,6 +1389,12 @@ class CampaignPipeline:
                          'completed_day': None, 'pending_dice': None, 'pending_clarification': None, 'day_end': None,
                          'play_gate': 'new_game_pending', 'paused_from': 'new_game_pending',
                          'message': 'Setup changes are stored. Review them, then use {resume} to begin roleplay.'})
+        self._journal_operation_event(
+            'operation_completed', operation,
+            stage='admin_operation_completed',
+            status='completed',
+            message='New campaign setup applied.',
+        )
 
     def _start_opening(self, state: dict[str, Any]) -> dict[str, Any]:
         draft = state.get('draft') or {}
@@ -681,11 +1402,13 @@ class CampaignPipeline:
         if not campaign_id:
             raise RuntimeError('Cannot start roleplay without an approved campaign.')
         opening = {'id': 'opening-' + campaign_id, 'kind': 'turn', 'stage': 'route',
+                   'operation_type': 'gameplay', 'attempt_id': uuid.uuid4().hex, 'stage_run_id': uuid.uuid4().hex,
                    'before': {'day': 1, 'phase': PHASES[0], 'progress': 0},
                    'message': 'Begin the approved new campaign. Design the first scenario from the saved party backgrounds and established world lore. Introduce the situation without deciding the player response. No time elapses for this introduction.',
                    'answers': [], 'revision': 0, 'results': {}, 'dice': {}, 'return_gate': 'open'}
         self.state.save({'operation': opening, 'play_gate': 'running', 'paused_from': None,
                          'message': 'Beginning the approved campaign.'})
+        self._journal_operation_event('operation_started', opening, original_input=opening['message'], status='in_progress', stage=self._journal_stage(opening['stage']), position_before=opening['before'])
         self._drive()
         return self.view()
 

@@ -24,6 +24,9 @@ class SpecialistDefinition:
     category: str = "special"
     unlockable: bool = False
     description: str = ""
+    template: str | None = None
+    sections: tuple[str, ...] = ()
+    evidence_requirements: tuple[str, ...] = ()
 
 
 CORE_SPECIALISTS = ("cache", "rules", "character", "special", "create")
@@ -183,6 +186,27 @@ SPECIALIST_DEFINITIONS: dict[str, SpecialistDefinition] = {
         ("Who is the primary actor and who is actively helping?", "Which exact numeric stat, skill, tool, preparation, teamwork, active-node, assistance, Realistic Approach, resource, cost, and timing modifiers apply?", "What are each participant's Action Values, Main/Sub relationship boost, Sub contribution, and final Team Action Value? Which action-side modifiers apply, which are +0, and which are excluded with a reason?"),
         ("mechanic.resource_cost", "mechanic.cognitive_assistance", "mechanic.spell_creation", "mechanic.difficulty", "mode.combat"),
     ),
+    "modifier_creation": SpecialistDefinition(
+        "modifier_creation",
+        (
+            "Review the complete action history, experiments, training, combat adaptation, "
+            "breakthroughs, consumption, and existing modifier ledger to determine "
+            "whether a new reusable Effect Modifier is justified. This specialist "
+            "proposes only evidence-backed modifier candidates; it never grants a "
+            "modifier, changes canon, or replaces Lead Resolver judgment. At new-game "
+            "setup, review the draft and supplied history for valid pre-existing "
+            "evidence, but do not convert a job, stat, item, AI, lore possibility, "
+            "or one-time capability into a modifier. Return no proposal when the "
+            "threshold is not met."
+        ),
+        (
+            "Does the history show repeated meaningful success, a breakthrough, or successful modifier creation?",
+            "Is the proposed effect stable, narrow, reusable, non-duplicative, and supported by action history?",
+            "What exact name, tier, boost domain, description, evidence, and anti-farming boundary should be proposed, or why is no modifier justified?",
+        ),
+        ("mechanic.modifier_creation", "activity.experiment", "activity.training", "stakes.breakthrough", "mode.combat"),
+        category="character",
+    ),
     "spell": SpecialistDefinition(
         "spell",
         "Determine spell-specific validity, generation cost, casting cost, tier, branch, and spell-effect constraints.",
@@ -319,6 +343,13 @@ def validate_created_definition(value: object) -> SpecialistDefinition | None:
         or any(not isinstance(item, str) or not item.strip() for item in tags)
     ):
         return None
+    sections_value = value.get("sections", [])
+    sections = tuple(str(item).strip() for item in sections_value[:12] if str(item).strip()) if isinstance(sections_value, list) else ()
+    evidence_value = value.get("evidence_requirements", [])
+    evidence = tuple(str(item).strip() for item in evidence_value[:12] if str(item).strip()) if isinstance(evidence_value, list) else ()
+    template = value.get("template")
+    if template is not None and (not isinstance(template, str) or not re.fullmatch(r"[a-z][a-z0-9_-]*\.md", template)):
+        return None
     return SpecialistDefinition(
         name=name,
         purpose=purpose.strip(),
@@ -327,6 +358,9 @@ def validate_created_definition(value: object) -> SpecialistDefinition | None:
         category="special",
         unlockable=True,
         description=str(value.get("description") or purpose).strip(),
+        template=template,
+        sections=sections,
+        evidence_requirements=evidence,
     )
 
 

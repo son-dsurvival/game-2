@@ -124,6 +124,26 @@ Remaining work:
 - Admin Agent still has its explicit `no_specialists` test/admin bypass. It must be restricted so it cannot service gameplay-resolution work.
 - A complete merge/expiry policy for the consolidated `## Game Cache` section has not yet been implemented; individual recorded deltas round-trip, but compaction is still needed.
 
+### Modifier creation specialist — implemented foundation
+
+`modifier_creation` is separate from the action-side `modifier` specialist. It audits action history, experiments, training, breakthroughs, cache, and the existing modifier ledger for a narrow reusable Effect Modifier. It is triggered by modifier-creation signals and is explicitly run during new-game setup, where it must return no grant unless valid pre-game action history supports one. It proposes only; Lead Resolver decides and Recorder persists.
+
+### Branch discovery — implemented foundation
+
+`brain/branch_discovery.py` now scans:
+
+- world lore and game rules;
+- mutable Event log and Game log sections;
+- `TEMP_MEMORY.md` and the player-readable background register;
+- private runtime JSON state;
+- current player input and conversation history;
+- game cache and specialist findings;
+- resolved-turn data supplied by the Lead Resolver.
+
+It recognizes both the registered branches and additional lore domains such as dungeon ecology, peoples, civilization, religion, technology, and knowledge. It returns explainable signals, source groups, lore-only candidates, recurring active candidates, and unlock candidates. `SpecialistRunner` persists identified candidates into `markdown_files/Branch Registry.md` through `BranchRegistry.record_candidates()`. `GameModules.discover_branches()` also runs after every approved day-end reconciliation, refreshes the evidence indexes, and stores the private discovery report in runtime state.
+
+Discovery does **not** unlock a branch. Lore-only mentions remain `lore_candidate`. A recurring active domain becomes a `candidate`, but still requires Lead Resolver confirmation and the existing Recorder/Admin approval path. `BranchRegistry` routes only `status: unlocked`; candidate records are stored for review and never activate specialists. Lead Resolver and Recorder now reject branch unlock claims that lack a discovered established-evidence candidate.
+
 ### K. Visibility controls — partially implemented
 
 `backend/visibility_filter.py` is fail-closed for background records: an entry needs both an explicitly OOC-safe label and a roleplay-visible label before it reaches narrator-facing background data.

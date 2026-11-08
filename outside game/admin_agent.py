@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import uuid
 from pathlib import Path
@@ -38,6 +39,14 @@ Return JSON only:
 {
   "status": "answered|proposal_ready|needs_clarification|blocked",
   "answer": "clear out-of-roleplay answer",
+  "diagnosis": {
+    "issue": "what was decided or what is blocking the result",
+    "why": "brief evidence-backed reason for the result",
+    "internal_search": true,
+    "evidence_request": "what the Evidence Bundle should search next, or empty",
+    "specialists": ["appropriate specialist names"],
+    "player_question": "only when internal evidence cannot resolve the issue"
+  },
   "evidence": [{"source": "...", "location": "...", "claim": "..."}],
   "changes": [{
     "target_file": "markdown_files/...md or outside game/templates/...md",
@@ -51,6 +60,19 @@ Return JSON only:
   "instructions": [{"target": "brain|backend", "instruction": "...", "reason": "..."}],
   "questions": [],
   "conflicts": [],
+  "modifier_group_placements": [{
+    "character": "...",
+    "modifier": "...",
+    "group": "Physical Attack|Magic Attack|Defense|...",
+    "decision": "approved|rejected|needs_review",
+    "use_in_group": "scenario-specific use",
+    "activation_conditions": "when it applies",
+    "limitations": "what it cannot do",
+    "admin_defense": "why this modifier belongs in this group",
+    "evidence": "source and location",
+    "stacking": "how it stacks or does not stack",
+    "admin_rationale": "final administrative justification"
+  }],
   "approval_required": false
 }
 
@@ -59,8 +81,18 @@ Markdown templates for document creation and filling. Store final campaign
 content as readable Markdown, never as JSON blobs. A number change should be an
 exact line update when possible; update an existing description or section
 instead of appending a duplicate section. Code instructions are plans only and
-are never file edits. A write proposal must set approval_required true. Keep the
-answer concise and do not expose internal chain-of-thought.
+are never file edits. A write proposal must set approval_required true. When a
+proposal adds or changes a Modifier Group entry, review every placement
+separately and require a character, modifier, group, scenario-specific defense,
+evidence, limitations, and stacking explanation. The defense must appear in
+both `modifier_group_placements` and the proposed readable Markdown change.
+Always provide `diagnosis.issue` and `diagnosis.why`, including for answered and
+proposal results. If the result is blocked or needs clarification, first describe
+whether the missing information may be found internally. Set `internal_search`
+true and provide a concrete `evidence_request` plus appropriate `specialists`
+when another evidence round may solve it. Set `internal_search` false only when
+only the player's intent, choice, or missing personal fact can resolve it. Keep
+reasons concise and evidence-backed; do not expose internal chain-of-thought.
 """
 
 
@@ -92,6 +124,14 @@ class AdminAgent:
                 "request_id": request_id,
                 "status": "blocked",
                 "answer": "The Administrative AI requires DEEPSEEK_API_KEY or API_KEY.",
+                "diagnosis": {
+                    "issue": "Administrative AI provider credentials are unavailable.",
+                    "why": "No configured provider key is available to produce an evidence-backed administrative result.",
+                    "internal_search": False,
+                    "evidence_request": "",
+                    "specialists": [],
+                    "player_question": "Administrative AI credentials must be configured before this request can be completed.",
+                },
                 "evidence": [],
                 "changes": [],
                 "instructions": [],
@@ -125,10 +165,39 @@ class AdminAgent:
         except json.JSONDecodeError as exc:
             raise RuntimeError("Administrative AI returned invalid JSON") from exc
         result = self._validate(result, request_id)
+        result["proposed_by"] = "admin_agent"
         if result.get("status") == "proposal_ready" and isinstance(result.get("changes"), list):
             result = bind_source_versions(result, repo_root=self.repo_root)
         result["specialist_output"] = specialist_output
         return result
+
+    def prepare_document_proposal(
+        self,
+        *,
+        request_id: str,
+        changes: list[dict[str, Any]],
+        answer: str,
+        evidence: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
+        """Create a deterministic Admin Agent proposal for approved documentation.
+
+        This keeps non-roleplay documentation on the same Admin Agent → approval
+        → Admin Editor path without requiring a second model call for text the
+        player has already explicitly approved.
+        """
+        value = self._validate({
+            "status": "proposal_ready",
+            "answer": answer,
+            "evidence": evidence or [],
+            "changes": changes,
+            "instructions": [],
+            "questions": [],
+            "conflicts": [],
+            "modifier_group_placements": [],
+            "approval_required": True,
+        }, request_id)
+        value["proposed_by"] = "admin_agent"
+        return bind_source_versions(value, repo_root=self.repo_root)
 
     def _specialists(self, bundle_record: dict[str, Any], *, mode: str) -> dict[str, Any]:
         if mode == "no_specialists":
@@ -145,9 +214,34 @@ class AdminAgent:
         status = value.get("status")
         if status not in {"answered", "proposal_ready", "needs_clarification", "blocked"}:
             raise RuntimeError("Administrative AI returned an invalid status")
-        for field in ("evidence", "changes", "instructions", "questions", "conflicts"):
+        for field in ("evidence", "changes", "instructions", "questions", "conflicts", "modifier_group_placements"):
             if not isinstance(value.get(field, []), list):
                 raise RuntimeError(f"Administrative AI field must be a list: {field}")
+        raw_diagnosis = value.get("diagnosis")
+        if not isinstance(raw_diagnosis, dict):
+            raw_diagnosis = {}
+        diagnosis = {
+            "issue": str(raw_diagnosis.get("issue") or (value.get("questions") or value.get("answer") or "No administrative issue reported.")),
+            "why": str(raw_diagnosis.get("why") or "The result was produced from the frozen evidence and specialist findings."),
+            "internal_search": bool(raw_diagnosis.get("internal_search", False)),
+            "evidence_request": str(raw_diagnosis.get("evidence_request") or ""),
+            "specialists": [str(item) for item in raw_diagnosis.get("specialists", []) if isinstance(item, str)],
+            "player_question": str(raw_diagnosis.get("player_question") or ""),
+        }
+        placements = []
+        placement_fields = (
+            "character", "modifier", "group", "decision", "use_in_group",
+            "activation_conditions", "limitations", "admin_defense", "evidence",
+            "stacking", "admin_rationale",
+        )
+        for placement in value.get("modifier_group_placements", []):
+            if not isinstance(placement, dict):
+                continue
+            if any(not placement.get(field) for field in placement_fields):
+                continue
+            if placement.get("decision") not in {"approved", "rejected", "needs_review"}:
+                continue
+            placements.append(placement)
         changes = []
         for change in value.get("changes", []):
             if not isinstance(change, dict):
@@ -157,17 +251,56 @@ class AdminAgent:
             if not isinstance(change.get("target_file"), str):
                 continue
             changes.append(change)
-        if changes and status != "proposal_ready":
+        def has_modifier_group_placement(text: str) -> bool:
+            """Detect an actual placement, not an empty template heading."""
+            match = re.search(r'^###\s+Modifier Groups\s*$', text, re.IGNORECASE | re.MULTILINE)
+            if not match:
+                return False
+            section = text[match.end():]
+            next_section = re.search(r'^##\s+', section, re.MULTILINE)
+            if next_section:
+                section = section[:next_section.start()]
+            if 'admin defense' in section.casefold():
+                return True
+            return bool(re.search(r'^####\s+\S|^\s*[-*]\s+character\s*:', section, re.IGNORECASE | re.MULTILINE))
+
+        modifier_group_change = any(
+            "status sheet.md" in str(change.get("target_file", "")).casefold()
+            and (
+                has_modifier_group_placement(str(change.get("new_text", "")))
+                or "modifier_groups" in str(change.get("values", "")).casefold()
+            )
+            for change in changes
+        )
+        conflicts = [item for item in value.get("conflicts", []) if isinstance(item, dict)]
+        defense_in_markdown = all(
+            "admin defense" in str(change.get("new_text", "")).casefold()
+            for change in changes
+            if "status sheet.md" in str(change.get("target_file", "")).casefold()
+        )
+        if modifier_group_change and (
+            not placements
+            or not defense_in_markdown
+            or any(item.get("decision") != "approved" for item in placements)
+        ):
+            status = "needs_clarification"
+            conflicts.append({
+                "type": "modifier_group_defense_missing",
+                "reason": "Every Modifier Group placement must be individually defended and approved before it can be written.",
+            })
+        if changes and status not in {"proposal_ready", "needs_clarification"}:
             status = "proposal_ready"
         return {
             "request_id": request_id,
             "status": status,
             "answer": str(value.get("answer", "")),
+            "diagnosis": diagnosis,
             "evidence": [item for item in value.get("evidence", []) if isinstance(item, dict)],
             "changes": changes,
             "instructions": [item for item in value.get("instructions", []) if isinstance(item, dict)],
             "questions": [item for item in value.get("questions", []) if isinstance(item, str)],
-            "conflicts": [item for item in value.get("conflicts", []) if isinstance(item, dict)],
+            "conflicts": conflicts,
+            "modifier_group_placements": placements,
             "approval_required": bool(value.get("approval_required", bool(changes))),
         }
 
@@ -180,6 +313,14 @@ class AdminAgent:
             request_id=request_id,
             status="answered",
             answer=f"Dummy admin answer for {operation} about {target}. Evidence was frozen before analysis.",
+            diagnosis={
+                "issue": "The administrative request was answered in dummy mode.",
+                "why": "The request was routed outside roleplay and the evidence bundle was frozen first.",
+                "internal_search": False,
+                "evidence_request": "",
+                "specialists": [],
+                "player_question": "",
+            },
             evidence=[{"source": "admin_request", "location": "request", "claim": "The request was received outside roleplay."}],
         ).to_dict()
 

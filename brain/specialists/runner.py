@@ -21,6 +21,7 @@ try:
         validate_created_definition,
     )
     from brain.branch_registry import BranchRegistry
+    from brain.branch_discovery import BranchDiscovery
     from brain.model_gateway import ModelGateway
     from .calculation_contract import CalculationContractError, validate_calculation
 except ImportError:  # Direct execution: python brain/specialists/runner.py
@@ -33,6 +34,7 @@ except ImportError:  # Direct execution: python brain/specialists/runner.py
     )
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
     from brain.branch_registry import BranchRegistry
+    from brain.branch_discovery import BranchDiscovery
     from brain.model_gateway import ModelGateway
     from calculation_contract import CalculationContractError, validate_calculation
 
@@ -52,6 +54,12 @@ stated by the player as provisional canon for this turn when they are plausible
 and do not contradict established evidence. Do not demand a Markdown citation
 merely because the player supplied the fact directly. Report a contradiction
 only when established evidence actually conflicts with it.
+
+The user payload includes a `citation_allowlist` containing the exact evidence
+and history IDs supplied to this specialist. Cite only IDs in that allowlist.
+Never reconstruct IDs from file paths, headings, or line ranges. A history entry
+must use its exact `history_id`; a campaign excerpt must use its exact
+`evidence_id`.
 
 For the rules specialist (or the legacy difficulty specialist), calculate
 any required task-side target: experiment tier, Difficulty, Novelty, Integration,
@@ -96,7 +104,7 @@ Return JSON only in this shape:
   "specialist": "{specialist_name}",
   "status": "complete|blocked|needs_evidence",
   "citations": [
-    {{"source": "...", "heading": "...", "line_range": "...", "claim": "..."}}
+    {{"evidence_id": "...", "claim": "..."}}
   ],
   "applicable_rules": [],
   "excluded_rules": [],
@@ -154,12 +162,26 @@ whose union is 1–100 with no duplicates. Use established rules and state, not
 the example pool blindly. A supplied frozen pool must not be modified after its
 roll is known.
 
+For the `modifier_creation` specialist, review the supplied history, cache,
+experimentation records, existing modifier ledger, and setup draft. Return a
+recommendation with `status: none|candidate`, and when candidate include only
+`modifier`, `tier`, `description`, `boost_domain`, `evidence`,
+`anti_farming_boundary`, and `placements`. Each placement must contain
+`group`, `use_in_group`, `activation_conditions`, `limitations`, `stacking`,
+`evidence`, and `placement_reason`. Do not award the modifier; the Lead Resolver
+decides and emits `modifier_changes`. At new-game setup, a missing action
+history means no new effect modifier.
+
 For the create specialist, include a `created_specialists` list only for safe,
 recurring uncovered branches. Each item must contain `name` (lowercase snake
-case), `purpose`, `questions`, and `activation_tags`; proposals are reviewed by
+case), `purpose`, `questions`, and `activation_tags`; it may also contain a safe
+Markdown `template`, bounded `sections`, and `evidence_requirements` that define
+how the branch is broken into readable records. Proposals are reviewed by
 Python and are not automatically written to the backend. Also list any existing
 specialist whose scope needs updating in `findings` rather than silently editing
-it.
+it. Use the supplied `branch_discovery` report: lore-only candidates are not
+established branches; recurring active evidence may justify a proposal, but it
+still requires Lead Resolver confirmation and approval.
 For rules/character numeric analysis (and legacy difficulty/modifier roles),
 put the evidence-backed numeric calculation in recommendation, including each
 component, formula, units, and whether a value is exact, bounded, zero, or unresolved. Derive numbers from
@@ -167,9 +189,10 @@ player-declared facts and the rules. When a rules band applies and the action is
 otherwise clear, choose one numeric value and explain the choice; do not defer
 that choice to the Lead Resolver. Use a supported zero when appropriate, and
 reserve ranges/unresolved values for genuine contradiction or material
-ambiguity. Every factual finding must cite one of the supplied sections or the
-player's declared action. Keep findings concise and keep the complete JSON
-response compact; escape quotation marks inside string values.
+ambiguity. Every factual finding must cite one of the supplied evidence sections or
+player history entries. Cite only the supplied evidence_id or history_id; do
+not cite file paths or line ranges. Keep findings concise and keep the complete
+JSON response compact; escape quotation marks inside string values.
 """
 
 
@@ -187,6 +210,7 @@ class SpecialistRunner:
         # required. Explicit names are retained for replay and for unlocked
         # specialists from older routing records.
         names = list(dict.fromkeys([*CORE_SPECIALISTS, *(specialist_names or [])]))
+        branch_discovery = BranchDiscovery(self.repo_root).discover(bundle_record)
         definitions = [self._definition_for(name) for name in names]
         sections = bundle.get("selected_sections", [])
         specialist_bundles = bundle.get("specialist_bundles", {})
@@ -198,6 +222,28 @@ class SpecialistRunner:
             local_bundle = dict(bundle)
             local_bundle["selected_sections"] = specialist_sections
             local_bundle["evidence_gaps"] = scoped.get("evidence_gaps", bundle.get("evidence_gaps", []))
+            local_bundle["history"] = scoped.get("history", bundle.get("conversation_history", []))
+            local_bundle["history_breakdown"] = scoped.get("history_breakdown", bundle.get("history_breakdown", []))
+            local_bundle["state"] = scoped.get("state", bundle.get("current_state", {}))
+            local_bundle["branch_discovery"] = branch_discovery
+            citation_allowlist = scoped.get("citation_allowlist")
+            if not isinstance(citation_allowlist, dict):
+                evidence_ids = sorted({
+                    str(section.get("evidence_id") or section.get("id"))
+                    for section in specialist_sections
+                    if isinstance(section, dict) and (section.get("evidence_id") or section.get("id"))
+                })
+                history_ids = sorted({
+                    str(item.get("history_id"))
+                    for item in local_bundle["history"]
+                    if isinstance(item, dict) and item.get("history_id")
+                })
+                citation_allowlist = {
+                    "evidence_ids": evidence_ids,
+                    "history_ids": history_ids,
+                    "all_ids": sorted(set(evidence_ids) | set(history_ids)),
+                }
+            local_bundle["citation_allowlist"] = citation_allowlist
             return definition, section_inputs, section_gaps, local_bundle
 
         prepared = [prepare(definition) for definition in definitions]
@@ -254,7 +300,8 @@ class SpecialistRunner:
             "specialist_updates": {
                 "created_specialists": created,
                 "game_cache": (cache_result or {}).get("cache_delta"),
-                "note": "Cache is advisory context; proposals are bounded and require approval before becoming an unlocked route.",
+                "branch_discovery": branch_discovery,
+                "note": "Discovery identifies evidence-backed candidates; proposals are bounded and require Lead confirmation and approval before becoming an unlocked route.",
             },
             "coverage": {
                 "required": names,
@@ -274,18 +321,32 @@ class SpecialistRunner:
             activation = entry.get("activation_tags", [])
             if isinstance(activation, str):
                 activation = [activation]
-            return SpecialistDefinition(
-                name=name,
-                purpose=f"Monitor the unlocked {name} branch and its world-specific state, rules, and consequences.",
-                questions=(
+            questions = entry.get("questions", [])
+            if isinstance(questions, str):
+                questions = [questions]
+            if not isinstance(questions, list) or not questions:
+                questions = [
                     f"Which {name} branch facts and rules apply?",
                     f"What {name} state, costs, risks, and consequences matter?",
                     f"What {name} evidence is missing or contradictory?",
-                ),
+                ]
+            sections = entry.get("sections", [])
+            if isinstance(sections, str):
+                sections = [sections]
+            evidence = entry.get("evidence_requirements", [])
+            if isinstance(evidence, str):
+                evidence = [evidence]
+            return SpecialistDefinition(
+                name=name,
+                purpose=str(entry.get("purpose") or f"Monitor the unlocked {name} branch and its world-specific state, rules, and consequences."),
+                questions=tuple(str(question) for question in questions[:8]),
                 activation_tags=tuple(str(tag) for tag in activation),
                 category="special",
                 unlockable=True,
                 description=str(entry.get("reason", "Dynamically unlocked special branch.")),
+                template=str(entry.get("template")) if entry.get("template") else None,
+                sections=tuple(str(section) for section in sections[:12]),
+                evidence_requirements=tuple(str(item) for item in evidence[:12]),
             )
 
     def _run_one(
@@ -298,10 +359,24 @@ class SpecialistRunner:
         api_key = self._api_key()
         if not api_key:
             raise RuntimeError("Specialist analysis requires DEEPSEEK_API_KEY or API_KEY")
+        scoped_history = bundle.get("history", bundle.get("conversation_history", []))
+        scoped_state = bundle.get("state", bundle.get("current_state", {}))
+        model_evidence_sections = [
+            {
+                "evidence_id": section.get("evidence_id", section.get("id")),
+                "section": section.get("name"),
+                "source_type": section.get("source_type", "campaign_file"),
+                "text": section.get("text", section.get("excerpt", "")),
+            }
+            for section in section_inputs
+        ]
         payload = {
             "player_input": bundle.get("player_input", {}),
-            "conversation_history": bundle.get("conversation_history", []),
-            "game_cache": bundle.get("game_cache", bundle.get("current_state", {}).get("game_cache")),
+            "conversation_history": scoped_history,
+            "history_breakdown": bundle.get("history_breakdown", []),
+            "current_state": scoped_state,
+            "game_cache": scoped_state.get("game_cache") if isinstance(scoped_state, dict) else bundle.get("game_cache"),
+            "branch_discovery": bundle.get("branch_discovery", {}),
             "action_frames": bundle.get("action_frames", []),
             "routing_record": {
                 "mode": bundle_record.get("mode"),
@@ -309,8 +384,8 @@ class SpecialistRunner:
                 "required_specialists": bundle_record.get("required_specialists", []),
             },
             "specialist": definition.name,
-            "evidence_sections": section_inputs,
-            "admin_sources": bundle.get("admin_sources", []),
+            "evidence_sections": model_evidence_sections,
+            "citation_allowlist": bundle.get("citation_allowlist", {}),
             "admin_request": bundle_record.get("admin_request", {}),
             "specialist_catalog": [
                 {
@@ -362,7 +437,13 @@ class SpecialistRunner:
                 result = json.loads(repaired)
             except json.JSONDecodeError as exc:
                 raise RuntimeError(f"Specialist {definition.name} returned invalid JSON after retry") from exc
-        return self._validate_result(result, definition, section_inputs)
+        return self._validate_result(
+            result,
+            definition,
+            section_inputs,
+            history=scoped_history if isinstance(scoped_history, list) else [],
+            citation_allowlist=bundle.get("citation_allowlist"),
+        )
 
     def _read_selected_sections(
         self, sections: Any
@@ -393,15 +474,18 @@ class SpecialistRunner:
             if start < 1 or end < start or start > len(lines):
                 gaps.append({"type": "invalid_line_range", "source": source, "location": location})
                 continue
-            excerpt = "\n".join(lines[start - 1:min(end, len(lines))])
+            excerpt = str(section.get("text") or "\n".join(lines[start - 1:min(end, len(lines))]))
             inputs.append({
+                "evidence_id": section.get("id"),
                 "id": section.get("id"),
                 "name": section.get("name"),
                 "source": source,
+                "source_type": "campaign_file",
                 "heading": section.get("name"),
                 "location": location,
                 "path": section.get("path", []),
                 "description": section.get("description", ""),
+                "text": excerpt,
                 "excerpt": excerpt,
             })
         return inputs, gaps
@@ -411,6 +495,9 @@ class SpecialistRunner:
         result: Any,
         definition: SpecialistDefinition,
         sections: list[dict[str, Any]],
+        *,
+        history: list[dict[str, Any]] | None = None,
+        citation_allowlist: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         if not isinstance(result, dict):
             raise RuntimeError(f"Specialist {definition.name} did not return an object")
@@ -477,6 +564,39 @@ class SpecialistRunner:
                             "type": "malformed_world_event_pool_adjustments",
                             "reason": "pool_adjustments must be a list.",
                         })
+        if definition.name == "modifier_creation":
+            recommendation = result.get("recommendation")
+            if recommendation is not None:
+                if not isinstance(recommendation, dict) or recommendation.get("status") not in {"none", "candidate"}:
+                    result["status"] = "needs_evidence" if result["status"] == "complete" else result["status"]
+                    result.setdefault("conflicts", []).append({
+                        "type": "malformed_modifier_creation_recommendation",
+                        "reason": "modifier_creation recommendation must be an object with status none or candidate.",
+                    })
+                elif recommendation.get("status") == "candidate":
+                    required = ("modifier", "tier", "description", "boost_domain", "evidence", "anti_farming_boundary", "placements")
+                    missing = [field for field in required if not recommendation.get(field)]
+                    placements = recommendation.get("placements")
+                    if missing or not isinstance(placements, list) or not placements:
+                        result["status"] = "needs_evidence" if result["status"] == "complete" else result["status"]
+                        result.setdefault("conflicts", []).append({
+                            "type": "incomplete_modifier_creation_recommendation",
+                            "missing": missing or ["placements"],
+                            "reason": "A modifier candidate needs evidence and at least one practical group placement.",
+                        })
+                    else:
+                        placement_fields = ("group", "use_in_group", "activation_conditions", "limitations", "stacking", "evidence", "placement_reason")
+                        invalid = [
+                            index for index, placement in enumerate(placements)
+                            if not isinstance(placement, dict) or any(not placement.get(field) for field in placement_fields)
+                        ]
+                        if invalid:
+                            result["status"] = "needs_evidence" if result["status"] == "complete" else result["status"]
+                            result.setdefault("conflicts", []).append({
+                                "type": "incomplete_modifier_group_placements",
+                                "placements": invalid,
+                                "reason": "Every proposed group placement needs scenario use, limits, stacking, evidence, and rationale.",
+                            })
         if definition.name == "create":
             proposals = result.get("created_specialists", result.get("specialist_proposals", []))
             if not isinstance(proposals, list):
@@ -495,6 +615,9 @@ class SpecialistRunner:
                     "activation_tags": list(created.activation_tags),
                     "category": created.category,
                     "unlockable": created.unlockable,
+                    "template": created.template,
+                    "sections": list(created.sections),
+                    "evidence_requirements": list(created.evidence_requirements),
                     "status": "proposed",
                 })
             result["created_specialists"] = accepted
@@ -507,7 +630,7 @@ class SpecialistRunner:
                 })
 
         valid_citations, invalid_citations = self._validate_citations(
-            result["citations"], sections, definition.name
+            result['citations'], sections, definition.name, history, citation_allowlist
         )
         result["citations"] = valid_citations
         if invalid_citations:
@@ -564,44 +687,48 @@ class SpecialistRunner:
         citations: list[Any],
         sections: list[dict[str, Any]],
         specialist_name: str,
+        history: list[dict[str, Any]] | None = None,
+        citation_allowlist: dict[str, Any] | None = None,
     ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         valid: list[dict[str, Any]] = []
         invalid: list[dict[str, Any]] = []
+        if isinstance(citation_allowlist, dict):
+            evidence_ids = {
+                str(value) for value in citation_allowlist.get('evidence_ids', [])
+                if isinstance(value, str) and value
+            }
+            history_ids = {
+                str(value) for value in citation_allowlist.get('history_ids', [])
+                if isinstance(value, str) and value
+            }
+        else:
+            evidence_ids = {
+                str(section.get('evidence_id') or section.get('id'))
+                for section in sections
+                if isinstance(section, dict) and (section.get('evidence_id') or section.get('id'))
+            }
+            history_ids = {
+                str(item.get('history_id'))
+                for item in (history or [])
+                if isinstance(item, dict) and item.get('history_id')
+            }
         for citation in citations:
             if not isinstance(citation, dict):
-                invalid.append({"type": "invalid_citation", "reason": "Citation was not an object."})
+                invalid.append({'type': 'invalid_citation', 'reason': 'Citation was not an object.'})
                 continue
-            source = citation.get("source")
-            location = citation.get("line_range")
-            if not isinstance(source, str) or not isinstance(location, str):
+            citation_id = citation.get('evidence_id') or citation.get('history_id')
+            if not isinstance(citation_id, str) or not citation_id:
                 invalid.append({
-                    "type": "invalid_citation",
-                    "reason": f"{specialist_name} returned an incomplete citation.",
-                    "citation": citation,
+                    'type': 'invalid_citation',
+                    'reason': f'{specialist_name} must cite an evidence_id or history_id.',
+                    'citation': citation,
                 })
                 continue
-            if source in {"player_input", "conversation_history", "game_cache", "admin_request", "prior_cache", "declared_action"}:
-                # Advisory lanes may cite the frozen player input/prior cache as a
-                # first-class source; those are not file locations and need no range.
-                valid.append(citation)
-                continue
-            citation_range = self._line_range(f"lines {location}" if not location.startswith("lines ") else location)
-            if citation_range is None:
+            if citation_id not in evidence_ids and citation_id not in history_ids:
                 invalid.append({
-                    "type": "invalid_citation",
-                    "reason": f"{specialist_name} returned an invalid citation range.",
-                    "citation": citation,
-                })
-                continue
-            if not any(
-                source == section["source"]
-                and self._contained(citation_range, self._line_range(section["location"]))
-                for section in sections
-            ):
-                invalid.append({
-                    "type": "citation_outside_frozen_bundle",
-                    "reason": f"{specialist_name} cited evidence outside the frozen bundle.",
-                    "citation": citation,
+                    'type': 'citation_outside_frozen_bundle',
+                    'reason': f'{specialist_name} cited an ID outside its supplied citation allowlist.',
+                    'citation': citation,
                 })
                 continue
             valid.append(citation)

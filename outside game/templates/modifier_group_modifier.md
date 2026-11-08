@@ -1,0 +1,12 @@
+##### {modifier_name}
+- status: {status}
+- tier: {tier}
+- value: {value}
+- source: {source}
+- use in this group: {use_in_group}
+- activation conditions: {activation_conditions}
+- limitations: {limitations}
+- stacking: {stacking}
+- evidence: {evidence}
+- admin defense: {admin_defense}
+- admin rationale: {admin_rationale}

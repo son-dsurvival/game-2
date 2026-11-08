@@ -40,6 +40,7 @@ def main() -> None:
     update = approve_proposal(bind_source_versions({
         "request_id": f"admin-editor-update-{run_id}",
         "status": "proposal_ready",
+        "proposed_by": "admin_agent",
         "changes": [{
             "target_file": "markdown_files/__admin_dummy__.md",
             "action": "update",
@@ -52,6 +53,7 @@ def main() -> None:
     delete = approve_proposal(bind_source_versions({
         "request_id": f"admin-editor-delete-{run_id}",
         "status": "proposal_ready",
+        "proposed_by": "admin_agent",
         "changes": [{
             "target_file": "markdown_files/__admin_dummy__.md",
             "action": "delete",
@@ -64,6 +66,7 @@ def main() -> None:
     create = approve_proposal(bind_source_versions({
         "request_id": f"admin-editor-create-{run_id}",
         "status": "proposal_ready",
+        "proposed_by": "admin_agent",
         "changes": [{
             "target_file": "markdown_files/__admin_created__.md",
             "action": "create",

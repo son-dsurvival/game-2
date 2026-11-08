@@ -76,6 +76,7 @@ def _fallback_taxonomy() -> dict[str, Any]:
         "mechanic.resource_cost": tag("mechanic", "Resources, materials, or mana", ("resource", "mana", "cost", "spend", "material"), ("resources", "rules")),
         "mechanic.time_cost": tag("mechanic", "Time, phase, or duration", ("time", "phase", "wait", "day"), ("time", "rules")),
         "mechanic.cognitive_assistance": tag("mechanic", "Cognitive assistance", ("assist", "advice", "memory", "telepathy"), ("cognitive_assistance", "character")),
+        "mechanic.modifier_creation": tag("mechanic", "Creating or refining a reusable effect modifier", ("new modifier", "gain a modifier", "develop a technique", "refine a modifier", "breakthrough", "repeated success", "training breakthrough"), ("modifier_creation",)),
         "mechanic.spell_creation": tag("mechanic", "Spell creation or magic", ("spell", "magic", "cast"), ("spell", "rules", "special")),
         "context.emotional": tag("context", "Emotional or relationship context", ("relationship", "trust", "love", "consent"), ("relationship", "character")),
         "context.class_system": tag("context", "Class or class progression", ("class", "skill", "level"), ("class", "special")),
@@ -134,6 +135,7 @@ CORE_OWNED_SPECIALISTS = {
     "npc_autonomy": "character",
     "modifier": "character",
     "cognitive_assistance": "character",
+    "modifier_creation": "modifier_creation",
 }
 
 
@@ -205,6 +207,10 @@ EVIDENCE_REQUESTS = {
     "mechanic.cognitive_assistance": {
         "required_sources": ["game rules (1).md", "character relationship.md"],
         "required_headings": ["Cognitive Assistance", "NPC Autonomy"],
+    },
+    "mechanic.modifier_creation": {
+        "required_sources": ["game rules (1).md", "Experimentation Register.md", "TEMP_MEMORY.md", "status sheet.md"],
+        "required_headings": ["Effect Modifier", "Completed Experiments", "Game Cache", "Status Sheet Modifier Index"],
     },
     "mechanic.world_event": {
         "required_sources": ["🌍 CORE WORLD FRAME (REFINED).md", "TEMP_MEMORY.md"],

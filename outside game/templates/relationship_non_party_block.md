@@ -7,24 +7,7 @@ Prestige Tier:
 #### Background
 
 #### Behavior
-
-##### Personality
-
-##### Goals
-
-##### Risk Tolerance
-
-##### Decision Threshold
-
-##### Response Types
-
-##### Emotional Drivers
+{check relationship behavior template}
 
 #### Relationship Score
-
-Tier:
-Score:
-
-#### Relationship Dynamics
-
-#### How the Bond Behaves
+{check relationship score template}

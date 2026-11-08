@@ -13,15 +13,16 @@ HELP = """Commands:
   <message>            play a turn (or answer a character question)
   {message}            out-of-game administrative request
   /status              show the saved stage
-  /retry               resume unfinished work
+  /retry               retry the most recently failed stage
   {pause}              pause roleplay and enter outside-game mode
   {resume}             resume roleplay from a paused/new-day gate
-  /new-game            start a new campaign (replaces the current one on approve)
+  /new-game            immediately reset and start a new campaign
   /new-character       add a player character to the active campaign
   /new-party-member    add an NPC companion to the active campaign
   /add                 draft another character (new game only)
   /main NAME           choose the main character
   /review              review the drafted party/character
+  /next-file           review the next proposed Markdown file
   /approve             approve the pending proposal
   /approve-reset       approve a full-campaign replacement
   /cancel-setup        cancel drafting; the active campaign is preserved
@@ -31,13 +32,13 @@ HELP = """Commands:
   /install NAME        propose installing a stored specialist
   /quit                exit (progress is saved)
 
-Automation is enabled by default: unfinished work is resumed, transient
-failures are retried a few times, and completed single-character drafts move
-into review automatically. Use --no-auto for manual/debug mode.
+Automation is enabled by default: active background work continues and
+completed single-character drafts move into review automatically. Failed tasks stop for an explicit /retry, which retries the most recently failed stage from its saved pre-stage snapshot.
+Use --no-auto for manual/debug mode.
 """
 
 AUTO_RETRIES = 3
-AUTO_RESUMABLE = {'running', 'retry', 'background_pending'}
+AUTO_RESUMABLE = {'running', 'background_pending'}
 
 
 def _position_text(position: object) -> str:
@@ -65,7 +66,21 @@ def _player_text(value: object, *, include_preview: bool = True) -> str:
     draft = value.get('draft')
     question = value.get('question')
 
-    if status == 'setup_draft':
+    if status == 'status':
+        operation_type = value.get('operation_type', 'gameplay')
+        identifier_label = 'Request ID' if operation_type == 'out_of_game' else 'Turn ID'
+        identifier = value.get('operation_id') or 'none'
+        lines.append(f'{identifier_label}: {identifier}')
+        lines.append(f'Type: {operation_type}')
+        lines.append(f'Current stage: {value.get("current_stage") or "none"}')
+        if value.get('previous_stage'):
+            lines.append(f'Previous stage: {value["previous_stage"]}')
+        if value.get('next_stage'):
+            lines.append(f'Next stage: {value["next_stage"]}')
+        lines.append(f'Status: {value.get("request_status", "completed")}')
+        if value.get('original_input'):
+            lines.append(f'Original input: {value["original_input"]}')
+    elif status == 'setup_draft':
         lines.append('Character setup')
         if isinstance(draft, dict):
             characters = draft.get('characters') or []
@@ -74,39 +89,49 @@ def _player_text(value: object, *, include_preview: bool = True) -> str:
                 lines.append('Drafted characters: ' + ', '.join(names))
         if message:
             lines.append(str(message))
+        if isinstance(draft, dict):
+            characters = draft.get('characters') or []
+            if characters and not draft.get('main_character'):
+                available_names = ', '.join(str(item.get('identity', {}).get('name')) for item in characters if isinstance(item, dict))
+                lines.append(f'When the party is complete, choose the main character with /main NAME. Available: {available_names}')
+            elif characters and draft.get('main_character') and not draft.get('party_done'):
+                lines.append('Finish adding characters, then use /main NAME to complete the party.')
     elif status == 'awaiting_clarification':
         lines.append('I need one clarification before continuing:')
         if isinstance(question, dict):
             prompt = question.get('question') or question.get('message')
-            if prompt:
-                lines.append(str(prompt))
+            prompt_text = str(prompt) if prompt else ''
+            if prompt_text:
+                lines.append(prompt_text)
+            if question.get('issue') and str(question['issue']).casefold() not in prompt_text.casefold():
+                lines.append('Issue: ' + str(question['issue']))
+            if question.get('why') and str(question['why']).casefold() not in prompt_text.casefold():
+                lines.append('Why: ' + str(question['why']))
             conflicts = question.get('conflicts') or []
             if conflicts:
                 lines.append('Details: ' + '; '.join(str(item) for item in conflicts))
         elif question:
             lines.append(str(question))
     elif status in {'setup_review', 'character_review', 'admin_review', 'day_end_review'}:
-        lines.append('Review ready.')
-        preview = value.get('proposal_preview')
-        if message:
-            lines.append(str(message))
-        if isinstance(preview, list):
-            files = [str(item.get('target_file')) for item in preview if isinstance(item, dict) and item.get('target_file')]
-            if files:
-                lines.append('Files affected: ' + ', '.join(files))
-            if include_preview:
-                for item in preview:
-                    if not isinstance(item, dict) or not item.get('target_file'):
-                        continue
-                    content = item.get('content')
-                    if isinstance(content, str) and content:
-                        lines.append(f"\n--- Proposed {item['target_file']} ---\n{content}")
+        file_info = value.get('proposal_file')
+        total = value.get('proposal_files_total', 0)
+        reviewed = value.get('proposal_files_reviewed', 0)
+        lines.append('New campaign setup proposal.' if status == 'setup_review' else 'Campaign change proposal.')
+        if isinstance(file_info, dict):
+            lines.append(f"File {file_info.get('number')} of {file_info.get('total')}: {file_info.get('filename')}")
+            lines.append(f"The game wants to {file_info.get('action', 'update')} this file.")
+            lines.append(str(file_info.get('summary', '')))
+            preview = file_info.get('preview')
+            if include_preview and isinstance(preview, list) and preview:
+                lines.append('Planned player-facing changes:')
+                lines.extend(f'  {line}' for line in preview)
+            lines.append('Required next step: send /next-file to review the next Markdown file.')
+        elif total and reviewed >= total:
+            lines.append('All proposed Markdown files have been reviewed.')
         if status == 'setup_review':
-            lines.append('Approve the new campaign with /approve-reset, or revise it with a message.')
-        elif status == 'day_end_review':
-            lines.append('Approve day-end promotion with /approve, or revise it with a message.')
+            lines.append('After reviewing every file, required approval: /approve-reset. You may revise the proposal instead.')
         else:
-            lines.append('Approve with /approve, or revise it with a message.')
+            lines.append('After reviewing every file, required approval: /approve. You may revise the proposal instead.')
     elif status in {'new_game_pending', 'new_day_pending', 'paused', 'day_end_pending'}:
         lines.append('Outside-game mode.')
         if message:
@@ -119,7 +144,10 @@ def _player_text(value: object, *, include_preview: bool = True) -> str:
         lines.append('The system is thinking…')
     elif status == 'retry':
         lines.append('The game paused safely while processing.')
-        lines.append('It will retry automatically; use /retry to try again manually.')
+        lines.append('No player clarification is currently pending. Use /retry to retry the most recently failed stage.')
+        failure_reason = value.get('failure_reason')
+        if failure_reason:
+            lines.append('Reason: ' + str(failure_reason))
         if message:
             lines.append(str(message))
     elif status == 'setup_required':
@@ -205,29 +233,34 @@ def _initial_state(pipeline: CampaignPipeline, *, auto: bool, start_new_game: bo
     return result
 
 
-def process_input(pipeline: CampaignPipeline, text: str, *, auto: bool = True) -> dict[str, Any]:
-    """Process one terminal/browser input using the shared pipeline behavior."""
+def _process_input(pipeline: CampaignPipeline, text: str, *, auto: bool = True) -> dict[str, Any]:
+    """Route one input after the player interaction journal has been opened."""
     text = text.strip()
     if not text:
         raise ValueError('Enter a message.')
     if text == '/help':
         return {'status': 'help', 'message': HELP}
     if text.casefold() in {'{pause}', '/pause'}:
+        pipeline.record_command(text)
         return pipeline.pause()
     if text.casefold() in {'{resume}', '/resume'}:
+        pipeline.record_command(text)
         return pipeline.resume_play()
     if text == '/quit':
+        pipeline.close_session()
         return {'status': 'quit', 'message': 'Progress saved.'}
 
     command, _, argument = text.partition(' ')
+    manual_retry = command == '/retry'
     conversation: dict[str, Any] = {
-        '/status': pipeline.resume,
-        '/retry': pipeline.continue_run,
+        '/status': pipeline.status_report,
+        '/retry': pipeline.retry,
         '/new-game': pipeline.begin_setup,
         '/new-character': pipeline.new_character,
         '/new-party-member': pipeline.new_party_member,
         '/add': pipeline.another_character,
         '/review': pipeline.review_current,
+        '/next-file': pipeline.next_proposal_file,
         '/approve': pipeline.approve,
         '/approve-reset': lambda: pipeline.approve(confirm_reset=True),
         '/cancel-setup': pipeline.cancel_setup,
@@ -236,17 +269,32 @@ def process_input(pipeline: CampaignPipeline, text: str, *, auto: bool = True) -
         '/specialists': pipeline.specialist_proposals,
     }
     if command == '/main':
+        pipeline.record_command(text)
         result = pipeline.select_main(argument.strip())
         result = _auto_review_after_main(pipeline, result, auto)
     elif command == '/install':
+        pipeline.record_command(text)
         result = pipeline.propose_specialist(argument.strip())
     elif command in conversation and not argument:
+        pipeline.record_command(text)
         result = conversation[command]()
     else:
         result = pipeline.submit(text)
         result = _auto_setup_review(pipeline, result, auto)
         result = _auto_addition_review(pipeline, result, auto)
-    return _stabilize(pipeline, result, auto)
+    return result if manual_retry else _stabilize(pipeline, result, auto)
+
+
+def process_input(pipeline: CampaignPipeline, text: str, *, auto: bool = True) -> dict[str, Any]:
+    """Process one input and persist its exact player-facing output."""
+    interaction_id = pipeline.begin_player_interaction(text)
+    try:
+        result = _process_input(pipeline, text, auto=auto)
+    except (ValueError, RuntimeError) as exc:
+        pipeline.fail_player_interaction(interaction_id, text, exc)
+        raise
+    pipeline.complete_player_interaction(interaction_id, text, result, _player_text(result))
+    return result
 
 
 def main() -> None:
@@ -260,21 +308,19 @@ def main() -> None:
     pipeline = CampaignPipeline(args.root)
     auto = not args.no_auto
     if args.command == 'resume':
+        print('Campaign terminal resumed. Type /help for commands.')
         _print(_initial_state(pipeline, auto=auto, start_new_game=False))
-        return
-    print('Campaign terminal. Type /help for commands.')
-    _print(_initial_state(pipeline, auto=auto, start_new_game=True))
+    else:
+        print('Campaign terminal. Type /help for commands.')
+        _print(_initial_state(pipeline, auto=auto, start_new_game=True))
     while True:
         try:
-            text = input('\n> ').strip()
+            text = input("""\n> """).strip()
         except (EOFError, KeyboardInterrupt):
             print('\nProgress saved. Restart to resume.')
             break
         if not text:
             continue
-        if text == '/quit':
-            print('Progress saved.')
-            break
         try:
             if text not in {'/help', '/quit'}:
                 print('System: thinking…')

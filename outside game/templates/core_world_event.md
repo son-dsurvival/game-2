@@ -8,26 +8,14 @@ player tier:
 event tier:
 
 #### Pool Adjustments
-
-- source trigger:
-  destination trigger:
-  numbers transferred:
-  cause:
-  duration:
+{pool adjustments}
 
 #### Generated Event
-
-summary:
-location:
-people or factions involved:
-immediate circumstances:
-encounter condition:
-latest phase:
-status:
+{generated event}
 
 #### Resolution and World-State Changes
 
 resolution:
 visible consequences:
-world-state changes:
+{world state changes}
 follow-up triggers:

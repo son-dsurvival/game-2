@@ -34,6 +34,13 @@ def main() -> None:
             "time_changes": [{"day": 2, "phase": "Evening"}],
             "resource_changes": [],
             "modifier_changes": [],
+            "branch_candidates": [{
+                "branch": "alchemy",
+                "status": "candidate",
+                "recurring": True,
+                "established_evidence": True,
+                "description": "Alchemy practice is established.",
+            }],
             "branch_changes": [{
                 "branch": "alchemy",
                 "status": "unlocked",

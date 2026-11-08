@@ -3,44 +3,16 @@
 ## Current Resources
 
 ### Personal Resources
-
-- current HP:
-- current MP:
-- current SP:
-- money:
-- food:
-- water:
+{personal resources}
 
 ### Materials
-
-#### {material name}
-quantity:
-where stored:
-notes:
+{materials}
 
 ## Resource Changes
-
-### {day and phase}
-
-- resource:
-- before:
-- delta:
-- after:
-- reason:
+{resource changes}
 
 ## Facilities
-
-### {facility name}
-location:
-status:
-resources available:
-
-#### Facility Modifiers
-
-- name:
-- description:
-- effect:
-- where it applies:
+{facilities}
 
 ## Resource Rules and Notes
 

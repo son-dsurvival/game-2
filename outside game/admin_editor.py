@@ -106,6 +106,12 @@ class AdminEditor:
     def _verify_approval(self, proposal: Any) -> str | None:
         if not isinstance(proposal, dict) or proposal.get("status") != "approved":
             return "Proposal has not been approved."
+        markdown_changes = [
+            change for change in proposal.get("changes", [])
+            if isinstance(change, dict) and str(change.get("target_file", "")).casefold().endswith(".md")
+        ]
+        if markdown_changes and proposal.get("proposed_by") != "admin_agent":
+            return "Markdown changes must originate from outside game/admin_agent.py."
         digest = proposal.get("proposal_digest")
         if not isinstance(digest, str) or digest != proposal_digest(proposal):
             return "Approval digest does not match proposal content."

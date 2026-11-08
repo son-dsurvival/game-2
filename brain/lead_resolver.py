@@ -19,9 +19,11 @@ from typing import Any
 
 try:
     from brain.model_gateway import ModelGateway
+    from brain.branch_discovery import BranchDiscovery
     from brain.specialists.coverage_check import CoverageCheck
 except ModuleNotFoundError:  # Direct execution: python brain/lead_resolver.py
     from model_gateway import ModelGateway
+    from branch_discovery import BranchDiscovery
     from specialists.coverage_check import CoverageCheck
 
 
@@ -101,6 +103,13 @@ must be included only when actually supported. A safe reversible attempt has
 Field-Risk +0, not +5. A conversation can resolve as a conversation with a
 report or reaction even when some figures remain unreconciled.
 
+Always provide `result_reason.issue` and `result_reason.why` for every status.
+These are concise decision reasons, not hidden chain-of-thought. For
+`needs_clarification`, first decide whether the missing fact can be found in the
+frozen campaign evidence. Set `clarification_request.internal_search` true and
+provide an `evidence_request` and appropriate `specialists` when another
+Evidence Bundle round may solve it. Set it false only when the player must
+choose, clarify intent, or supply a personal fact that the campaign cannot know.
 Only use "needs_clarification" when the player's intent is materially ambiguous
 or a critical contradiction prevents any defensible resolution. If a required
 d20 action roll is genuinely needed, set status to "awaiting_dice", provide a
@@ -113,7 +122,20 @@ Return JSON only:
 {
   "turn_id": "...",
   "status": "resolved|awaiting_dice|blocked|needs_clarification",
-  "clarification_request": null,
+  "result_reason": {
+    "issue": "what was decided or what blocks resolution",
+    "why": "brief evidence-backed reason",
+    "evidence_basis": [],
+    "specialist_basis": []
+  },
+  "clarification_request": {
+    "player_question": "...",
+    "issue": "...",
+    "why": "...",
+    "internal_search": true,
+    "evidence_request": "...",
+    "specialists": []
+  },
   "validity": "valid|invalid|undetermined",
   "locked_calculation": {},
   "dice_request": null,
@@ -158,7 +180,9 @@ turn. The Session Recorder stores only the modifier name and description.
 When a special branch is actually established by the resolved turn, emit it in
 `branch_changes` with `branch`, `status` set to `unlocked`, `specialist`,
 `template`, `activation_tags`, and an evidence-backed `reason`. A proposal or
-player request alone is not an unlock.
+player request alone is not an unlock. Use the supplied `branch_discovery`
+report: lore-only mentions are candidates, not unlocks; active recurring or
+resolved-turn evidence must support the change.
 
 For a hidden phase request (campaign_context.private_background is supplied),
 return background_packet with actions, next_context, and optional interrupt.
@@ -224,6 +248,12 @@ class LeadResolver:
                     "evidence_gap_decision": coverage.get("evidence_gap_decision"),
                 },
                 "evidence_expansion_request": expansion,
+                "result_reason": {
+                    "issue": "Specialist coverage is incomplete.",
+                    "why": "The Lead Resolver cannot safely decide until the listed specialist or evidence gaps are addressed.",
+                    "evidence_basis": [],
+                    "specialist_basis": coverage.get("incomplete_specialists", []),
+                },
                 "resolution_record": None,
             }
 
@@ -231,12 +261,30 @@ class LeadResolver:
         temporary_memory, memory_gap = self._read_temporary_memory()
         terms_nomenclature, terms_gap = self._read_terms_nomenclature()
         file_gaps = [gap for gap in (event_gap, memory_gap, terms_gap) if gap]
+        discovery = BranchDiscovery(self.repo_root).discover({
+            "specialist_output": payload,
+            "chat_context": chat_context,
+            "campaign_context": campaign_context,
+            "event_log": event_log,
+            "temporary_memory": temporary_memory,
+        })
+        updates = payload.get("specialist_updates")
+        if not isinstance(updates, dict):
+            updates = {}
+            payload["specialist_updates"] = updates
+        updates["branch_discovery"] = discovery
         if file_gaps:
             return {
                 "turn_id": turn_id,
                 "status": "blocked",
                 "coverage_check": coverage,
                 "blockers": {"required_context": file_gaps},
+                "result_reason": {
+                    "issue": "Required campaign context could not be read.",
+                    "why": "The Lead Resolver will not invent missing event, memory, or nomenclature content.",
+                    "evidence_basis": [str(item.get("source")) for item in file_gaps if isinstance(item, dict)],
+                    "specialist_basis": [],
+                },
                 "resolution_record": None,
             }
 
@@ -264,6 +312,7 @@ class LeadResolver:
             "mode": payload.get("mode"),
             "request_type": payload.get("request_type"),
             "status": result["status"],
+            "result_reason": result.get("result_reason"),
             "coverage_check": coverage,
             "input_sources": {
                 "chat_context": "provided",
@@ -274,6 +323,7 @@ class LeadResolver:
                 "specialists": "provided",
             },
             "resolution_record": result,
+            "branch_candidates": result.get("branch_candidates", discovery.get("candidates", [])),
         }
         if result["status"] == "needs_clarification":
             request = result.get("clarification_request")
@@ -371,6 +421,8 @@ class LeadResolver:
             "action_frames": payload.get("action_frames", []),
             "selected_sections": payload.get("selected_sections", []),
             "specialist_results": payload.get("specialist_results", []),
+            "specialist_updates": payload.get("specialist_updates", {}) if isinstance(payload.get("specialist_updates", {}), dict) else {},
+            "branch_discovery": (payload.get("specialist_updates", {}).get("branch_discovery", {}) if isinstance(payload.get("specialist_updates", {}), dict) else {}),
             "coverage_check": coverage,
             "event_log": event_log,
             "temporary_memory": temporary_memory,
@@ -395,14 +447,44 @@ class LeadResolver:
             result = json.loads(content)
         except json.JSONDecodeError as exc:
             raise RuntimeError("Lead Resolver returned invalid JSON") from exc
-        return self._validate_result(result)
+        result = self._validate_result(result)
+        discovery = request.get("branch_discovery", {})
+        result["branch_candidates"] = discovery.get("candidates", []) if isinstance(discovery, dict) else []
+        result["branch_changes"] = self._validated_branch_changes(result.get("branch_changes", []), result["branch_candidates"])
+        result.setdefault("result_reason", {
+            "issue": "Lead Resolver produced a result without a supplied reason.",
+            "why": "The result passed structural validation; the model did not provide a concise explanation.",
+            "evidence_basis": [],
+            "specialist_basis": [],
+        })
+        return result
+
+    @staticmethod
+    def _validated_branch_changes(changes: Any, candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Allow unlock claims only when discovery found supporting evidence."""
+        if not isinstance(changes, list):
+            return []
+        by_name = {str(item.get("branch")): item for item in candidates if isinstance(item, dict)}
+        accepted = []
+        for item in changes:
+            if not isinstance(item, dict) or str(item.get("status", "")).casefold() != "unlocked":
+                continue
+            branch = str(item.get("branch", "")).strip()
+            evidence = by_name.get(branch)
+            if not branch or not evidence or not evidence.get("established_evidence"):
+                continue
+            required = ("specialist", "activation_tags", "reason")
+            if any(not item.get(field) for field in required):
+                continue
+            accepted.append(item)
+        return accepted
 
     @staticmethod
     def _validate_result(result: Any) -> dict[str, Any]:
         if not isinstance(result, dict):
             raise RuntimeError("Lead Resolver response must be an object")
         required = {
-            "status", "clarification_request", "validity", "locked_calculation", "dice_request", "outcome",
+            "status", "result_reason", "clarification_request", "validity", "locked_calculation", "dice_request", "outcome",
             "consequences", "resource_changes", "time_changes", "relationship_changes",
             "xp_changes", "visibility", "mutation_requirements", "conflict_trace", "notes",
         }
@@ -414,6 +496,21 @@ class LeadResolver:
         result.setdefault("cache_delta", None)
         if result["cache_delta"] is not None and not isinstance(result["cache_delta"], dict):
             raise RuntimeError("Lead Resolver cache_delta must be an object or null")
+        reason = result.get("result_reason")
+        if not isinstance(reason, dict) or not str(reason.get("issue", "")).strip() or not str(reason.get("why", "")).strip():
+            raise RuntimeError("Lead Resolver result_reason must state the issue and why")
+        clarification = result.get("clarification_request")
+        if clarification is not None:
+            if not isinstance(clarification, dict):
+                raise RuntimeError("Lead Resolver clarification_request must be an object or null")
+            clarification.setdefault("player_question", "")
+            clarification.setdefault("issue", reason["issue"])
+            clarification.setdefault("why", reason["why"])
+            clarification.setdefault("internal_search", True)
+            clarification.setdefault("evidence_request", "")
+            clarification.setdefault("specialists", [])
+            if not isinstance(clarification.get("specialists"), list):
+                raise RuntimeError("Lead Resolver clarification specialists must be a list")
         if result["validity"] not in {"valid", "invalid", "undetermined"}:
             raise RuntimeError("Lead Resolver returned an invalid validity")
         for field in (

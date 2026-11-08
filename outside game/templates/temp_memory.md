@@ -10,48 +10,23 @@ phase:
 ## Game Cache
 
 ### Durable Facts
-
-- fact:
-  status:
-  source turn:
+{durable facts}
 
 ### Active Threads
-
-- thread:
-  status:
-  next question:
-  source turn:
+{active threads}
 
 ### Pending Commitments
-
-- commitment:
-  owner:
-  due:
-  source turn:
+{pending commitments}
 
 ### Unresolved Questions
-
-- question:
-  source turn:
+{unresolved questions}
 
 ### Expiring Facts
-
-- fact:
-  expires:
+{expiring facts}
   source turn:
 
 ## Active Background Directives
-
-### {directive id}
-actor:
-task:
-location:
-constraints:
-started:
-expires:
-status:
-last processed tick:
-assigned by:
+{active background directives}
 
 ## Session Resource Ledger
 
@@ -59,45 +34,10 @@ assigned by:
 - money =
 
 ## Session Modifier Ledger
-
-- {modifier name}: {description}
+{session modifiers}
 
 ## Pending Branch Registry Updates
-
-### {branch name}
-status:
-specialist:
-template:
-activation tags:
-reason:
+{pending branch updates}
 
 ## Pending Session Canon
-
-<!-- recorder:{turn id} -->
-### Recorded Turn — {turn id}
-day:
-phase:
-promotion_status: pending
-summary:
-commit_id:
-parent_commit:
-
-### State Updates
-- {state name} = {value}
-
-### Resource Commit
-- {resource}: before {before}; delta {delta}; after {after}; status {status}
-
-### New Modifiers
-- {modifier name}: {description}
-
-### Branch Registry Updates
-- {branch}: status {status}; specialist {specialist}; template {template}; activation tags {activation tags}; reason {reason}
-
-### Target Updates
-- file:
-- section:
-- summary:
-- pending content:
-
-<!-- /recorder:{turn id} -->
+{recorded turns}

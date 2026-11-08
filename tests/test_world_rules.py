@@ -31,6 +31,11 @@ class WorldRulesTests(unittest.TestCase):
             result = modules._inject_world_rules(bundle)
             world_sections = result['evidence_bundle']['specialist_bundles']['world']['selected_sections']
             self.assertEqual([section['name'] for section in world_sections], ['Dynamic World Event Engine'])
+            self.assertNotIn('world-rule-', world_sections[0]['id'])
+            self.assertEqual(
+                result['evidence_bundle']['specialist_bundles']['world']['citation_allowlist']['evidence_ids'],
+                [world_sections[0]['id']],
+            )
             self.assertNotIn('STAT SYSTEM', [section['name'] for section in result['evidence_bundle']['selected_sections']])
 
 

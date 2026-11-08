@@ -7,6 +7,7 @@ brain/state/*.json
 brain/state/*.jsonl
 brain/state/*.lock
 brain/state/*.md
+brain/state/*.txt
 brain/state/pending_operations/
 brain/state/editor_transactions/
 brain/state/editor_receipts/

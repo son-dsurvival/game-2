@@ -18,7 +18,7 @@ TurnRouter → EvidenceBundleBuilder → SpecialistRunner → admin_agent.py
 
 `admin_editor.py` is deterministic. It accepts only an approved proposal, uses registered Markdown templates for document creation/filling, allows only exact Markdown changes under `markdown_files/`, checks old text hashes, writes atomically, rejects JSON blobs in campaign documents, and appends an audit entry. Numeric changes remain readable exact line updates such as `Score: 4` to `Score: 5`; descriptions are updated in place rather than duplicated.
 
-`template_renderer.py` expands readable templates and repeatable blocks for characters, relationships, resources, experiments, modifiers, skills, and equipment. Templates define structure only; approved evidence supplies facts.
+`template_renderer.py` expands readable templates and repeatable blocks for characters, relationships, resources, experiments, modifiers, skills, equipment, and nested Modifier Groups. Modifier Group additions require per-placement Admin Agent defense before approval. Templates define structure only; approved evidence supplies facts.
 
 Use `approval.py` to mark a proposal approved; approval does not itself apply the change. Use `admin_editor.py --dry-run` to preview an approved proposal.
 

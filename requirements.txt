@@ -1,0 +1,4 @@
+# Runtime dependencies for the resumable campaign game.
+# Python 3.12+ recommended.
+openai>=1.0,<2.0
+python-dotenv>=1.0,<2.0

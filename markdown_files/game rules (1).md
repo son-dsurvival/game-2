@@ -1928,7 +1928,7 @@ Each build defines:
 
 ●      Minor stats can be promoted to Major roles
 
-
+note: 2 and 3 are just to help you build enemies it isn't a universal rule what is the true rule is 4
 
 #### 4. Modifier Count Scaling
 

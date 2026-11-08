@@ -2,15 +2,7 @@
 
 This document tracks whether a special branch is available to the game runtime. A branch specialist and branch template are used only when the status is `unlocked`.
 
-## {branch name}
-status:
-specialist:
-template:
-activation tags:
-unlock requirements:
-unlocked during:
-evidence:
-reason:
+{branch entries}
 
 ## Unlock Rules
 

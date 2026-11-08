@@ -59,13 +59,6 @@ HTML = r'''<!doctype html>
     button { border:1px solid var(--line); border-radius:7px; padding:9px 10px; background:var(--panel2); color:var(--text); cursor:pointer; text-align:left; }
     button:disabled { cursor:wait; opacity:.55; }
     button:hover { border-color:var(--accent); }
-    #preview { display:none; margin-bottom:18px; border:1px solid var(--line); border-radius:8px; background:var(--panel); overflow:auto; max-height:42vh; }
-    #preview.visible { display:block; }
-    #preview h2 { margin:0; padding:12px 14px; font-size:15px; border-bottom:1px solid var(--line); }
-    #preview details { border-bottom:1px solid var(--line); }
-    #preview details:last-child { border-bottom:0; }
-    #preview summary { padding:10px 14px; cursor:pointer; color:var(--accent); }
-    #preview pre { margin:0; padding:14px; overflow:auto; white-space:pre-wrap; color:var(--text); font:12px/1.45 ui-monospace, monospace; }
     main { display:flex; flex-direction:column; min-height:0; height:calc(100vh - 52px); width:min(100%, 1000px); padding:28px clamp(18px, 5vw, 64px); }
     #transcript { flex:1; min-height:0; overflow:auto; padding:4px 0 24px; }
     .entry { margin:0 0 18px; white-space:pre-wrap; }
@@ -96,6 +89,7 @@ HTML = r'''<!doctype html>
         <button data-command="/new-character">New character</button>
         <button data-command="/new-party-member">New party member</button>
         <button data-command="/review">Review</button>
+        <button data-command="/next-file">Next file</button>
         <button data-command="/approve">Approve</button>
         <button data-command="/approve-reset">Approve reset</button>
         <button data-command="/end-day">End day</button>
@@ -104,7 +98,6 @@ HTML = r'''<!doctype html>
       </div>
     </aside>
     <main>
-      <section id="preview" aria-label="Proposed campaign changes"></section>
       <section id="transcript" aria-live="polite"></section>
       <form id="input-form">
         <textarea id="input" placeholder="Describe what you do, or answer the current question…" autofocus></textarea>
@@ -118,7 +111,6 @@ HTML = r'''<!doctype html>
   const statusEl = document.querySelector('#status');
   const positionEl = document.querySelector('#position');
   const fileLinksEl = document.querySelector('#file-links');
-  const previewEl = document.querySelector('#preview');
 
   function addEntry(kind, text) {
     if (!text) return null;
@@ -138,33 +130,10 @@ HTML = r'''<!doctype html>
     document.querySelectorAll('button').forEach(button => button.disabled = busy);
   }
 
-  function renderPreview(preview) {
-    previewEl.replaceChildren();
-    if (!Array.isArray(preview) || !preview.length) {
-      previewEl.classList.remove('visible');
-      return;
-    }
-    previewEl.classList.add('visible');
-    const heading = document.createElement('h2');
-    heading.textContent = 'Proposed campaign records — review before approval';
-    previewEl.appendChild(heading);
-    for (const item of preview) {
-      const details = document.createElement('details');
-      details.open = true;
-      const summary = document.createElement('summary');
-      summary.textContent = `${item.action || 'update'}: ${item.target_file}`;
-      const pre = document.createElement('pre');
-      pre.textContent = item.content || '';
-      details.append(summary, pre);
-      previewEl.appendChild(details);
-    }
-  }
-
   function applyState(data) {
     statusEl.textContent = (data.status || 'unknown').replaceAll('_', ' ');
     const p = data.position || {};
     positionEl.textContent = p.day ? `Day ${p.day} — ${p.phase}` : '—';
-    renderPreview(data.preview);
     addEntry(data.error ? 'error' : 'system', data.text || 'Done.');
   }
 
@@ -225,11 +194,13 @@ class FrontendService:
         public: dict[str, Any] = {
             'status': result.get('status', ''),
             'position': result.get('position', {}),
-            'text': _player_text(result, include_preview=False),
+            'text': _player_text(result, include_preview=True),
         }
-        preview = result.get('proposal_preview')
-        if isinstance(preview, list) and preview:
-            public['preview'] = preview
+        proposal_file = result.get('proposal_file')
+        if isinstance(proposal_file, dict):
+            public['proposal_file'] = proposal_file
+            public['proposal_files_total'] = result.get('proposal_files_total', 0)
+            public['proposal_files_reviewed'] = result.get('proposal_files_reviewed', 0)
         question = result.get('question')
         if isinstance(question, dict):
             public['question'] = {'question': question.get('question', '')}

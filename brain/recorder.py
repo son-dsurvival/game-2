@@ -72,6 +72,7 @@ class SessionRecorder:
         state_updates = self._state_updates(resource_commit)
         modifier_updates = self._modifier_updates(source)
         branch_updates = self._branch_updates(source)
+        branch_candidates = self._branch_candidates(source)
         # LeadResolver wraps ordinary output in resolution_record; normalize
         # the cache delta from that canonical layer before recording it.
         cache_delta = source.get("cache_delta")
@@ -94,6 +95,7 @@ class SessionRecorder:
             "state_updates": state_updates,
             "modifier_updates": modifier_updates,
             "branch_updates": branch_updates,
+            "branch_candidates": branch_candidates,
             "cache_delta": cache_delta,
             "target_segments": segments,
         }
@@ -126,6 +128,7 @@ class SessionRecorder:
             "state_updates": state_updates,
             "modifier_updates": modifier_updates,
             "branch_updates": branch_updates,
+            "branch_candidates": branch_candidates,
             "target_segments": segments,
             "cache_delta": cache_delta,
             "source": str(self.temp_memory_path),
@@ -390,12 +393,46 @@ items, autonomy changes, and canonical event information only."""
         return updates
 
     @staticmethod
+    def _branch_candidates(source: dict[str, Any]) -> list[dict[str, Any]]:
+        resolution = source.get("resolution_record", source)
+        raw = source.get("branch_candidates")
+        if not isinstance(raw, list) and isinstance(resolution, dict):
+            raw = resolution.get("branch_candidates")
+        if not isinstance(raw, list):
+            updates = source.get("specialist_updates", {})
+            if not isinstance(updates, dict) and isinstance(resolution, dict):
+                updates = resolution.get("specialist_updates", {})
+            raw = updates.get("branch_discovery", {}).get("candidates", []) if isinstance(updates, dict) else []
+        result = []
+        for item in raw if isinstance(raw, list) else []:
+            if not isinstance(item, dict) or not item.get("branch"):
+                continue
+            result.append({
+                "branch": str(item["branch"]),
+                "status": str(item.get("status", "candidate")),
+                "established_evidence": bool(item.get("established_evidence")),
+                "recurring": bool(item.get("recurring")),
+                "reason": str(item.get("description", "Evidence-backed recurring domain.")),
+            })
+        return result
+
+    @staticmethod
     def _branch_updates(source: dict[str, Any]) -> list[dict[str, Any]]:
         """Accept only resolved branch unlocks from the Lead Resolver."""
         resolution = source.get("resolution_record", source)
         raw = resolution.get("branch_changes", []) if isinstance(resolution, dict) else []
         if not isinstance(raw, list):
             return []
+        candidate_items = source.get("branch_candidates")
+        if not isinstance(candidate_items, list) or not candidate_items:
+            candidate_items = resolution.get("branch_candidates", []) if isinstance(resolution, dict) else []
+        if not isinstance(candidate_items, list):
+            candidate_items = []
+        supported = {
+            str(item.get("branch")): item
+            for item in candidate_items
+            if isinstance(item, dict) and item.get("established_evidence")
+        }
         updates = []
         for item in raw:
             if not isinstance(item, dict) or str(item.get("status", "")).casefold() != "unlocked":
@@ -403,6 +440,8 @@ items, autonomy changes, and canonical event information only."""
             branch = item.get("branch", item.get("name"))
             specialist = item.get("specialist")
             if not isinstance(branch, str) or not branch.strip() or not isinstance(specialist, str) or not specialist.strip():
+                continue
+            if branch.strip() not in supported:
                 continue
             updates.append({
                 "branch": branch.strip(),
@@ -646,6 +685,16 @@ items, autonomy changes, and canonical event information only."""
             )
         if not branch_updates:
             lines.append("- None.")
+        lines.extend(["", "### Branch Discovery"])
+        branch_candidates = record.get("branch_candidates", [])
+        for item in branch_candidates:
+            lines.append(
+                f"- {one_line(item.get('branch'))}: status {one_line(item.get('status', 'candidate'))}; "
+                f"recurring {one_line(item.get('recurring', False))}; established evidence {one_line(item.get('established_evidence', False))}; "
+                f"reason {one_line(item.get('reason', ''))}"
+            )
+        if not branch_candidates:
+            lines.append("- None.")
         lines.extend(["", "### Game Cache Delta"])
         cache_delta = record.get("cache_delta")
         cache_fields = (
@@ -726,6 +775,7 @@ items, autonomy changes, and canonical event information only."""
             "state_updates": [],
             "modifier_updates": [],
             "branch_updates": [],
+            "branch_candidates": [],
             "cache_delta": {
                 "durable_facts": [], "active_threads": [], "pending_commitments": [],
                 "unresolved_questions": [], "expiring_facts": [],
@@ -761,6 +811,17 @@ items, autonomy changes, and canonical event information only."""
                 match = re.match(r"^-\s+([^:]+):\s*(.+)$", line)
                 if match and match.group(1).strip().casefold() != "none":
                     record["modifier_updates"].append({"modifier": match.group(1).strip(), "description": match.group(2).strip()})
+            elif section == "branch discovery":
+                match = re.match(r"^-\s+(.+?):\s+status\s+(.+?);\s+recurring\s+(.+?);\s+established evidence\s+(.+?);\s+reason\s+(.+)$", line)
+                if match:
+                    branch, status, recurring, established, reason = match.groups()
+                    if branch.strip().casefold() != "none":
+                        record["branch_candidates"].append({
+                            "branch": branch.strip(), "status": status.strip(),
+                            "recurring": recurring.strip().casefold() == "true",
+                            "established_evidence": established.strip().casefold() == "true",
+                            "reason": reason.strip(),
+                        })
             elif section == "game cache delta":
                 match = re.match(r"^-\s+(durable_facts|active_threads|pending_commitments|unresolved_questions|expiring_facts):\s+(.+?)(?:;\s+status\s+(.+?))?(?:;\s+source\s+(.+))?$", line)
                 if match:

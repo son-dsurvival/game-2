@@ -1,10 +1,11 @@
+import json
 import tempfile
 import unittest
 import threading
 from pathlib import Path
 
 from brain.runtime_state import RuntimeStateStore
-from pipeline import CampaignPipeline
+from pipeline import CampaignPipeline, process_input
 
 
 class ScriptedGame:
@@ -67,6 +68,64 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(restarted.resume()['position']['progress'], 0.5)
             self.assertEqual(restarted.resume()['message'], 'The market stirs around you.')
 
+    def test_player_interaction_journal_keeps_input_and_player_output(self):
+        with tempfile.TemporaryDirectory() as root:
+            RuntimeStateStore(root).save({'play_gate': 'open', 'campaign_id': 'test'})
+            pipeline = CampaignPipeline(root, modules=ScriptedGame())
+            result = process_input(pipeline, 'Wait', auto=False)
+            self.assertEqual(result['status'], 'open')
+            events = [
+                json.loads(line)
+                for line in Path(root, 'brain/state/session_runtime_events.jsonl').read_text(encoding='utf-8').splitlines()
+            ]
+            received = next(item for item in events if item['event'] == 'player_input_received')
+            emitted = next(item for item in events if item['event'] == 'player_output_emitted')
+            self.assertEqual(received['exact_input'], 'Wait')
+            self.assertIn('market stirs', emitted['output'])
+            self.assertEqual(emitted['result_status'], 'open')
+            transcript = Path(root, 'brain/state/player_prompt_history.txt').read_text(encoding='utf-8')
+            self.assertIn('Player:\nWait', transcript)
+            self.assertIn('Game:\nThe market stirs around you.', transcript)
+
+    def test_retry_replays_only_the_failed_stage_from_its_saved_snapshot(self):
+        class FailAtNarration(ScriptedGame):
+            def __init__(self):
+                self.calls = {'route': 0, 'evidence': 0, 'specialists': 0, 'resolve': 0, 'narrate': 0}
+
+            def route(self, message, context):
+                self.calls['route'] += 1
+                return super().route(message, context)
+
+            def evidence(self, route, context, note=None):
+                self.calls['evidence'] += 1
+                return super().evidence(route, context, note)
+
+            def specialists(self, bundle, context, extra=()):
+                self.calls['specialists'] += 1
+                return super().specialists(bundle, context, extra)
+
+            def resolve(self, analysis, context, dice=None):
+                self.calls['resolve'] += 1
+                return super().resolve(analysis, context, dice)
+
+            def narrate(self, resolution, context):
+                self.calls['narrate'] += 1
+                if self.calls['narrate'] == 1:
+                    raise RuntimeError('temporary narration failure')
+                return super().narrate(resolution, context)
+
+        with tempfile.TemporaryDirectory() as root:
+            RuntimeStateStore(root).save({'play_gate': 'open', 'campaign_id': 'test'})
+            game = FailAtNarration()
+            pipeline = CampaignPipeline(root, modules=game)
+            self.assertEqual(pipeline.submit('Wait')['status'], 'retry')
+            self.assertEqual(pipeline.retry()['status'], 'open')
+            self.assertEqual(game.calls['route'], 1)
+            self.assertEqual(game.calls['evidence'], 1)
+            self.assertEqual(game.calls['specialists'], 1)
+            self.assertEqual(game.calls['resolve'], 1)
+            self.assertEqual(game.calls['narrate'], 2)
+
     def test_admin_edit_waits_for_approval_and_does_not_advance_time(self):
         with tempfile.TemporaryDirectory() as root:
             target = Path(root) / 'markdown_files/notes.md'
@@ -76,8 +135,9 @@ class PipelineTests(unittest.TestCase):
             pipeline = CampaignPipeline(root, modules=ScriptedGame())
             review = pipeline.submit('{correct my notes}')
             self.assertEqual(review['status'], 'admin_review')
-            self.assertEqual(review['proposal_preview'][0]['target_file'], 'markdown_files/notes.md')
-            self.assertEqual(review['proposal_preview'][0]['content'], 'after')
+            self.assertEqual(review['proposal_file']['target_file'], 'markdown_files/notes.md')
+            self.assertEqual(review['proposal_file']['number'], 1)
+            self.assertEqual(review['proposal_files_total'], 1)
             self.assertEqual(target.read_text(encoding='utf-8'), 'before')
             applied = pipeline.approve()
             self.assertEqual(applied['status'], 'open')
@@ -97,9 +157,12 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(pipeline.submit('Walk away')['status'], 'day_end_review')
             self.assertEqual(target.read_text(encoding='utf-8'), 'before')
             applied = pipeline.approve()
-            self.assertEqual(applied['status'], 'open')
+            self.assertEqual(applied['status'], 'new_day_pending')
             self.assertNotIn('visitor', str(applied))
             self.assertNotIn('visitor', str(pipeline.resume()))
+            resumed = pipeline.resume_play()
+            self.assertEqual(resumed['status'], 'open')
+            self.assertNotIn('visitor', str(resumed))
             self.assertEqual(target.read_text(encoding='utf-8'), 'after')
 
     def test_cancelled_multi_character_setup_preserves_active_campaign(self):
@@ -115,8 +178,8 @@ class PipelineTests(unittest.TestCase):
             resumed = CampaignPipeline(root, modules=ScriptedGame())
             self.assertEqual(resumed.resume()['draft']['main_character'], 'Mira')
             restored = resumed.cancel_setup()
-            self.assertEqual(restored['position']['day'], 4)
-            self.assertEqual(restored['status'], 'open')
+            self.assertEqual(restored['position']['day'], 1)
+            self.assertEqual(restored['status'], 'setup_required')
 
     def test_background_overlaps_narration_and_pending_work_blocks_next_action(self):
         started = threading.Event()
@@ -247,6 +310,38 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(pipeline.approve()['status'], 'open')
             state = RuntimeStateStore(root).load()
             self.assertEqual(state['main_character'], 'Kael')
+
+    def test_pause_forces_outside_game_until_resume(self):
+        with tempfile.TemporaryDirectory() as root:
+            target = Path(root) / 'markdown_files/notes.md'
+            target.parent.mkdir()
+            target.write_text('before', encoding='utf-8')
+            RuntimeStateStore(root).save({'play_gate': 'open', 'campaign_id': 'test'})
+            pipeline = CampaignPipeline(root, modules=ScriptedGame())
+            paused = pipeline.pause()
+            self.assertEqual(paused['status'], 'paused')
+            review = pipeline.submit('Correct the notes')
+            self.assertEqual(review['status'], 'admin_review')
+            self.assertEqual(pipeline.approve()['status'], 'paused')
+            self.assertEqual(pipeline.resume_play()['status'], 'open')
+
+    def test_new_game_waits_for_explicit_resume_after_approval(self):
+        with tempfile.TemporaryDirectory() as root:
+            target = Path(root) / 'markdown_files/TEMP_MEMORY.md'
+            target.parent.mkdir()
+            target.write_text('before', encoding='utf-8')
+            RuntimeStateStore(root).save({'play_gate': 'setup_required'})
+            pipeline = CampaignPipeline(root, modules=ScriptedGame())
+            pipeline.begin_setup()
+            target.write_text('before', encoding='utf-8')
+            pipeline.add_character({'name': 'Kael', 'age': 24, 'race': 'Human'},
+                                   {'AGI': 6, 'INT': 6, 'STR': 6, 'END': 6, 'WIS': 3, 'PRE': 3},
+                                   'A frontier hunter.', 'Hunter')
+            pipeline.select_main('Kael')
+            self.assertEqual(pipeline.review_setup()['status'], 'awaiting_clarification')
+            self.assertEqual(pipeline.submit('The northern frontier')['status'], 'setup_review')
+            self.assertEqual(pipeline.approve(confirm_reset=True)['status'], 'new_game_pending')
+            self.assertEqual(pipeline.resume_play()['status'], 'open')
 
     def test_stored_specialist_proposal_can_be_installed(self):
         with tempfile.TemporaryDirectory() as root:

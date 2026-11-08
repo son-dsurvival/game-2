@@ -94,6 +94,7 @@ class SelectedSection:
     path: tuple[str, ...]
     selected_by: tuple[str, ...]
     reasons: tuple[str, ...]
+    text: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -105,6 +106,7 @@ class SelectedSection:
             "path": list(self.path),
             "selected_by": list(self.selected_by),
             "reasons": list(self.reasons),
+            "text": self.text,
         }
 
 
@@ -124,6 +126,7 @@ class EvidenceBundle:
     admin_sources: tuple[dict[str, Any], ...] = ()
     bundle_status: str = "frozen"
     conversation_history: Any = None
+    history_breakdown: tuple[dict[str, Any], ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -141,6 +144,7 @@ class EvidenceBundle:
             "admin_sources": list(self.admin_sources),
             "bundle_status": self.bundle_status,
             "conversation_history": self.conversation_history,
+            "history_breakdown": list(self.history_breakdown),
         }
 
 
@@ -180,6 +184,7 @@ class EvidenceBundleBuilder:
         conversation_history: Any = None,
         selector: str = "auto",
         evidence_note: str | None = None,
+        additional_specialists: Iterable[str] = (),
     ) -> EvidenceBundle:
         record = (
             routing_record.to_dict()
@@ -188,11 +193,22 @@ class EvidenceBundleBuilder:
         )
         turn_id = str(record.get("turn_id", "unknown-turn"))
         prompt = self._player_prompt(record, player_input)
-        tags = [
-            item.get("tag")
-            for item in record.get("tags", [])
-            if isinstance(item, dict) and isinstance(item.get("tag"), str)
-        ]
+        transcript_history = self._load_player_history()
+        supplied_history = conversation_history if isinstance(conversation_history, list) else []
+        history = self._normalise_history([*transcript_history, *supplied_history])
+        deduped_history: list[dict[str, Any]] = []
+        seen_history_text: set[str] = set()
+        for item in history:
+            key = str(item.get('text', '')).strip()
+            if key and key not in seen_history_text:
+                seen_history_text.add(key)
+                deduped_history.append(item)
+        history = deduped_history
+        history_breakdown = self._break_down_history(history)
+        tags: list[str] = []
+        for item in record.get("tags", []):
+            if isinstance(item, dict) and isinstance(item.get("tag"), str):
+                tags.append(str(item["tag"]))
         requests = self._normalise_requests(record.get("evidence_requests", []))
         selected: dict[str, dict[str, Any]] = {}
         gaps: list[dict[str, Any]] = []
@@ -214,7 +230,7 @@ class EvidenceBundleBuilder:
                                 "retained from the previous evidence round",
                             )
             action_frames, frame_gaps, frame_source = self._extract_action_frames(
-                prompt, record, selector
+                prompt, record, selector, history
             )
             gaps.extend(frame_gaps)
             gaps.extend(self._entity_evidence_gaps(action_frames))
@@ -241,6 +257,7 @@ class EvidenceBundleBuilder:
                 action_frames,
                 evidence_note,
                 120 if evidence_note else 180,
+                history=history,
             )
             model_sections, model_gaps, selector_source = self._select_with_model(
                 prompt,
@@ -249,6 +266,7 @@ class EvidenceBundleBuilder:
                 selector,
                 action_frames,
                 evidence_note,
+                history,
             )
             gaps.extend(model_gaps)
             for node, reason in model_sections:
@@ -262,12 +280,12 @@ class EvidenceBundleBuilder:
                 self._add_selection(selected, node, "admin_context", "temporary session state is relevant to administrative review")
             for node, reason in self._admin_required_sections(record, prompt):
                 self._add_selection(selected, node, "admin_requirement", reason)
-            candidates = self._candidate_nodes(prompt, tags, requests, selected, action_frames, evidence_note, 120)
+            candidates = self._candidate_nodes(prompt, tags, requests, selected, action_frames, evidence_note, 120, history=history)
             if selector == "heuristic" or not self._deepseek_api_key():
                 model_sections, model_gaps, selector_source = [], [], "admin_deterministic_selector"
             else:
                 model_sections, model_gaps, selector_source = self._select_with_model(
-                    prompt, record, candidates, selector, action_frames, evidence_note
+                    prompt, record, candidates, selector, action_frames, evidence_note, history
                 )
             gaps.extend(model_gaps)
             for node, reason in model_sections:
@@ -286,6 +304,7 @@ class EvidenceBundleBuilder:
                 path=tuple(node["path"]),
                 selected_by=tuple(sorted(node["selected_by"])),
                 reasons=tuple(dict.fromkeys(node["reasons"])),
+                text=self._read_section_text(node),
             )
             for node in sorted(selected.values(), key=lambda item: item["id"])
         )
@@ -315,10 +334,38 @@ class EvidenceBundleBuilder:
             evidence_gaps=tuple(self._dedupe_gaps(gaps)),
             selection_source=selection_source,
             expansion_note=evidence_note,
-            specialist_bundles=self._specialist_bundles(record, [section.to_dict() for section in sections], list(self._dedupe_gaps(gaps))),
+            specialist_bundles=self._specialist_bundles(
+                record,
+                [section.to_dict() for section in sections],
+                list(self._dedupe_gaps(gaps)),
+                history=history,
+                history_breakdown=history_breakdown,
+                current_state=current_state or {},
+                additional_specialists=additional_specialists,
+            ),
             admin_sources=tuple(self._admin_sources(record, prompt)) if is_admin else (),
-            conversation_history=conversation_history,
+            conversation_history=history,
+            history_breakdown=tuple(history_breakdown),
         )
+
+    def _read_section_text(self, section: dict[str, Any]) -> str:
+        source = section.get('source')
+        location = section.get('location')
+        if not isinstance(source, str) or not isinstance(location, str):
+            return ''
+        match = re.fullmatch(r'lines?\s+(\d+)-(\d+)', location.strip())
+        if not match:
+            return ''
+        start, end = int(match.group(1)), int(match.group(2))
+        path = (self.repo_root / source).resolve()
+        try:
+            path.relative_to(self.repo_root)
+            lines = path.read_text(encoding='utf-8').splitlines()
+        except (OSError, UnicodeDecodeError, ValueError):
+            return ''
+        if start < 1 or end < start or start > len(lines):
+            return ''
+        return '\n'.join(lines[start - 1:min(end, len(lines))])
 
     def _build_in_memory_index(self) -> dict[str, Any]:
         try:
@@ -330,6 +377,97 @@ class EvidenceBundleBuilder:
             for path in sorted(self.markdown_root.rglob("*.md")):
                 under.append(build_file_node(path, self.markdown_root))
         return {"under": under, "schema_version": 1, "name": "in_memory_campaign_evidence_index"}
+
+    def _load_player_history(self) -> list[dict[str, Any]]:
+        path = self.repo_root / 'brain/state/player_prompt_history.txt'
+        try:
+            text = path.read_text(encoding='utf-8')
+        except (OSError, UnicodeDecodeError):
+            return []
+        pattern = re.compile(
+            r'(?ms)^Day .*?\n\nPlayer:\n(.*?)\n\nGame:\n(.*?)(?=^Day .*?\n\nPlayer:\n|\Z)'
+        )
+        return [
+            {
+                'history_id': f'transcript-{index}',
+                'source': 'player_transcript',
+                'prompt': match.group(1).strip(),
+                'result': match.group(2).strip(),
+                'priority': 'foundational' if index <= 3 else 'normal',
+            }
+            for index, match in enumerate(pattern.finditer(text), start=1)
+        ]
+
+    @staticmethod
+    def _normalise_history(value: Any) -> list[dict[str, Any]]:
+        """Turn setup chat and completed-turn records into one ordered history."""
+        if not isinstance(value, list):
+            return []
+        result: list[dict[str, Any]] = []
+        for index, item in enumerate(value):
+            if not isinstance(item, dict):
+                continue
+            history_id = str(item.get('history_id') or item.get('turn_id') or f'history-{index + 1}')
+            role = str(item.get('role') or 'player')
+            source = str(item.get('source') or ('setup_conversation' if 'content' in item else 'completed_turn'))
+            content = item.get('content')
+            prompt = item.get('prompt')
+            result_text = item.get('result')
+            text_parts = []
+            if isinstance(content, str) and content.strip():
+                text_parts.append(content.strip())
+            if isinstance(prompt, str) and prompt.strip():
+                text_parts.append('Player action: ' + prompt.strip())
+            if isinstance(result_text, str) and result_text.strip():
+                text_parts.append('Outcome: ' + result_text.strip())
+            text = '\n'.join(text_parts).strip()
+            if not text:
+                continue
+            result.append({
+                'history_id': history_id,
+                'sequence': index,
+                'role': role,
+                'source': source,
+                'text': text,
+                'day': item.get('day'),
+                'turn_id': item.get('turn_id'),
+                'priority': item.get('priority') or ('foundational' if source == 'setup_conversation' else 'normal'),
+            })
+        return result
+
+    @staticmethod
+    def _break_down_history(history: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Extract lightweight, source-linked categories without inventing facts."""
+        category_terms = {
+            'identity': ('name', 'age', 'race', 'ancestry', 'identity'),
+            'background': ('background', 'work', 'engineer', 'trainer', 'family', 'home', 'live'),
+            'ability': ('ability', 'skill', 'class', 'technique', 'can ', 'built', 'training'),
+            'relationship': ('friend', 'housemate', 'relationship', 'trust', 'family', 'companion'),
+            'system': ('ai', 'network', 'relay', 'assistant', 'computer', 'system', 'magic'),
+            'resource': ('money', 'equipment', 'resource', 'material', 'weapon', 'tool'),
+            'rule_or_constraint': ('must', 'cannot', 'only', 'rule', 'agreement', 'consent'),
+            'decision': ('choose', 'decided', 'remain', 'main character', 'classless'),
+        }
+        broken_down: list[dict[str, Any]] = []
+        for item in history:
+            text = str(item.get('text', ''))
+            lowered = text.casefold()
+            categories = [
+                category for category, terms in category_terms.items()
+                if any(term in lowered for term in terms)
+            ]
+            if not categories:
+                categories = ['context']
+            priority = str(item.get('priority') or 'normal')
+            important = priority == 'foundational' or len(categories) > 1 or any(
+                category in categories for category in ('identity', 'ability', 'system', 'rule_or_constraint', 'decision')
+            )
+            broken_down.append({
+                **item,
+                'categories': categories,
+                'important': important,
+            })
+        return broken_down
 
     @staticmethod
     def _player_prompt(record: dict[str, Any], explicit: str | None) -> str:
@@ -471,6 +609,7 @@ class EvidenceBundleBuilder:
         prompt: str,
         record: dict[str, Any],
         selector: str,
+        history: list[dict[str, Any]] | None = None,
     ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], str]:
         api_key = self._deepseek_api_key()
         if selector == "heuristic" or (selector == "auto" and not api_key):
@@ -479,6 +618,7 @@ class EvidenceBundleBuilder:
             raise RuntimeError("Action-frame extraction requires DEEPSEEK_API_KEY or API_KEY")
         payload = {
             "player_prompt": prompt,
+            "player_history": history or [],
             "routing_record": {
                 "mode": record.get("mode"),
                 "tags": record.get("tags", []),
@@ -799,13 +939,21 @@ class EvidenceBundleBuilder:
         record: dict[str, Any],
         sections: list[dict[str, Any]],
         gaps: list[dict[str, Any]],
+        *,
+        history: list[dict[str, Any]] | None = None,
+        history_breakdown: list[dict[str, Any]] | None = None,
+        current_state: dict[str, Any] | None = None,
+        additional_specialists: Iterable[str] = (),
     ) -> dict[str, dict[str, Any]]:
         """Partition the frozen references so each specialist gets a scoped bundle."""
         try:
             from brain.specialists.registry import get_specialist
         except ModuleNotFoundError:
             from specialists.registry import get_specialist
-        names = record.get("required_specialists", [])
+        names = list(dict.fromkeys([
+            *(record.get("required_specialists", []) if isinstance(record.get("required_specialists", []), list) else []),
+            *(str(name) for name in additional_specialists),
+        ]))
         result: dict[str, dict[str, Any]] = {}
         keyword_map = {
             # Core lanes receive broad but intentional views of the same frozen
@@ -821,11 +969,32 @@ class EvidenceBundleBuilder:
             "relay": ("relay", "mana", "spell computer", "terms"),
             "cognitive_assistance": ("ava", "cognitive", "spell computer", "terms"),
             "modifier": ("resource", "mana", "cost", "modifier", "spell", "terms"),
+            "modifier_creation": ("effect modifier", "repeated", "breakthrough", "training", "experiment", "modifier", "terms"),
             "spell": ("spell", "magic", "mana", "relay", "cost", "terms"),
             "difficulty": ("difficulty", "task", "reaction", "opponent", "roll", "experiment", "spell", "terms"),
             "current_state": ("status", "current", "temporary", "state", "terms"),
             "rules": ("rule", "game rules", "terms"),
             "xp": ("xp", "experience", "practice", "terms"),
+        }
+        history = history or []
+        history_breakdown = history_breakdown or []
+        current_state = current_state or {}
+        state_scopes = {
+            'rules': ('position', 'world_pool', 'pending_world_event', 'saved_rolls', 'game_cache', 'answers'),
+            'character': ('position', 'party', 'main_character', 'draft', 'answers', 'game_cache'),
+            'special': ('position', 'party', 'main_character', 'pending_world_event', 'specialist_proposals', 'game_cache'),
+            'create': ('position', 'party', 'main_character', 'draft', 'specialist_proposals', 'answers', 'game_cache'),
+            'resources': ('position', 'party', 'main_character', 'draft', 'game_cache', 'answers'),
+            'time': ('position', 'pending_world_event', 'saved_rolls', 'answers'),
+            'experimentation': ('position', 'party', 'game_cache', 'answers'),
+            'relay': ('position', 'party', 'game_cache', 'answers'),
+            'cognitive_assistance': ('position', 'party', 'main_character', 'game_cache', 'answers'),
+            'modifier': ('position', 'party', 'draft', 'game_cache', 'answers'),
+            'modifier_creation': ('position', 'party', 'draft', 'game_cache', 'answers'),
+            'spell': ('position', 'party', 'game_cache', 'answers'),
+            'difficulty': ('position', 'party', 'pending_world_event', 'saved_rolls', 'game_cache', 'answers'),
+            'current_state': ('position', 'party', 'main_character', 'draft', 'game_cache', 'answers'),
+            'xp': ('position', 'party', 'game_cache', 'answers'),
         }
         for name in names:
             try:
@@ -851,16 +1020,51 @@ class EvidenceBundleBuilder:
                     scoped.append(section)
             if not scoped:
                 scoped = sections[:]
+            history_keywords = tuple(keywords) + tuple(str(tag).replace('_', ' ') for tag in activation)
+            scoped_history = []
+            for item in history_breakdown:
+                text = str(item.get('text', '')).casefold()
+                foundational = item.get('priority') == 'foundational' or item.get('source') == 'setup_conversation'
+                relevant = any(keyword.casefold() in text for keyword in history_keywords if keyword)
+                if name in {'character', 'create'} and foundational:
+                    relevant = True
+                if item.get('important') and foundational and name in {'rules', 'special', 'resources', 'difficulty', 'modifier', 'modifier_creation'}:
+                    relevant = True
+                if relevant or (not history_breakdown and history):
+                    scoped_history.append(item)
+            if not scoped_history and history:
+                scoped_history = history
+            state_keys = state_scopes.get(name, ('position', 'party', 'draft', 'answers', 'game_cache'))
+            scoped_state = {key: current_state[key] for key in state_keys if key in current_state}
             scoped_ids = {section.get("id") for section in scoped}
             scoped_gaps = []
             for gap in gaps:
                 requested = gap.get("requested_by_tags", []) if isinstance(gap, dict) else []
                 if not activation or set(requested) & activation or gap.get("source") in {s.get("source") for s in scoped}:
                     scoped_gaps.append(gap)
+            scoped_history_ids = {
+                str(item.get('history_id'))
+                for item in scoped_history
+                if isinstance(item, dict) and item.get('history_id')
+            }
+            evidence_ids = sorted({
+                str(section.get('evidence_id') or section.get('id'))
+                for section in scoped
+                if isinstance(section, dict) and (section.get('evidence_id') or section.get('id'))
+            })
+            history_ids = sorted(scoped_history_ids)
             result[name] = {
                 "specialist": name,
                 "selected_sections": scoped,
                 "evidence_gaps": scoped_gaps,
+                "history": scoped_history,
+                "history_breakdown": [item for item in history_breakdown if item.get('history_id') in scoped_history_ids],
+                "state": scoped_state,
+                "citation_allowlist": {
+                    "evidence_ids": evidence_ids,
+                    "history_ids": history_ids,
+                    "all_ids": sorted(set(evidence_ids) | set(history_ids)),
+                },
                 "section_count": len(scoped_ids),
             }
         return result
@@ -883,10 +1087,12 @@ class EvidenceBundleBuilder:
         action_frames: Iterable[dict[str, Any]],
         evidence_note: str | None = None,
         limit: int = 180,
+        history: Iterable[dict[str, Any]] = (),
     ) -> list[dict[str, Any]]:
         frame_text = json.dumps(list(action_frames), ensure_ascii=False)
         evidence_note = (evidence_note or "")[:4000]
-        query = self._normalise(" ".join([prompt, evidence_note, frame_text, *tags, *(r["tag"] for r in requests)]))
+        history_text = ' '.join(str(item.get('text', '')) for item in history if isinstance(item, dict))
+        query = self._normalise(" ".join([prompt, history_text, evidence_note, frame_text, *tags, *(r["tag"] for r in requests)]))
         words = {word for word in query.split() if len(word) > 2}
         required_sources = {
             f"markdown_files/{source}"
@@ -936,6 +1142,7 @@ class EvidenceBundleBuilder:
         selector: str,
         action_frames: Iterable[dict[str, Any]],
         evidence_note: str | None = None,
+        history: list[dict[str, Any]] | None = None,
     ) -> tuple[list[tuple[dict[str, Any], str]], list[dict[str, Any]], str]:
         if selector == "heuristic":
             return [], [], "heuristic_index_selector"
@@ -950,6 +1157,7 @@ class EvidenceBundleBuilder:
 
         payload = {
             "player_prompt": prompt,
+            "player_history": history or [],
             "routing_record": {
                 "request_type": record.get("request_type"),
                 "mode": record.get("mode"),

@@ -9,7 +9,7 @@ from approval import approve_proposal, bind_source_versions
 
 
 def proposal(root, changes, identity='edit-one'):
-    return approve_proposal(bind_source_versions({'status': 'proposal_ready', 'proposal_id': identity, 'changes': changes}, repo_root=root))
+    return approve_proposal(bind_source_versions({'status': 'proposal_ready', 'proposal_id': identity, 'proposed_by': 'admin_agent', 'changes': changes}, repo_root=root))
 
 
 class EditorTests(unittest.TestCase):

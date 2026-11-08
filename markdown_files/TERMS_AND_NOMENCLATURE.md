@@ -1,0 +1,222 @@
+# Terms and Nomenclature
+
+This document describes the campaign runtime commands, state gates, and major technical processes. It is an administrative reference, not roleplay canon.
+
+## Runtime Command Reference
+
+| Command | Function |
+| --- | --- |
+| `/help` | Displays all available commands. |
+| `/status` | Shows the current phase, play gate, pending operation, and saved stage. |
+| `/retry` | Restarts the failed task from the beginning of its pipeline. |
+| `&#123;pause&#125;` | Stops roleplay and places the runtime in outside-game mode. |
+| `&#123;resume&#125;` | Resumes roleplay from an explicit pause, approved new game, or approved new day. |
+| `/new-game` | Starts a new campaign setup flow. |
+| `/new-character` | Drafts an additional player character. |
+| `/new-party-member` | Drafts an NPC party member. |
+| `/add` | Adds another character during setup. |
+| `/main NAME` | Selects the party's main player character. |
+| `/review` | Prepares the current setup for review. |
+| `/approve` | Approves a normal administrative proposal. |
+| `/approve-reset` | Explicitly approves replacement of the current campaign. |
+| `/cancel-setup` | Cancels setup without destroying the active campaign. |
+| `/end-day` | Starts rest and day-end processing. |
+| `/specialists` | Lists stored specialist proposals. |
+| `/install NAME` | Proposes installing an approved specialist. |
+| `/quit` | Exits while preserving resumable state. |
+| `OOC request` | A request enclosed in curly braces sends an out-of-roleplay administrative request. |
+
+## Runtime State Gates
+
+### `setup_required`
+
+No active campaign exists. New-game setup must begin before roleplay can open.
+
+### `setup_draft`
+
+The player is drafting characters, party members, identity, stats, backgrounds, and the main character.
+
+### `setup_review`
+
+The setup proposal is ready for review. Campaign documents have not been replaced.
+
+### `awaiting_clarification`
+
+The current operation is paused until the player answers a required question.
+
+### `awaiting_dice`
+
+The Lead Resolver requires a saved dice result before resolution can continue.
+
+### `day_end_review`
+
+The completed day has been prepared for review. Normal next-day play is blocked until approval.
+
+### `world_event_pending`
+
+The approved day has ended and the next-day world-event roll/event stage is being completed.
+
+### `new_game_pending`
+
+New-game Markdown changes have been approved and stored. Roleplay cannot begin until the player uses `&#123;resume&#125;`.
+
+### `new_day_pending`
+
+Day-end changes and next-day event preparation are complete. Roleplay remains outside the game until the player uses `&#123;resume&#125;`.
+
+### `paused`
+
+The player explicitly paused roleplay. Plain text is treated as outside-game administrative text until `&#123;resume&#125;`.
+
+### `open`
+
+Normal gameplay may proceed.
+
+### `retry`
+
+A failure stopped the current operation safely. `/retry` restarts that task from its pipeline entry stage rather than continuing the failed checkpoint.
+
+## New-Game Setup Process
+
+```text
+/new-game
+→ character draft
+→ party draft
+→ main-character selection
+→ setup specialist review
+→ document proposal
+→ player approval
+→ Admin Editor
+→ campaign initialization
+→ `new_game_pending`
+→ player uses `&#123;resume&#125;`
+→ opening scene
+```
+
+The setup review includes class, world, and modifier-creation review. Modifier creation may identify a valid pre-existing modifier, but it does not grant one without evidence.
+
+## Normal Turn Process
+
+```text
+player input
+→ Turn Router
+→ Evidence Bundle
+→ Cache Specialist
+→ Rules / Character / Special / Create specialists
+→ optional domain specialists
+→ Coverage Check
+→ Lead Resolver
+→ dice or clarification continuation when required
+→ Narrator
+→ Session Recorder
+→ background phase processing
+→ saved checkpoint
+```
+
+The Cache Specialist runs first. The other specialists receive its bounded cache delta. Specialists analyze; the Lead Resolver decides; the Narrator reveals only approved visible information; the Recorder persists temporary session state.
+
+## Explicit Pause and Resume Process
+
+```text
+open roleplay
+→ player writes `&#123;pause&#125;`
+→ paused outside-game mode
+→ plain text is treated as administrative text
+→ player writes `&#123;resume&#125;`
+→ open roleplay
+```
+
+A new game and an approved day end use the same outside-game boundary. Approval stores the Markdown changes first; `&#123;resume&#125;` is required before the next roleplay section begins.
+
+## Administrative Request Process
+
+```text
+OOC request
+→ outside-game routing
+→ evidence and specialist review
+→ answer or exact edit proposal
+→ proposal version binding
+→ player approval
+→ Admin Editor
+→ atomic write and audit receipt
+```
+
+`admin_agent.py` reasons and proposes. It does not write files. `admin_editor.py` applies only an approved, version-checked proposal.
+
+## Day-End Process
+
+```text
+end of day
+→ completed-day records
+→ branch discovery
+→ modifier review
+→ world-pool review
+→ Admin Agent proposal
+→ player approval
+→ Markdown promotion
+→ evidence-index refresh
+→ saved d100 world-event roll
+→ pending event with encounter condition/deadline
+→ `new_day_pending`
+→ player uses `&#123;resume&#125;`
+→ next-day play
+```
+
+Branch discovery records candidates but does not activate specialists. Only a confirmed and approved branch becomes `status: unlocked` in the Branch Registry.
+
+## Modifier-Creation Process
+
+```text
+history / cache / experiments / training
+→ modifier_creation specialist
+→ proposed modifier and group placements
+→ Admin Agent defends every placement
+→ Lead Resolver decides whether the modifier is gained
+→ Recorder stores the approved result
+```
+
+The ordinary `modifier` specialist calculates current action-side modifiers. The `modifier_creation` specialist reviews whether a new reusable Effect Modifier is justified.
+
+## Specialist and Resolution Responsibilities
+
+| Component | Responsibility |
+| --- | --- |
+| Turn Router | Classifies the request and selects lanes. |
+| Evidence Bundle | Freezes relevant source evidence. |
+| Cache Specialist | Extracts bounded durable context. |
+| Rules Specialist | Analyzes mechanics and task-side calculations. |
+| Character Specialist | Analyzes characters and action-side calculations. |
+| Special Specialist | Monitors unlocked branches. |
+| Create Specialist | Proposes missing specialist scopes. |
+| Modifier Specialist | Calculates current action modifiers. |
+| Modifier Creation Specialist | Proposes reusable effect modifiers and practical group placements. |
+| Lead Resolver | Makes the final mechanical and fictional decision. |
+| Narrator | Converts visible resolution data into player-facing prose. |
+| Recorder | Stores temporary session facts and promotion records. |
+| Admin Agent | Answers OOC questions and prepares defended edit proposals. |
+| Admin Editor | Applies approved Markdown changes atomically. |
+
+## Markdown File Reference
+
+| Markdown file | What it stores |
+| --- | --- |
+| `Branch Registry.md` | Discovered branch candidates, activation status, specialist names, activation tags, evidence sources, and unlock reasons. Only `status: unlocked` branches are routed. |
+| `character relationship.md` | Character and party-member relationships, trust, bonds, consent, autonomy, relationship tiers, and relationship changes. |
+| `Experimentation Register.md` | Player-readable OOC experiments, completed experiments, safe background status, and approved outside-player-perspective updates. Private surprises remain in backend state. |
+| `game rules (1).md` | Core game mechanics: time, phases, travel, world events, combat, noncombat actions, resources, stats, modifiers, skills, XP, tiers, NPC autonomy, relationships, and party rules. |
+| `Ledger Resources.md` | Character and party resources such as money, HP, MP, SP, food, water, materials, equipment, consumables, and other tracked supplies. |
+| `status sheet.md` | Character identity, stats, class, levels, tier, derived values, stat/class/effect modifiers, Modifier Groups, skills, and equipment. |
+| `TEMP_MEMORY.md` | Temporary session position, cache, active threads, commitments, unresolved questions, expiring facts, pending canon, and temporary branch records. |
+| `TERMS_AND_NOMENCLATURE.md` | Technical command reference, runtime state gates, pipeline processes, component responsibilities, storage boundaries, and Markdown file descriptions. |
+| `🌍 CORE WORLD FRAME (REFINED).md` | Canon world lore, System laws, Earth Upgrade history, dungeons, peoples, classes, technology, Bases, civilizations, currency, Tier-6 entities, Event log, and Game log. |
+
+## Markdown Storage Boundary
+
+Persistent Markdown information must pass through the outside-game Admin Agent and approved Admin Editor before it is written.
+
+The normal exceptions are:
+
+- `markdown_files/TEMP_MEMORY.md`, which is Recorder-owned temporary session memory;
+- the approved party-member backend setup task.
+
+Private runtime state remains under `brain/state/` and is not player-facing canon.

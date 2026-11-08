@@ -18,6 +18,16 @@ class SetupDrafts:
         if mode not in {'new_game', 'new_character', 'new_party_member'}:
             raise ValueError('Unknown character mode.')
         current = self.state.load()
+        if mode == 'new_game' and (current.get('draft') or current.get('proposal')):
+            # Starting a new game explicitly replaces an unfinished setup draft
+            # or review. No campaign files have changed until approval.
+            self.state.save({
+                'draft': None,
+                'proposal': None,
+                'operation': None,
+                'pending_clarification': None,
+            })
+            current = self.state.load()
         if current.get('operation') or current.get('draft'):
             raise RuntimeError('Finish the pending operation or cancel the existing draft first.')
         if mode != 'new_game' and current['play_gate'] != 'open':
@@ -28,11 +38,21 @@ class SetupDrafts:
                   'background, personality, abilities, or class idea.')
         if main_character:
             prompt += f' The campaign main character is already {main_character}; it will not change.'
-        self.state.save({'draft': {'campaign_id': campaign_id or 'campaign-' + uuid.uuid4().hex,
-                                   'characters': [], 'main_character': main_character, 'mode': mode,
-                                   'previous_gate': current['play_gate'], 'question': 'identity',
-                                   'partial': {}, 'conversation': [], 'party_done': False},
-                         'play_gate': 'setup_draft', 'message': prompt})
+        draft = {'campaign_id': campaign_id or 'campaign-' + uuid.uuid4().hex,
+                 'characters': [], 'main_character': main_character, 'mode': mode,
+                 'previous_gate': current['play_gate'], 'previous_message': current.get('last_in_game_narration') or current.get('message', ''),
+                 'previous_position': current.get('position'), 'question': 'identity',
+                 'partial': {}, 'conversation': [], 'party_done': False}
+        self.state.save({'draft': draft, 'play_gate': 'setup_draft', 'message': prompt})
+        self.state.append_event(
+            'character_setup_started',
+            operation_type='out_of_game',
+            mode=mode,
+            campaign_id=draft['campaign_id'],
+            position_before=current.get('position'),
+            previous_narration=draft['previous_message'],
+            status='in_progress',
+        )
 
     def add(self, identity: dict[str, Any], stats: dict[str, Any], description: str, character_class: str) -> None:
         state = self.state.load()
@@ -208,4 +228,12 @@ class SetupDrafts:
         operation = state.get('operation') or {}
         if operation.get('approved') or operation.get('receipt'):
             raise RuntimeError('Replacement was already approved; resume it rather than cancelling.')
-        self.state.save({'play_gate': state['draft']['previous_gate'], 'draft': None, 'operation': None, 'proposal': None, 'message': 'Setup cancelled; existing campaign preserved.'})
+        previous_gate = state['draft']['previous_gate']
+        self.state.save({'play_gate': previous_gate, 'draft': None, 'operation': None, 'proposal': None, 'message': 'Setup cancelled; existing campaign preserved.'})
+        self.state.append_event(
+            'setup_draft_cancelled',
+            operation_type='out_of_game',
+            campaign_id=state['draft'].get('campaign_id'),
+            previous_gate=previous_gate,
+            status='cancelled_by_player',
+        )

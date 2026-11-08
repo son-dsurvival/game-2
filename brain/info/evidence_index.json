@@ -6,72 +6,114 @@
   "under": [
     {
       "name": "branch_registry",
-      "description": "This document tracks whether a special branch is available to the game runtime. A branch specialist and branch template are used only when the status is `unlocked`.",
+      "description": "This document tracks branch discovery and activation for the game runtime. `candidate` means branch discovery found relevant lore, log, chat, cache, or state evidence; it is recorded but not routed. A branch specialist and branch template are used only when the status is `unlocked`.",
       "location": "markdown_files/Branch Registry.md",
-      "source_hash": "374701f3aead8be84749e61b42903280dcb5d95b84c9475d47746016a6bbebd8",
-      "content_hash": "374701f3aead8be84749e61b42903280dcb5d95b84c9475d47746016a6bbebd8",
-      "source_size": 1149,
-      "source_mtime_ns": 1793630142175760400,
+      "source_hash": "e44f0708acd170500b90843ef34dee909a52df09feec7f8c81bd83d886b119e3",
+      "content_hash": "e44f0708acd170500b90843ef34dee909a52df09feec7f8c81bd83d886b119e3",
+      "source_size": 5265,
+      "source_mtime_ns": 1794122130422743500,
       "under": [
         {
           "name": "Branch Registry",
-          "description": "This document tracks whether a special branch is available to the game runtime. A branch specialist and branch template are used only when the status is `unlocked`.",
-          "location": "lines 1-49",
-          "content_hash": "4bd044fe679acea0694107a6968809dcdb2319f78f0521417e1984f2e3989d77",
+          "description": "This document tracks branch discovery and activation for the game runtime. `candidate` means branch discovery found relevant lore, log, chat, cache, or state evidence; it is recorded but not routed. A branch specialist and branch template are used only when the status is `unlocked`.",
+          "location": "lines 1-124",
+          "content_hash": "967720e93f0f308f00a5b3d7028b6e069e6a69a7c87597448a3ebd8bc2092a66",
           "under": [
             {
               "name": "Business",
-              "description": "status: locked",
-              "location": "lines 5-10",
-              "content_hash": "edbfbcdde258d3a416472ddeb8eaf0e32208060ea4d860dbb9ae4ea9871138a8",
+              "description": "status: candidate",
+              "location": "lines 5-13",
+              "content_hash": "87389ac5354a045a6df7f2136b6b1eacd3582c78a293f8bdf482dba0fd0dfe63",
               "under": []
             },
             {
               "name": "Alchemy",
-              "description": "status: locked",
-              "location": "lines 11-16",
-              "content_hash": "32bc2f5ee67dc21064892e84a47f0cd6328ae315a872ba54018f7d1494156b8d",
+              "description": "status: candidate",
+              "location": "lines 14-22",
+              "content_hash": "14dcb7cc5fff543cbbe18a4f02a491704b2c25bf4b6cbdd17e3fb72ad33950a3",
               "under": []
             },
             {
               "name": "Politics",
-              "description": "status: locked",
-              "location": "lines 17-22",
-              "content_hash": "aa0aadda41c354c7a92f5c3c57076dd360c404e53112d0dc1ad46aaddce8cd8a",
+              "description": "status: candidate",
+              "location": "lines 23-31",
+              "content_hash": "d9a67e1f702f338044340798fd30418879076f129d5d36a958f132613f3b0ae4",
               "under": []
             },
             {
               "name": "Class",
-              "description": "status: locked",
-              "location": "lines 23-28",
-              "content_hash": "ef88c5e25dd6ccac15c14c96fdaf56687adf3ef2f3f86d0b26766301b6035a2d",
+              "description": "status: candidate",
+              "location": "lines 32-40",
+              "content_hash": "750873f0f5b235f3bf948f8f3c9feea62fa21e23cee45865244bcc9ed94584c0",
               "under": []
             },
             {
               "name": "Relay",
-              "description": "status: locked",
-              "location": "lines 29-34",
-              "content_hash": "05d84da579780ed8edf0901a4706cbcc7d6dd1cd3261937294f455f59b0b859a",
+              "description": "status: candidate",
+              "location": "lines 41-49",
+              "content_hash": "f7728896ccd85fcebce74812ac022d8843bd1e695191978082bf50e4f24d9c85",
               "under": []
             },
             {
               "name": "World",
-              "description": "status: locked",
-              "location": "lines 35-40",
-              "content_hash": "d28609265c283c9f835c27209ae56a9791e2733d84c764ae985ca1b1e50d5dcf",
+              "description": "status: candidate",
+              "location": "lines 50-58",
+              "content_hash": "cf1b55be415373c0c42b1ff8071c88f501a2a934aaff9940c0c2a41326d5837c",
               "under": []
             },
             {
               "name": "Consequences",
-              "description": "status: locked",
-              "location": "lines 41-46",
-              "content_hash": "7ee12803cb7ceeb7c673cc962f854958936fa36b90436180ce1d3c055ce5d09f",
+              "description": "status: candidate",
+              "location": "lines 59-67",
+              "content_hash": "36af69a1170027969a6dbfa2a7493840a05aa5f06737d05b40ee2f2ae92090ec",
+              "under": []
+            },
+            {
+              "name": "Dungeon Ecology",
+              "description": "status: candidate",
+              "location": "lines 68-76",
+              "content_hash": "3bcf36a04cb442ae97791dc38bf5e8aada61dc4cd59c07c0a3838c6615f03605",
+              "under": []
+            },
+            {
+              "name": "Peoples",
+              "description": "status: candidate",
+              "location": "lines 77-85",
+              "content_hash": "ec5db84b3364f120cd22e5e79c98fcb4c09684af7d9267303ad9c580791cdbfe",
+              "under": []
+            },
+            {
+              "name": "Civilization",
+              "description": "status: candidate",
+              "location": "lines 86-94",
+              "content_hash": "92e4dff98bd345255093ffa064dad5eac44b33581400602833a8812e02f8c339",
+              "under": []
+            },
+            {
+              "name": "Religion",
+              "description": "status: candidate",
+              "location": "lines 95-103",
+              "content_hash": "00543d71f5c89a4015f40bc6c59c26cbd546d84b3372386bacb252b0cdac796f",
+              "under": []
+            },
+            {
+              "name": "Technology",
+              "description": "status: candidate",
+              "location": "lines 104-112",
+              "content_hash": "b815866ff2705587cd8f8dc5b258beda8fe92a6bb04a68c0ae63161d73b840e3",
+              "under": []
+            },
+            {
+              "name": "Knowledge",
+              "description": "status: candidate",
+              "location": "lines 113-121",
+              "content_hash": "bfd2049dfe926e2bf59a4b33e3757a8fcc451a1542c11cd9539e4a5c97090abf",
               "under": []
             },
             {
               "name": "Unlock Rules",
               "description": "A branch becomes `unlocked` only when a resolved turn provides evidence that the branch has been established. A player request or a specialist proposal alone creates a candidate; it does not unlock the branch.",
-              "location": "lines 47-49",
+              "location": "lines 122-124",
               "content_hash": "b0f7d3d416c0d32ae2762853ea6e1e593ae18b80c14fae012b2cf79f47dd8434",
               "under": []
             }
@@ -81,62 +123,49 @@
     },
     {
       "name": "character_relationship",
-      "description": "Markdown source containing character relationship information.",
+      "description": "No character or party relationships have been established for this new game yet.",
       "location": "markdown_files/character relationship.md",
-      "source_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "source_size": 0,
-      "source_mtime_ns": 1793529715489613000,
-      "under": []
+      "source_hash": "616c8e022ee56dcc14ceb86db4d7b34e6b835670239ecac4354cc6d44b254bd5",
+      "content_hash": "616c8e022ee56dcc14ceb86db4d7b34e6b835670239ecac4354cc6d44b254bd5",
+      "source_size": 108,
+      "source_mtime_ns": 1794083326582921700,
+      "under": [
+        {
+          "name": "Character Relationships",
+          "description": "No character or party relationships have been established for this new game yet.",
+          "location": "lines 1-3",
+          "content_hash": "ba33e3931dc3f76e9fd7ec3d4658c08dbd7b1fb5c8dbe08144dc848dfcd94a9b",
+          "under": []
+        }
+      ]
     },
     {
       "name": "experimentation_register",
       "description": "## Active Experiments",
       "location": "markdown_files/Experimentation Register.md",
-      "source_hash": "2bf0d672875c3b0dc7c0552298fd465d4434fddbecc4d689666a407ac8316e29",
-      "content_hash": "2bf0d672875c3b0dc7c0552298fd465d4434fddbecc4d689666a407ac8316e29",
-      "source_size": 1216,
-      "source_mtime_ns": 1793819292145049800,
+      "source_hash": "80935353a5d947c26a9fbd5d622a7f14053f77863ed94275baf92a54c5c087e5",
+      "content_hash": "80935353a5d947c26a9fbd5d622a7f14053f77863ed94275baf92a54c5c087e5",
+      "source_size": 146,
+      "source_mtime_ns": 1794083326593164400,
       "under": [
         {
           "name": "Experimentation Register",
           "description": "Section covering experimentation register.",
-          "location": "lines 1-26",
-          "content_hash": "23e6831bae43a2368584d9ebb53dabb8459ed069e9cb19af55069f614645241f",
+          "location": "lines 1-11",
+          "content_hash": "4bf6a24d32c9a2c339ef94bff711173129f6a30776609fb8d5ec32fc316f77d8",
           "under": [
             {
               "name": "Active Experiments",
-              "description": "No active experiments.",
+              "description": "None.",
               "location": "lines 3-6",
-              "content_hash": "81408a858bcd796760f27ecc7467b8f533c2f879136d1e7d20cdbee54bcf3cb1",
+              "content_hash": "b857f89825c491282a5618182faad8806e55d4ba011369030afd64827ca2a336",
               "under": []
             },
             {
               "name": "Completed Experiments",
-              "description": "No completed experiments.",
-              "location": "lines 7-10",
-              "content_hash": "aa475930c3f80ccd26c34784c4d42321b5dca1eb4a7aee7dfe15a54ef930937b",
-              "under": []
-            },
-            {
-              "name": "Outside Player Perspective Turns",
-              "description": "This section mirrors only explicitly safe teammate/background status that occurred outside the player's direct perspective. It is readable by the player out of character. True surprises, enemy plans, unrevealed world events, and private tick detail remain in `brain/state/` until normal play reveals ",
-              "location": "lines 11-16",
-              "content_hash": "976cd6d5d32feaf5caa4f14c4c7ee6617b67bfbe800c7eaff5772075667361c2",
-              "under": []
-            },
-            {
-              "name": "Active Background Directives",
-              "description": "No active background directives.",
-              "location": "lines 17-20",
-              "content_hash": "814707e9cc601dbec86221b7f47f022b03c6ecf1fb1608c590507e335fd16352",
-              "under": []
-            },
-            {
-              "name": "Experiment Rules and Notes",
-              "description": "Experiments and off-screen turns are stored as readable Markdown.",
-              "location": "lines 21-26",
-              "content_hash": "996d283e13492c3b32e0ebc31d8ad27bacda5864c41383421186be3b642f0dce",
+              "description": "None.",
+              "location": "lines 7-11",
+              "content_hash": "e37194522049e2c27c99ec9dd6e1153a2c01ed65cf5c520263e315740e1fc962",
               "under": []
             }
           ]
@@ -147,16 +176,16 @@
       "name": "game_rules_1",
       "description": "## ⏳ TIME S:YSTEM",
       "location": "markdown_files/game rules (1).md",
-      "source_hash": "09b73d54671199656b14a3097d95b9a8f727a8ba982f3e4cb5ec24d4f4314f48",
-      "content_hash": "09b73d54671199656b14a3097d95b9a8f727a8ba982f3e4cb5ec24d4f4314f48",
-      "source_size": 130308,
-      "source_mtime_ns": 1793787752466753400,
+      "source_hash": "62c7a370f1c5ba07b27f6e16f3ffe4e986fc0d01950cf084e4641d2a51879b3f",
+      "content_hash": "62c7a370f1c5ba07b27f6e16f3ffe4e986fc0d01950cf084e4641d2a51879b3f",
+      "source_size": 130409,
+      "source_mtime_ns": 1793914045491587100,
       "under": [
         {
           "name": "Game rules",
           "description": "Section covering game rules.",
           "location": "lines 1-5417",
-          "content_hash": "09b73d54671199656b14a3097d95b9a8f727a8ba982f3e4cb5ec24d4f4314f48",
+          "content_hash": "62c7a370f1c5ba07b27f6e16f3ffe4e986fc0d01950cf084e4641d2a51879b3f",
           "under": [
             {
               "name": "⏳ TIME S:YSTEM",
@@ -1244,7 +1273,7 @@
               "name": "🧩 MODIFIER SYSTEM",
               "description": "Section covering 🧩 modifier system.",
               "location": "lines 1854-2179",
-              "content_hash": "7ad711c4f5ec51a89086d631454a48bcd437c6bb288c673a20743d396dcc8649",
+              "content_hash": "d40e01243dd97bfacbc9207b3b902e61f29811d745c5ce3032c7048f657750b6",
               "under": [
                 {
                   "name": "Core Principle",
@@ -1257,7 +1286,7 @@
                   "name": "1. Stat Modifiers",
                   "description": "**Rules:**",
                   "location": "lines 1874-1966",
-                  "content_hash": "343a9680aeede239fc3d82da5bd1f5a3f3a82296f1142e4e9f2986c8274b0b21",
+                  "content_hash": "cf280caf145ccd58b8998338d75f822feb9dabc662c677360a0d03f771f9027a",
                   "under": [
                     {
                       "name": "1. Major vs Minor Stats",
@@ -1277,7 +1306,7 @@
                       "name": "3. Conversion Rule",
                       "description": "● 2 Minor = 1 Major",
                       "location": "lines 1925-1932",
-                      "content_hash": "1a71b28c6e5d4d97a53fbb7b0a6dc78665d070e8533fa767e35d6d882c5d00ad",
+                      "content_hash": "214d021719bc1d55027fe3a8aa80863262cd814898d8a6a0d7d87637563bcf9f",
                       "under": []
                     },
                     {
@@ -3599,94 +3628,233 @@
     },
     {
       "name": "ledger_resources",
-      "description": "Markdown source containing ledger resources information.",
+      "description": "No campaign resources have been established for this new game yet.",
       "location": "markdown_files/Ledger Resources.md",
-      "source_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "source_size": 0,
-      "source_mtime_ns": 1793529715491865900,
-      "under": []
+      "source_hash": "025f1ab723d912df24cf0fd249766b45444f11058755873285677b205b15ceb5",
+      "content_hash": "025f1ab723d912df24cf0fd249766b45444f11058755873285677b205b15ceb5",
+      "source_size": 87,
+      "source_mtime_ns": 1794083326573008700,
+      "under": [
+        {
+          "name": "Ledger Resources",
+          "description": "No campaign resources have been established for this new game yet.",
+          "location": "lines 1-3",
+          "content_hash": "325532c3d8daf27a1a33b5dbb056bb73dd2cf7de864f8865244c87dc896d89a2",
+          "under": []
+        }
+      ]
     },
     {
       "name": "status_sheet",
-      "description": "Markdown source containing status sheet information.",
+      "description": "No characters have been established for this new game yet.",
       "location": "markdown_files/status sheet.md",
-      "source_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "source_size": 0,
-      "source_mtime_ns": 1793529715491865900,
-      "under": []
+      "source_hash": "0634a2f6633e17fd436e27a20b1cd8226064dd3a218919160cfb9da18a943f87",
+      "content_hash": "0634a2f6633e17fd436e27a20b1cd8226064dd3a218919160cfb9da18a943f87",
+      "source_size": 79,
+      "source_mtime_ns": 1794083326556898100,
+      "under": [
+        {
+          "name": "Character Status",
+          "description": "No characters have been established for this new game yet.",
+          "location": "lines 1-3",
+          "content_hash": "969f15d680e2ae8dbb474bfdd1e390fb13cafc32f7347d478c78b5c5297ae8f1",
+          "under": []
+        }
+      ]
     },
     {
       "name": "temp_memory",
-      "description": "## Current Session Position",
+      "description": "No temporary campaign records exist for this new game yet.",
       "location": "markdown_files/TEMP_MEMORY.md",
-      "source_hash": "4697a795dc336a640ec74d33ba0012213fa6b68aafabe739c467f7f695bfeebd",
-      "content_hash": "4697a795dc336a640ec74d33ba0012213fa6b68aafabe739c467f7f695bfeebd",
-      "source_size": 404,
-      "source_mtime_ns": 1793803380883353400,
+      "source_hash": "ea5b86518aec6795aaabeeaa6fe56cdbe7e154e28544e7329550ddc262493868",
+      "content_hash": "ea5b86518aec6795aaabeeaa6fe56cdbe7e154e28544e7329550ddc262493868",
+      "source_size": 88,
+      "source_mtime_ns": 1794083326601234000,
       "under": [
         {
-          "name": "Temporary Session Memory",
-          "description": "Section covering temporary session memory.",
-          "location": "lines 1-32",
-          "content_hash": "b2139c9458508b81a87db997e8a9d965065335073d48fdff22da0bc2759a565b",
+          "name": "Temporary Campaign Memory",
+          "description": "No temporary campaign records exist for this new game yet.",
+          "location": "lines 1-3",
+          "content_hash": "e877683ae614e56f26fedd07e4b28bbafee7cbbbf5c647776744d14269254f6b",
+          "under": []
+        }
+      ]
+    },
+    {
+      "name": "terms_and_nomenclature",
+      "description": "This document describes the campaign runtime commands, state gates, and major technical processes. It is an administrative reference, not roleplay canon.",
+      "location": "markdown_files/TERMS_AND_NOMENCLATURE.md",
+      "source_hash": "29b4cf38c084ce0ccdcdc8e2a756bf501a28ddd0147ad2a0f84ead9117a23303",
+      "content_hash": "29b4cf38c084ce0ccdcdc8e2a756bf501a28ddd0147ad2a0f84ead9117a23303",
+      "source_size": 9328,
+      "source_mtime_ns": 1793992618050213800,
+      "under": [
+        {
+          "name": "Terms and Nomenclature",
+          "description": "This document describes the campaign runtime commands, state gates, and major technical processes. It is an administrative reference, not roleplay canon.",
+          "location": "lines 1-222",
+          "content_hash": "7618867625e8b4ca13ab96672e362bc8d2b4d7b6b388c4c87ee542e691f1455c",
           "under": [
             {
-              "name": "Current Session Position",
-              "description": "day:",
-              "location": "lines 3-7",
-              "content_hash": "ef0d32a74be38c09328e3218d96fe1b76e2bb3092927570a4d3e0c814947cfff",
+              "name": "Runtime Command Reference",
+              "description": "| Command | Function |",
+              "location": "lines 5-28",
+              "content_hash": "47dd13381a8aadca86024395b857d8eed968d39215737dbf9c9e51f34601d711",
               "under": []
             },
             {
-              "name": "Game Cache",
-              "description": "Section covering game cache.",
-              "location": "lines 8-29",
-              "content_hash": "ad13559ba17455403f5f818a99a8f88c3c9c05fcc9ad2f3697f5490afa7e8e81",
+              "name": "Runtime State Gates",
+              "description": "Section covering runtime state gates.",
+              "location": "lines 29-78",
+              "content_hash": "b6353b458831f2080b907e00ef365b670cfc8cada882a594bd2cbe6d7635f580",
               "under": [
                 {
-                  "name": "Durable Facts",
-                  "description": "No durable facts recorded.",
-                  "location": "lines 10-13",
-                  "content_hash": "8750cd56fc11833616de1aaf6d7345221599be6b54b58561ed57d6bdc6de21e6",
+                  "name": "`setup_required`",
+                  "description": "No active campaign exists. New-game setup must begin before roleplay can open.",
+                  "location": "lines 31-34",
+                  "content_hash": "e76531f1bade10a4f50bceebf2957ca478979a17a80179fd739bc2a0830679d6",
                   "under": []
                 },
                 {
-                  "name": "Active Threads",
-                  "description": "No active threads recorded.",
-                  "location": "lines 14-17",
-                  "content_hash": "47c83f0a84d179bc633c07ddfd1d293eee494328516b9cf20cc2fc0054e344a1",
+                  "name": "`setup_draft`",
+                  "description": "The player is drafting characters, party members, identity, stats, backgrounds, and the main character.",
+                  "location": "lines 35-38",
+                  "content_hash": "fee35eb635de6232e4b52aa61a20f4a3ca40bc829790c137684e4093d32db1da",
                   "under": []
                 },
                 {
-                  "name": "Pending Commitments",
-                  "description": "No pending commitments recorded.",
-                  "location": "lines 18-21",
-                  "content_hash": "0991782086b035972ea5709ed17ab44f86040e51cb12a79856631727661f850f",
+                  "name": "`setup_review`",
+                  "description": "The setup proposal is ready for review. Campaign documents have not been replaced.",
+                  "location": "lines 39-42",
+                  "content_hash": "782bd0d5e7abcd502f14bf850621cfd82d253b3bbea551fa63c711dc6ddfda07",
                   "under": []
                 },
                 {
-                  "name": "Unresolved Questions",
-                  "description": "No unresolved questions recorded.",
-                  "location": "lines 22-25",
-                  "content_hash": "6c66e4d3b7203b5ea849a6294f0330b74c48e5c26d0bd2babc554b5cded11417",
+                  "name": "`awaiting_clarification`",
+                  "description": "The current operation is paused until the player answers a required question.",
+                  "location": "lines 43-46",
+                  "content_hash": "4bc08b5ef30bb59d086814b2f3fbb0d10fa5b221f8aa4b379c89adce8d5c1969",
                   "under": []
                 },
                 {
-                  "name": "Expiring Facts",
-                  "description": "No expiring facts recorded.",
-                  "location": "lines 26-29",
-                  "content_hash": "0858468a6493c14acfb66075ca5bc036f568cf5facf3434a6041fdfd9e04c324",
+                  "name": "`awaiting_dice`",
+                  "description": "The Lead Resolver requires a saved dice result before resolution can continue.",
+                  "location": "lines 47-50",
+                  "content_hash": "6557b96e8e4747633ffb1e1f57472f92bcf2d01c6a3727380d7c3d667747ce3b",
+                  "under": []
+                },
+                {
+                  "name": "`day_end_review`",
+                  "description": "The completed day has been prepared for review. Normal next-day play is blocked until approval.",
+                  "location": "lines 51-54",
+                  "content_hash": "0fd1b67119a41b307a3a244c4cc934c76cbbf9f9b0f91ae0ec8b54252d679296",
+                  "under": []
+                },
+                {
+                  "name": "`world_event_pending`",
+                  "description": "The approved day has ended and the next-day world-event roll/event stage is being completed.",
+                  "location": "lines 55-58",
+                  "content_hash": "4070068282b5b48f2c515d0f574534398e42d4f9a9ee59d0ab373550b6ef3129",
+                  "under": []
+                },
+                {
+                  "name": "`new_game_pending`",
+                  "description": "New-game Markdown changes have been approved and stored. Roleplay cannot begin until the player uses `&#123;resume&#125;`.",
+                  "location": "lines 59-62",
+                  "content_hash": "b4ef80ba74af54338dcdd116dcf26ec36e5de26f25e108a3ae5122586c944cf1",
+                  "under": []
+                },
+                {
+                  "name": "`new_day_pending`",
+                  "description": "Day-end changes and next-day event preparation are complete. Roleplay remains outside the game until the player uses `&#123;resume&#125;`.",
+                  "location": "lines 63-66",
+                  "content_hash": "fe46609b1387a89968e1500454745a602a8e0e33ac257c948a210308ce0ae239",
+                  "under": []
+                },
+                {
+                  "name": "`paused`",
+                  "description": "The player explicitly paused roleplay. Plain text is treated as outside-game administrative text until `&#123;resume&#125;`.",
+                  "location": "lines 67-70",
+                  "content_hash": "6cfb3566b382d9c50d07e92002a664381d2280d15c51ef62d8032c2c10318766",
+                  "under": []
+                },
+                {
+                  "name": "`open`",
+                  "description": "Normal gameplay may proceed.",
+                  "location": "lines 71-74",
+                  "content_hash": "a3ccbfbf905a743bfc3df811bf3df6fe9106c808347dd64179fcc1dfbaa61f70",
+                  "under": []
+                },
+                {
+                  "name": "`retry`",
+                  "description": "A failure stopped the current operation safely. `/retry` restarts that task from its pipeline entry stage rather than continuing the failed checkpoint.",
+                  "location": "lines 75-78",
+                  "content_hash": "41a8bcffe45a8af7bd0255ba920a8986c78eca481a3287397d84260631c33875",
                   "under": []
                 }
               ]
             },
             {
-              "name": "Pending Session Canon",
-              "description": "No pending session records.",
-              "location": "lines 30-32",
-              "content_hash": "d7b6653af680c754d5ed704bd71495966001e3b146170320d7e95e23f6534b92",
+              "name": "New-Game Setup Process",
+              "description": "/new-game",
+              "location": "lines 79-97",
+              "content_hash": "4ac9ab2e0901c96460a67a8411f4867a7ef820c438eda7e7f1ddab5c2db5e00d",
+              "under": []
+            },
+            {
+              "name": "Normal Turn Process",
+              "description": "player input",
+              "location": "lines 98-117",
+              "content_hash": "49913ff5c48320f0d2079183abd80f5c8ee297934b168ecf5cfedc23e8a9c0b2",
+              "under": []
+            },
+            {
+              "name": "Explicit Pause and Resume Process",
+              "description": "open roleplay",
+              "location": "lines 118-130",
+              "content_hash": "6da32460a11283a6feb5261090b435ba252c5ba8a65a62e77f5efbe2c6eeb7ef",
+              "under": []
+            },
+            {
+              "name": "Administrative Request Process",
+              "description": "OOC request",
+              "location": "lines 131-145",
+              "content_hash": "a8d7d83a20b10d5c4b5f814de5319b86f343c2f1aeedfefcd2ceb404eac05b40",
+              "under": []
+            },
+            {
+              "name": "Day-End Process",
+              "description": "end of day",
+              "location": "lines 146-166",
+              "content_hash": "a5e4648eb237782ebef254c3d446b53651b7f5cf5d7f9e710f3aef80a7af89a7",
+              "under": []
+            },
+            {
+              "name": "Modifier-Creation Process",
+              "description": "history / cache / experiments / training",
+              "location": "lines 167-179",
+              "content_hash": "f67fc4c71f8818ca25d0f8490031dd7d0f73385e8ab64910646906777dcfe43d",
+              "under": []
+            },
+            {
+              "name": "Specialist and Resolution Responsibilities",
+              "description": "| Component | Responsibility |",
+              "location": "lines 180-198",
+              "content_hash": "f8f40fa2141b1671564135d6a92c1cf754cad4b638b2f01796e0eea44c55c513",
+              "under": []
+            },
+            {
+              "name": "Markdown File Reference",
+              "description": "| Markdown file | What it stores |",
+              "location": "lines 199-212",
+              "content_hash": "92fe289ca01a379787429eb686259238ab4e6d86cb281b9e5b6a8063f7e46694",
+              "under": []
+            },
+            {
+              "name": "Markdown Storage Boundary",
+              "description": "Persistent Markdown information must pass through the outside-game Admin Agent and approved Admin Editor before it is written.",
+              "location": "lines 213-222",
+              "content_hash": "79f7d34e82053f5144181c2184df0e20c5249c3a04489418eabafc3f4dd85c47",
               "under": []
             }
           ]
@@ -3694,23 +3862,13 @@
       ]
     },
     {
-      "name": "terms_and_nomenclature",
-      "description": "Markdown source containing terms and nomenclature information.",
-      "location": "markdown_files/TERMS_AND_NOMENCLATURE.md",
-      "source_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "source_size": 0,
-      "source_mtime_ns": 1793529715493881700,
-      "under": []
-    },
-    {
       "name": "core_world_frame_refined",
       "description": "## Canon Scope",
       "location": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
       "source_hash": "84e43a853d0454b3ecdba7046e2278043d5a56bbe1bb526d36e7c8347497ec69",
       "content_hash": "84e43a853d0454b3ecdba7046e2278043d5a56bbe1bb526d36e7c8347497ec69",
-      "source_size": 43172,
-      "source_mtime_ns": 1793804383271758000,
+      "source_size": 44551,
+      "source_mtime_ns": 1793897821400622900,
       "under": [
         {
           "name": "🌍 EARTH UPGRADE WORLD FRAME",

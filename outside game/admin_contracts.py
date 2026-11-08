@@ -31,11 +31,13 @@ class AdminResponse:
     request_id: str
     status: str
     answer: str = ""
+    diagnosis: dict[str, Any] = field(default_factory=dict)
     evidence: list[dict[str, Any]] = field(default_factory=list)
     changes: list[dict[str, Any]] = field(default_factory=list)
     instructions: list[dict[str, Any]] = field(default_factory=list)
     questions: list[str] = field(default_factory=list)
     conflicts: list[dict[str, Any]] = field(default_factory=list)
+    modifier_group_placements: list[dict[str, Any]] = field(default_factory=list)
     approval_required: bool = False
 
     def to_dict(self) -> dict[str, Any]:
@@ -43,10 +45,12 @@ class AdminResponse:
             "request_id": self.request_id,
             "status": self.status,
             "answer": self.answer,
+            "diagnosis": self.diagnosis,
             "evidence": self.evidence,
             "changes": self.changes,
             "instructions": self.instructions,
             "questions": self.questions,
             "conflicts": self.conflicts,
+            "modifier_group_placements": self.modifier_group_placements,
             "approval_required": self.approval_required,
         }

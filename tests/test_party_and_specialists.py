@@ -47,8 +47,12 @@ class SpecialistInstallTests(unittest.TestCase):
             self.assertEqual(proposal['status'], 'proposal_ready')
             updated = proposal['changes'][0]['new_text']
             self.assertIn('## Beast Taming', updated)
+            self.assertIn('status: candidate', updated)
             self.assertIn('specialist: beast_taming', updated)
+            self.assertIn('template: branch_beast_taming.md', updated)
             self.assertIn('activation tags: activity.beast_taming', updated)
+            self.assertEqual(proposal['changes'][1]['target_file'], 'outside game/templates/branch_beast_taming.md')
+            self.assertIn('## Current State', proposal['changes'][1]['new_text'])
             # The Unlock Rules section is preserved after the new branch.
             self.assertLess(updated.index('## Beast Taming'), updated.index('## Unlock Rules'))
 
