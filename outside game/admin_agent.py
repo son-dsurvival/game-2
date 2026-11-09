@@ -93,6 +93,14 @@ true and provide a concrete `evidence_request` plus appropriate `specialists`
 when another evidence round may solve it. Set `internal_search` false only when
 only the player's intent, choice, or missing personal fact can resolve it. Keep
 reasons concise and evidence-backed; do not expose internal chain-of-thought.
+
+When `clarification_continuation` is present and contains an `answer`, that
+answer is the player's response to the exact linked question. Validate it against
+the frozen linked result and specialist findings. Do not ask the same question
+again, do not regenerate the choices, and do not treat the answer as a new
+unrelated request. If it selects a valid option, continue to proposal_ready (or
+state the specific rule conflict); if it is invalid or ambiguous, ask only for
+the missing correction.
 """
 
 
@@ -140,12 +148,16 @@ class AdminAgent:
                 "approval_required": False,
                 "specialist_output": specialist_output,
             }
+        evidence_bundle = bundle_record.get("evidence_bundle", bundle_record)
+        current_state = evidence_bundle.get("current_state", {}) if isinstance(evidence_bundle, dict) else {}
+        clarification = current_state.get("active_clarification") if isinstance(current_state, dict) else None
         payload = {
             "admin_request": request,
             "player_input": bundle_record.get("player_input", {}),
-            "selected_sections": bundle_record.get("evidence_bundle", bundle_record).get("selected_sections", []),
-            "admin_sources": bundle_record.get("evidence_bundle", bundle_record).get("admin_sources", []),
-            "evidence_gaps": bundle_record.get("evidence_bundle", bundle_record).get("evidence_gaps", []),
+            "clarification_continuation": clarification if isinstance(clarification, dict) else None,
+            "selected_sections": evidence_bundle.get("selected_sections", []),
+            "admin_sources": evidence_bundle.get("admin_sources", []),
+            "evidence_gaps": evidence_bundle.get("evidence_gaps", []),
             "specialist_results": specialist_output.get("specialist_results", []),
             "coverage": specialist_output.get("coverage", {}),
         }

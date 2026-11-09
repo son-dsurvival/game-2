@@ -10,7 +10,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from contextvars import copy_context
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 try:
     from .registry import (
@@ -116,7 +116,9 @@ Return JSON only in this shape:
   "calculation": null,
   "world_event": null,
   "cache_delta": null,
-  "created_specialists": []
+  "created_specialists": [],
+  "stat_modifier_options": [],
+  "effect_modifier_options": []
 }}
 
 For the rules or difficulty specialist when a numeric task target is needed, calculation must be:
@@ -162,15 +164,27 @@ whose union is 1–100 with no duplicates. Use established rules and state, not
 the example pool blindly. A supplied frozen pool must not be modified after its
 roll is known.
 
-For the `modifier_creation` specialist, review the supplied history, cache,
-experimentation records, existing modifier ledger, and setup draft. Return a
-recommendation with `status: none|candidate`, and when candidate include only
-`modifier`, `tier`, `description`, `boost_domain`, `evidence`,
-`anti_farming_boundary`, and `placements`. Each placement must contain
-`group`, `use_in_group`, `activation_conditions`, `limitations`, `stacking`,
-`evidence`, and `placement_reason`. Do not award the modifier; the Lead Resolver
-decides and emits `modifier_changes`. At new-game setup, a missing action
-history means no new effect modifier.
+For `create_stat_modifier`, review the character draft, stated life, demonstrated
+capabilities, supplied history, and stat-modifier rules. When a design is requested,
+return exactly five `stat_modifier_options`. Each option must include `name`,
+`stat`, `major_or_minor`, `magnitude`, `description`, `evidence`, `limitations`,
+`growth_or_conversion_rule`, and `stacking`. Include a no-modifier option instead
+of inventing evidence. Do not award a choice; the player selects and Lead Resolver
+confirms it.
+
+For `create_effect_modifier`, review the character draft, stated life, player design
+brief, supplied history, experimentation records, and effect-modifier rules. When a
+design is requested, return exactly five `effect_modifier_options`. Each option must
+include `name`, `tier`, `description`, `boost_domain`, `evidence`,
+`activation_conditions`, `limitations`, `anti_farming_boundary`, `stacking`, and
+`placements`. Each placement must contain `group`, `use_in_group`,
+`activation_conditions`, `limitations`, `stacking`, `evidence`, and
+`placement_reason`. A novel player-authored design is allowed when compatible with
+rules. Include a no-modifier option instead of inventing history. Do not award the
+choice; the player selects and Lead Resolver confirms it.
+
+The legacy `modifier_creation` name is compatibility-only and should not be used for
+new setup batches.
 
 For the create specialist, include a `created_specialists` list only for safe,
 recurring uncovered branches. Each item must contain `name` (lowercase snake
@@ -204,13 +218,41 @@ class SpecialistRunner:
         self,
         bundle_record: dict[str, Any],
         specialist_names: list[str],
+        *,
+        mandatory_specialists: Iterable[str] | None = None,
     ) -> dict[str, Any]:
         bundle = bundle_record.get("evidence_bundle", bundle_record)
-        # An empty route is still a normal turn: the four core lanes are always
-        # required. Explicit names are retained for replay and for unlocked
-        # specialists from older routing records.
-        names = list(dict.fromkeys([*CORE_SPECIALISTS, *(specialist_names or [])]))
+        # Normal turns retain the small mandatory core. Setup batches pass an
+        # explicit empty tuple so they run only their declared specialists;
+        # this keeps independent resumable batches from paying for unrelated
+        # lanes.
+        mandatory = list(dict.fromkeys(
+            CORE_SPECIALISTS if mandatory_specialists is None else
+            [str(name) for name in mandatory_specialists if str(name)]
+        ))
+        names = list(dict.fromkeys(
+            name for name in [*mandatory, *(specialist_names or [])]
+            if name != "cache"
+        ))
         branch_discovery = BranchDiscovery(self.repo_root).discover(bundle_record)
+        current_turn_candidates = [
+            item for item in (branch_discovery.get('candidates', []) if isinstance(branch_discovery, dict) else [])
+            if isinstance(item, dict) and any(
+                isinstance(signal, dict) and signal.get('kind') in {'current_turn', 'resolved_turn'}
+                for signal in item.get('signals', [])
+            )
+        ]
+        if (
+            current_turn_candidates
+            and not bundle_record.get('setup_batch_id')
+            and bundle_record.get('process_type') != 'in_world_discussion'
+            and 'create' not in names
+        ):
+            # A current/resolved turn is the trigger for a Create audit. Old
+            # persistent candidates must not add Create to every setup batch or
+            # every unrelated normal turn. Discovery still does not unlock a
+            # branch or write a specialist definition.
+            names.append('create')
         definitions = [self._definition_for(name) for name in names]
         sections = bundle.get("selected_sections", [])
         specialist_bundles = bundle.get("specialist_bundles", {})
@@ -247,11 +289,12 @@ class SpecialistRunner:
             return definition, section_inputs, section_gaps, local_bundle
 
         prepared = [prepare(definition) for definition in definitions]
-        # The cache lane runs first so every other specialist receives the
-        # latest compact context. The remaining lanes stay concurrent and are
-        # collected in route order for deterministic replay.
+        # Core categories and routed leaf specialists run against their own
+        # scoped bundles and are collected in route order for deterministic
+        # replay. Memory is supplied by Evidence Bundle/Recorder state rather
+        # than a mandatory cache specialist.
         results_by_name: dict[str, dict[str, Any]] = {}
-        cache_prepared = next((item for item in prepared if item[0].name == "cache"), None)
+        cache_prepared = None
         if cache_prepared is not None:
             definition, section_inputs, _section_gaps, local_bundle = cache_prepared
             cache_result = self._run_one(bundle_record, local_bundle, definition, section_inputs)
@@ -259,7 +302,7 @@ class SpecialistRunner:
         else:
             cache_result = None
 
-        remaining = [item for item in prepared if item[0].name != "cache"]
+        remaining = prepared
         if isinstance(cache_result, dict) and cache_result.get("status") == "blocked":
             remaining = []
         cache_delta = cache_result.get("cache_delta") if isinstance(cache_result, dict) else None
@@ -292,6 +335,7 @@ class SpecialistRunner:
         ]
         return {
             "turn_id": bundle_record.get("turn_id", bundle.get("turn_id")),
+            "mandatory_specialists": mandatory,
             "action_frames": bundle.get("action_frames", []),
             "selected_sections": sections,
             "evidence_gaps": bundle.get("evidence_gaps", []),
@@ -376,10 +420,14 @@ class SpecialistRunner:
             "history_breakdown": bundle.get("history_breakdown", []),
             "current_state": scoped_state,
             "game_cache": scoped_state.get("game_cache") if isinstance(scoped_state, dict) else bundle.get("game_cache"),
-            "branch_discovery": bundle.get("branch_discovery", {}),
+            # Branch discovery and the catalog are only useful to the lanes
+            # that can act on branch coverage. Sending them to every specialist
+            # needlessly expands prompts and increases distraction.
+            "branch_discovery": bundle.get("branch_discovery", {}) if definition.name in {"special", "create"} else {},
             "action_frames": bundle.get("action_frames", []),
             "routing_record": {
                 "mode": bundle_record.get("mode"),
+                "process_type": bundle_record.get("process_type", "action"),
                 "tags": bundle_record.get("tags", []),
                 "required_specialists": bundle_record.get("required_specialists", []),
             },
@@ -396,7 +444,7 @@ class SpecialistRunner:
                     "activation_tags": list(item.activation_tags),
                 }
                 for item in SPECIALIST_DEFINITIONS.values()
-            ],
+            ] if definition.name == "create" else [],
         }
         gateway = ModelGateway(self.repo_root)
         messages = [
@@ -564,39 +612,51 @@ class SpecialistRunner:
                             "type": "malformed_world_event_pool_adjustments",
                             "reason": "pool_adjustments must be a list.",
                         })
-        if definition.name == "modifier_creation":
-            recommendation = result.get("recommendation")
-            if recommendation is not None:
-                if not isinstance(recommendation, dict) or recommendation.get("status") not in {"none", "candidate"}:
-                    result["status"] = "needs_evidence" if result["status"] == "complete" else result["status"]
+        if definition.name in {"create_stat_modifier", "create_effect_modifier"} and result.get("status") == "complete":
+            field = "stat_modifier_options" if definition.name == "create_stat_modifier" else "effect_modifier_options"
+            options = result.get(field)
+            if not isinstance(options, list) or len(options) != 5:
+                result["status"] = "needs_evidence"
+                result.setdefault("conflicts", []).append({
+                    "type": "invalid_modifier_option_count",
+                    "field": field,
+                    "expected": 5,
+                    "actual": len(options) if isinstance(options, list) else None,
+                    "reason": "Typed modifier design must return exactly five player choices.",
+                })
+            else:
+                required = (
+                    ("name", "stat", "major_or_minor", "magnitude", "description", "evidence", "limitations", "growth_or_conversion_rule", "stacking")
+                    if definition.name == "create_stat_modifier" else
+                    ("name", "tier", "description", "boost_domain", "evidence", "activation_conditions", "limitations", "anti_farming_boundary", "stacking", "placements")
+                )
+                invalid = [
+                    index for index, option in enumerate(options)
+                    if not isinstance(option, dict) or any(not option.get(key) for key in required)
+                ]
+                if invalid:
+                    result["status"] = "needs_evidence"
                     result.setdefault("conflicts", []).append({
-                        "type": "malformed_modifier_creation_recommendation",
-                        "reason": "modifier_creation recommendation must be an object with status none or candidate.",
+                        "type": "incomplete_modifier_options",
+                        "field": field,
+                        "options": invalid,
+                        "reason": "Every modifier choice needs bounded mechanics and evidence.",
                     })
-                elif recommendation.get("status") == "candidate":
-                    required = ("modifier", "tier", "description", "boost_domain", "evidence", "anti_farming_boundary", "placements")
-                    missing = [field for field in required if not recommendation.get(field)]
-                    placements = recommendation.get("placements")
-                    if missing or not isinstance(placements, list) or not placements:
-                        result["status"] = "needs_evidence" if result["status"] == "complete" else result["status"]
+                elif definition.name == "create_effect_modifier":
+                    placement_fields = ("group", "use_in_group", "activation_conditions", "limitations", "stacking", "evidence", "placement_reason")
+                    invalid_placements = [
+                        index for index, option in enumerate(options)
+                        for placement in option.get("placements", [])
+                        if not isinstance(placement, dict) or any(not placement.get(key) for key in placement_fields)
+                    ]
+                    if invalid_placements:
+                        result["status"] = "needs_evidence"
                         result.setdefault("conflicts", []).append({
-                            "type": "incomplete_modifier_creation_recommendation",
-                            "missing": missing or ["placements"],
-                            "reason": "A modifier candidate needs evidence and at least one practical group placement.",
+                            "type": "incomplete_modifier_group_placements",
+                            "field": field,
+                            "options": invalid_placements,
+                            "reason": "Every effect choice placement needs use, limits, stacking, evidence, and rationale.",
                         })
-                    else:
-                        placement_fields = ("group", "use_in_group", "activation_conditions", "limitations", "stacking", "evidence", "placement_reason")
-                        invalid = [
-                            index for index, placement in enumerate(placements)
-                            if not isinstance(placement, dict) or any(not placement.get(field) for field in placement_fields)
-                        ]
-                        if invalid:
-                            result["status"] = "needs_evidence" if result["status"] == "complete" else result["status"]
-                            result.setdefault("conflicts", []).append({
-                                "type": "incomplete_modifier_group_placements",
-                                "placements": invalid,
-                                "reason": "Every proposed group placement needs scenario use, limits, stacking, evidence, and rationale.",
-                            })
         if definition.name == "create":
             proposals = result.get("created_specialists", result.get("specialist_proposals", []))
             if not isinstance(proposals, list):

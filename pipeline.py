@@ -25,7 +25,8 @@ HELP = """Commands:
   /next-file           review the next proposed Markdown file
   /approve             approve the pending proposal
   /approve-reset       approve a full-campaign replacement
-  /cancel-setup        cancel drafting; the active campaign is preserved
+  /cancel-setup        cancel the entire setup draft; the active campaign is preserved
+  /undo                undo the last conversational setup message
   /cancel-operation    cancel an unapplied review/proposal without file changes
   /end-day             sleep until tomorrow / end the day
   /specialists         list stored Create Specialist proposals
@@ -264,6 +265,8 @@ def _process_input(pipeline: CampaignPipeline, text: str, *, auto: bool = True) 
         '/approve': pipeline.approve,
         '/approve-reset': lambda: pipeline.approve(confirm_reset=True),
         '/cancel-setup': pipeline.cancel_setup,
+        '/undo': pipeline.undo_setup_input,
+        '/undo-setup': pipeline.undo_setup_input,
         '/cancel-operation': pipeline.cancel_pending,
         '/end-day': pipeline.end_day,
         '/specialists': pipeline.specialist_proposals,

@@ -11,6 +11,7 @@ from typing import Any
 from backend.background_state import BackgroundStateStore
 from backend.phase_clock import PHASES, PhaseClock
 from backend.phase_tick import PhaseTickEngine
+from brain.assumption_wizard import AssumptionWizard
 from brain.build_canon_section_index import build_index as canon_index
 from brain.build_evidence_index import build_index as evidence_index
 from brain.branch_discovery import BranchDiscovery
@@ -62,6 +63,14 @@ class GameModules:
         message = context['message']
         if context.get('answers'):
             message += '\nPlayer clarifications:\n' + '\n'.join(context['answers'])
+        linked = context.get('active_clarification')
+        if isinstance(linked, dict) and linked.get('status') == 'answered':
+            message += (
+                '\nClarification continuation link: ' + str(linked.get('id', '')) +
+                '\nOriginal question: ' + str(linked.get('question', '')) +
+                '\nAnswer to that exact question: ' + str(linked.get('answer', '')) +
+                '\nUse the linked prior result; do not silently replace it with a newly generated result.'
+            )
         history: list[dict[str, Any]] = []
         raw_history = context.get('history', [])
         if isinstance(raw_history, list):
@@ -85,32 +94,52 @@ class GameModules:
                 'content': str(answer),
                 'priority': 'important',
             })
+        selector = context.get('evidence_selector', 'auto')
+        if selector not in {'auto', 'deepseek', 'heuristic'}:
+            selector = 'auto'
         bundle = EvidenceBundleBuilder(self.root).build(
             route, player_input=message, current_state=context,
             conversation_history=history,
+            selector=selector,
             evidence_note=note,
             additional_specialists=extra_specialists,
         ).to_dict()
         return {**route, 'evidence_bundle': bundle}
 
     def specialists(self, bundle: dict[str, Any], context: dict[str, Any], extra: tuple[str, ...] = ()) -> dict[str, Any]:
-        required = list(bundle.get('required_specialists', []))
         setup_batch_specialists = context.get('setup_batch_specialists')
         if isinstance(setup_batch_specialists, (list, tuple, set)):
-            # Setup batches own their specialist boundary. A keyword in the
-            # batch prose must not activate an unrelated branch specialist.
-            core = {'cache', 'rules', 'character', 'special', 'create'}
-            allowed = core | {str(name) for name in setup_batch_specialists}
-            required = [name for name in required if name in allowed]
+            # Setup batches own their specialist boundary. Do not add the
+            # normal-turn core or allow prose keywords to activate unrelated
+            # lanes. This is the main cost and latency guard for setup.
+            required = [str(name) for name in setup_batch_specialists if str(name)]
+            required.extend(str(name) for name in extra if str(name))
+            mandatory: tuple[str, ...] = ()
+        else:
+            required = list(bundle.get('required_specialists', []))
+            required.extend(str(name) for name in extra if str(name))
+            mandatory = None
         internal = context.get('internal_specialists', [])
         if not isinstance(internal, (list, tuple)):
             internal = []
         # Internal retry targets are scoped to the current route. Do not carry
         # a failed specialist from an earlier setup batch into an unrelated
         # batch; explicit batch specialists and the current route remain valid.
-        route_names = set(required) | set(extra)
-        internal = [name for name in internal if name in route_names]
-        result = SpecialistRunner(self.root).run(bundle, [*required, *extra, *internal])
+        required = list(dict.fromkeys(required))
+        route_names = set(required)
+        internal = list(dict.fromkeys(name for name in internal if name in route_names))
+        # Preserve the setup boundary for the runner. Branch discovery may see
+        # old campaign candidates in every setup batch, but Create should run
+        # only when explicitly assigned to that batch.
+        if isinstance(setup_batch_specialists, (list, tuple, set)):
+            bundle = {**bundle, 'setup_batch_id': context.get('setup_batch_id')}
+        if bundle.get('process_type') == 'in_world_discussion':
+            # Discussion routes concrete character/social leaf specialists;
+            # category placeholders must not trigger a generic analysis pass.
+            mandatory = ()
+        result = SpecialistRunner(self.root).run(
+            bundle, [*required, *internal], mandatory_specialists=mandatory
+        )
         result['mode'] = bundle.get('mode')
         result['request_type'] = bundle.get('request_type')
         result['coverage_check'] = CoverageCheck().check(result)
@@ -118,10 +147,11 @@ class GameModules:
 
     def resolve(self, analysis: dict[str, Any], context: dict[str, Any], dice: dict[str, Any] | None = None) -> dict[str, Any]:
         event = context.get('event_to_encounter')
-        chat = context
+        assumption = AssumptionWizard(self.root).maybe_create(context, analysis)
+        chat = {**context, 'assumption_record': assumption} if assumption else context
         if isinstance(event, dict):
             chat = {
-                **context,
+                **chat,
                 'pending_world_event': event,
                 'message': str(context.get('message', '')) + '\n\nA scheduled world event is DUE NOW and must be staged and resolved this turn; do not let the declared action bypass it.\n' + json.dumps({key: event.get(key) for key in ('id', 'generated_event', 'encounter_condition', 'latest_phase', 'selected_trigger')}, ensure_ascii=False),
             }
@@ -173,8 +203,9 @@ class GameModules:
                 'conflicts': coverage.get('malformed_handoffs', []) or coverage.get('hard_evidence_gaps', []),
                 'approval_required': False,
             }
-        # All runtime admin work supplies the mandatory cache-first analysis;
-        # the standalone script's no_specialists switch is never used here.
+        # Runtime admin work supplies the core category analysis and any
+        # routed leaf specialists; the standalone no_specialists switch is not
+        # used here.
         result = admin_module('admin_agent').AdminAgent(self.root).respond(bundle, specialist_output=analysis)
         diagnosis = result.get('diagnosis') if isinstance(result.get('diagnosis'), dict) else {}
         if diagnosis.get('why') and result.get('status') in {'answered', 'proposal_ready', 'needs_clarification', 'blocked'}:
@@ -310,7 +341,7 @@ class GameModules:
         route = self.route(local['message'], local)
         route['turn_id'] = context['turn_id']
         bundle = self.evidence(route, local, local.get('evidence_note'))
-        analysis = self.specialists(bundle, local, ('character',))
+        analysis = self.specialists(bundle, local, ('character', 'create'))
         proposal = self.admin(bundle, analysis, local)
         if proposal.get('status') != 'proposal_ready':
             return {'status': 'needs_clarification', 'questions': proposal.get('questions') or [], 'answer': proposal.get('answer', ''),
@@ -458,6 +489,13 @@ class GameModules:
             if isinstance(item, dict) and item.get('status') == 'complete'
         }
         world_pool: dict[str, list[int]] | None = None
+        # Undo history is runtime control data, not campaign evidence. Keep it
+        # out of specialist and Admin Agent prompts to avoid prompt bloat and
+        # prevent an old correction from competing with the current draft.
+        raw_draft = context.get('draft') if isinstance(context.get('draft'), dict) else {}
+        draft_payload = {
+            key: value for key, value in raw_draft.items() if key != 'edit_history'
+        }
 
         for batch in setup_batches(self.root):
             batch_id = str(batch['id'])
@@ -480,15 +518,32 @@ class GameModules:
                 'Return a proposal only for the named target file and only for this batch. '
                 'If this batch has a genuine player decision, return needs_clarification with a concise player_question. '
                 'If the batch is empty by rule, write the readable empty section rather than asking the player.\n'
-                'Draft:\n' + json.dumps(context['draft'], ensure_ascii=False)
+                'Draft:\n' + json.dumps(draft_payload, ensure_ascii=False)
             )
+            active_link = context.get('active_clarification')
+            batch_link = None
+            if isinstance(active_link, dict) and active_link.get('status') == 'answered':
+                linked_result = active_link.get('result')
+                linked_continuation = linked_result.get('clarification_result') if isinstance(linked_result, dict) else None
+                if isinstance(linked_continuation, dict) and linked_continuation.get('batch_id') == batch_id:
+                    batch_link = active_link
             local = {
                 **context,
+                'draft': draft_payload,
                 'message': '{' + task + '}',
+                # A setup choice belongs only to the batch that asked it. Do
+                # not let an Effect Modifier answer leak into relationships,
+                # resources, or other independent setup batches.
+                'answers': [str(batch_link.get('answer'))] if batch_link else [],
+                'active_clarification': batch_link,
                 'history': context.get('history', []),
                 'game_cache': {},
                 'setup_batch_id': batch_id,
                 'setup_batch_specialists': list(batch['specialists']),
+                # Setup tasks are administrative, bounded, and template-owned.
+                # Deterministic indexed selection is sufficient and avoids an
+                # additional semantic-selector model call for every batch.
+                'evidence_selector': 'heuristic',
             }
             route = self.route(local['message'], local)
             route['turn_id'] = context['turn_id'] + '-' + str(batch['id'])
@@ -496,7 +551,18 @@ class GameModules:
             if 'world' in batch['specialists']:
                 bundle = self._inject_world_rules(bundle)
             self._attach_setup_sources(bundle, source_files)
-            analysis = self.specialists(bundle, local, tuple(batch['specialists']))
+            frozen_analysis: dict[str, Any] | None = None
+            if isinstance(batch_link, dict) and batch_link.get('status') == 'answered':
+                frozen_result = batch_link.get('result')
+                if isinstance(frozen_result, dict):
+                    continuation = frozen_result.get('clarification_result')
+                    if isinstance(continuation, dict) and continuation.get('batch_id') == batch_id:
+                        candidate_analysis = continuation.get('specialist_output')
+                        if isinstance(candidate_analysis, dict):
+                            frozen_analysis = candidate_analysis
+            # A player clarification continues the exact specialist result that
+            # produced the question. Do not regenerate the candidate options.
+            analysis = frozen_analysis or self.specialists(bundle, local, tuple(batch['specialists']))
             world: dict[str, Any] = next((item for item in analysis.get('specialist_results', []) if isinstance(item, dict) and item.get('specialist') == 'world'), {})
             candidate_pool = world.get('world_pool') if isinstance(world.get('world_pool'), dict) else None
             if candidate_pool and world_pool is None:
@@ -514,6 +580,12 @@ class GameModules:
                     'conflicts': result.get('conflicts') or [],
                     'diagnosis': result.get('diagnosis') or {},
                     'batch_progress': batch_results,
+                    'clarification_result': {
+                        'batch_id': batch_id,
+                        'batch_file': target,
+                        'specialist_output': analysis,
+                        'admin_result': result,
+                    },
                 }
             changes = result.get('changes')
             if not isinstance(changes, list) or not changes:
@@ -524,6 +596,12 @@ class GameModules:
                     'questions': [],
                     'diagnosis': {'issue': 'The setup batch returned no usable file change.', 'player_question': ''},
                     'batch_progress': batch_results,
+                    'clarification_result': {
+                        'batch_id': batch_id,
+                        'batch_file': target,
+                        'specialist_output': analysis,
+                        'admin_result': result,
+                    },
                 }
             for change in changes:
                 if not isinstance(change, dict) or change.get('target_file') != 'markdown_files/' + target:

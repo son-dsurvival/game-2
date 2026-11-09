@@ -8,36 +8,36 @@
       "name": "branch_registry",
       "description": "This document tracks branch discovery and activation for the game runtime. `candidate` means branch discovery found relevant lore, log, chat, cache, or state evidence; it is recorded but not routed. A branch specialist and branch template are used only when the status is `unlocked`.",
       "location": "markdown_files/Branch Registry.md",
-      "source_hash": "e44f0708acd170500b90843ef34dee909a52df09feec7f8c81bd83d886b119e3",
-      "content_hash": "e44f0708acd170500b90843ef34dee909a52df09feec7f8c81bd83d886b119e3",
-      "source_size": 5265,
-      "source_mtime_ns": 1794122130422743500,
+      "source_hash": "cbd88e56a7918e882b0a2ba105ad6cecfcf05f8a289722d1d8534a1e1a7b9386",
+      "content_hash": "cbd88e56a7918e882b0a2ba105ad6cecfcf05f8a289722d1d8534a1e1a7b9386",
+      "source_size": 5256,
+      "source_mtime_ns": 1794175842552308600,
       "under": [
         {
           "name": "Branch Registry",
           "description": "This document tracks branch discovery and activation for the game runtime. `candidate` means branch discovery found relevant lore, log, chat, cache, or state evidence; it is recorded but not routed. A branch specialist and branch template are used only when the status is `unlocked`.",
           "location": "lines 1-124",
-          "content_hash": "967720e93f0f308f00a5b3d7028b6e069e6a69a7c87597448a3ebd8bc2092a66",
+          "content_hash": "5db1f3614cac9510a17d68b3eeec0e086d5864beac85738a97c3fae140b478ad",
           "under": [
             {
               "name": "Business",
               "description": "status: candidate",
               "location": "lines 5-13",
-              "content_hash": "87389ac5354a045a6df7f2136b6b1eacd3582c78a293f8bdf482dba0fd0dfe63",
+              "content_hash": "0253f460235c4f8fe0a19a268215b708c9165b3b447e2ac553fc2e44eeb3b07f",
               "under": []
             },
             {
               "name": "Alchemy",
               "description": "status: candidate",
               "location": "lines 14-22",
-              "content_hash": "14dcb7cc5fff543cbbe18a4f02a491704b2c25bf4b6cbdd17e3fb72ad33950a3",
+              "content_hash": "996b0f8494cd8da1eb2e05338ee301ebc16d13d7e92e04ffd0472b0cf025ae19",
               "under": []
             },
             {
               "name": "Politics",
               "description": "status: candidate",
               "location": "lines 23-31",
-              "content_hash": "d9a67e1f702f338044340798fd30418879076f129d5d36a958f132613f3b0ae4",
+              "content_hash": "c63e69f8d1e78b0cd13362dc4e73202508d2509db1ac334c5657d0e055a664d1",
               "under": []
             },
             {
@@ -51,7 +51,7 @@
               "name": "Relay",
               "description": "status: candidate",
               "location": "lines 41-49",
-              "content_hash": "f7728896ccd85fcebce74812ac022d8843bd1e695191978082bf50e4f24d9c85",
+              "content_hash": "25bf787fc75e481bfd193ba37a8f2e62f5e048a9f81b83b59633792f4d646a19",
               "under": []
             },
             {
@@ -65,49 +65,49 @@
               "name": "Consequences",
               "description": "status: candidate",
               "location": "lines 59-67",
-              "content_hash": "36af69a1170027969a6dbfa2a7493840a05aa5f06737d05b40ee2f2ae92090ec",
+              "content_hash": "abb0f187785f888129cdd62dd01ff967961a2eb7cb981bd0a3cfec7b9f7f6e79",
               "under": []
             },
             {
               "name": "Dungeon Ecology",
               "description": "status: candidate",
               "location": "lines 68-76",
-              "content_hash": "3bcf36a04cb442ae97791dc38bf5e8aada61dc4cd59c07c0a3838c6615f03605",
+              "content_hash": "f2ae161217ede35280e595ceb73e8cfc28f0fbee55b240dd3f1f9f31a38c6b53",
               "under": []
             },
             {
               "name": "Peoples",
               "description": "status: candidate",
               "location": "lines 77-85",
-              "content_hash": "ec5db84b3364f120cd22e5e79c98fcb4c09684af7d9267303ad9c580791cdbfe",
+              "content_hash": "12ffd0392b6b54381296616c90655a843484eda41e0fd4d45f4a2413aefb4062",
               "under": []
             },
             {
               "name": "Civilization",
               "description": "status: candidate",
               "location": "lines 86-94",
-              "content_hash": "92e4dff98bd345255093ffa064dad5eac44b33581400602833a8812e02f8c339",
+              "content_hash": "6f471bb146b9e16ac06eef56f39e24316829cb4ab8d2e632c8e00d3a0e637300",
               "under": []
             },
             {
               "name": "Religion",
               "description": "status: candidate",
               "location": "lines 95-103",
-              "content_hash": "00543d71f5c89a4015f40bc6c59c26cbd546d84b3372386bacb252b0cdac796f",
+              "content_hash": "c9b79fdd68a9fe3f901619b37422632729c8d1bd85cef6642a8b106f4b57828e",
               "under": []
             },
             {
               "name": "Technology",
               "description": "status: candidate",
               "location": "lines 104-112",
-              "content_hash": "b815866ff2705587cd8f8dc5b258beda8fe92a6bb04a68c0ae63161d73b840e3",
+              "content_hash": "f873ccb93de094b0296588c256ee3c6c5206a786963d31a828f4650aa954f6c9",
               "under": []
             },
             {
               "name": "Knowledge",
               "description": "status: candidate",
               "location": "lines 113-121",
-              "content_hash": "bfd2049dfe926e2bf59a4b33e3757a8fcc451a1542c11cd9539e4a5c97090abf",
+              "content_hash": "22d9ee2d7942303e866bbfad530e78e064e0c372ba90cc7c842b2495f96f0ad5",
               "under": []
             },
             {
@@ -128,7 +128,7 @@
       "source_hash": "616c8e022ee56dcc14ceb86db4d7b34e6b835670239ecac4354cc6d44b254bd5",
       "content_hash": "616c8e022ee56dcc14ceb86db4d7b34e6b835670239ecac4354cc6d44b254bd5",
       "source_size": 108,
-      "source_mtime_ns": 1794083326582921700,
+      "source_mtime_ns": 1794173072902938900,
       "under": [
         {
           "name": "Character Relationships",
@@ -146,7 +146,7 @@
       "source_hash": "80935353a5d947c26a9fbd5d622a7f14053f77863ed94275baf92a54c5c087e5",
       "content_hash": "80935353a5d947c26a9fbd5d622a7f14053f77863ed94275baf92a54c5c087e5",
       "source_size": 146,
-      "source_mtime_ns": 1794083326593164400,
+      "source_mtime_ns": 1794173072910735200,
       "under": [
         {
           "name": "Experimentation Register",
@@ -176,16 +176,16 @@
       "name": "game_rules_1",
       "description": "## ⏳ TIME S:YSTEM",
       "location": "markdown_files/game rules (1).md",
-      "source_hash": "62c7a370f1c5ba07b27f6e16f3ffe4e986fc0d01950cf084e4641d2a51879b3f",
-      "content_hash": "62c7a370f1c5ba07b27f6e16f3ffe4e986fc0d01950cf084e4641d2a51879b3f",
-      "source_size": 130409,
-      "source_mtime_ns": 1793914045491587100,
+      "source_hash": "c8dffde755c58f077abb7797695a100fb15a75d1e4e85f0fd9b611d3dcff785c",
+      "content_hash": "c8dffde755c58f077abb7797695a100fb15a75d1e4e85f0fd9b611d3dcff785c",
+      "source_size": 130415,
+      "source_mtime_ns": 1794153383548304200,
       "under": [
         {
           "name": "Game rules",
           "description": "Section covering game rules.",
           "location": "lines 1-5417",
-          "content_hash": "62c7a370f1c5ba07b27f6e16f3ffe4e986fc0d01950cf084e4641d2a51879b3f",
+          "content_hash": "c8dffde755c58f077abb7797695a100fb15a75d1e4e85f0fd9b611d3dcff785c",
           "under": [
             {
               "name": "⏳ TIME S:YSTEM",
@@ -1273,7 +1273,7 @@
               "name": "🧩 MODIFIER SYSTEM",
               "description": "Section covering 🧩 modifier system.",
               "location": "lines 1854-2179",
-              "content_hash": "d40e01243dd97bfacbc9207b3b902e61f29811d745c5ce3032c7048f657750b6",
+              "content_hash": "edf977122399787fabacb2cbbe878ad9be71e1e35ca9493b3078b857c1d0de03",
               "under": [
                 {
                   "name": "Core Principle",
@@ -1343,52 +1343,52 @@
                 {
                   "name": "Effect Modifier",
                   "description": "Effect modifiers are earned when repeated meaningful action, experimentation, breakthrough behavior, or specialized performance creates a stable and reusable improvement in how a character functions.",
-                  "location": "lines 1991-1996",
-                  "content_hash": "37accec3f6ba086013e7ae2813e608bc9dcca34e941dd7ea07779e634eadbe7e",
-                  "under": []
-                },
-                {
-                  "name": "1. Sources of New Effect Modifiers",
-                  "description": "A new effect modifier may be gained from:",
-                  "location": "lines 1997-2008",
-                  "content_hash": "3211f70b9a7d4867d932f4ff821672de309f604ba91ae61c94201055b9765914",
-                  "under": []
-                },
-                {
-                  "name": "2. Threshold",
-                  "description": "A new effect modifier may only be gained through one of the following:",
-                  "location": "lines 2009-2022",
-                  "content_hash": "b14ec65f8948dfbff3258468cac028bd7d219d1a91eaa661e549befbd3b936a5",
-                  "under": []
-                },
-                {
-                  "name": "3. Strength",
-                  "description": "New effect modifiers must obey the existing tier strength ranges.",
-                  "location": "lines 2023-2033",
-                  "content_hash": "632bdac5e0349b46a9668b7cddbf3d3ef2e5c6ac87d64e4ad483dbc8edcb1618",
-                  "under": []
-                },
-                {
-                  "name": "4. Anti-Abuse Rules",
-                  "description": "Effect modifiers cannot be farmed freely.",
-                  "location": "lines 2034-2057",
-                  "content_hash": "414e1d6096e193e35e39168d0f0bcb83f8d327f9aa42bc46a0a9c7f33e510ded",
+                  "location": "lines 1991-2087",
+                  "content_hash": "8da51e48820327218460d483402f3a6a97cbe93fd0d5752817d51c5f1a840f62",
                   "under": [
                     {
-                      "name": "Hard limits",
-                      "description": "no duplicate effect modifier from the same behavior",
-                      "location": "lines 2038-2057",
-                      "content_hash": "9ed95732db42b45c384434a2cfa8f32fa0c272b15a28799877c266a4cf99a7a8",
+                      "name": "1. Sources of New Effect Modifiers",
+                      "description": "A new effect modifier may be gained from:",
+                      "location": "lines 1997-2008",
+                      "content_hash": "c165c96d932d1ebe83ecebc0ed933dd4da5a9f650b370afa482573d6d1896483",
                       "under": []
-                    }
-                  ]
-                },
-                {
-                  "name": "5. Upgrade Rule",
-                  "description": "Effect modifiers do not automatically grow with the character.",
-                  "location": "lines 2058-2087",
-                  "content_hash": "0865757bce65bc654d119b377a323ebcf1092bffdc29d64a78ea0f32df7d7cc8",
-                  "under": [
+                    },
+                    {
+                      "name": "2. Threshold",
+                      "description": "A new effect modifier may only be gained through one of the following:",
+                      "location": "lines 2009-2022",
+                      "content_hash": "c0d43e600136a413ca7b4f099b356a3a9eeb7f437e56256baa02476709303717",
+                      "under": []
+                    },
+                    {
+                      "name": "3. Strength",
+                      "description": "New effect modifiers must obey the existing tier strength ranges.",
+                      "location": "lines 2023-2033",
+                      "content_hash": "9001e719c97c23640eabbf71b99a3e9bb8c509fe851a870cbb3b06dbd77b13ae",
+                      "under": []
+                    },
+                    {
+                      "name": "4. Anti-Abuse Rules",
+                      "description": "Effect modifiers cannot be farmed freely.",
+                      "location": "lines 2034-2057",
+                      "content_hash": "11ae52a958f3949e5a7a387933c1c664c20681d7613ef4f7f7e4e1f2a0de282e",
+                      "under": [
+                        {
+                          "name": "Hard limits",
+                          "description": "no duplicate effect modifier from the same behavior",
+                          "location": "lines 2038-2057",
+                          "content_hash": "b2fcaa9964ea908c156287422fa709a68ebf0250153640123e73c382037e037c",
+                          "under": []
+                        }
+                      ]
+                    },
+                    {
+                      "name": "5. Upgrade Rule",
+                      "description": "Effect modifiers do not automatically grow with the character.",
+                      "location": "lines 2058-2074",
+                      "content_hash": "1dd90f4e8088a14e89ee8c9a9ed1593dbabb7cd4c209848b101f46b56218d5c4",
+                      "under": []
+                    },
                     {
                       "name": "6. Modifier Identity Rule",
                       "description": "Every new effect modifier must have:",
@@ -3633,7 +3633,7 @@
       "source_hash": "025f1ab723d912df24cf0fd249766b45444f11058755873285677b205b15ceb5",
       "content_hash": "025f1ab723d912df24cf0fd249766b45444f11058755873285677b205b15ceb5",
       "source_size": 87,
-      "source_mtime_ns": 1794083326573008700,
+      "source_mtime_ns": 1794173072893796000,
       "under": [
         {
           "name": "Ledger Resources",
@@ -3651,7 +3651,7 @@
       "source_hash": "0634a2f6633e17fd436e27a20b1cd8226064dd3a218919160cfb9da18a943f87",
       "content_hash": "0634a2f6633e17fd436e27a20b1cd8226064dd3a218919160cfb9da18a943f87",
       "source_size": 79,
-      "source_mtime_ns": 1794083326556898100,
+      "source_mtime_ns": 1794173072883805400,
       "under": [
         {
           "name": "Character Status",
@@ -3669,7 +3669,7 @@
       "source_hash": "ea5b86518aec6795aaabeeaa6fe56cdbe7e154e28544e7329550ddc262493868",
       "content_hash": "ea5b86518aec6795aaabeeaa6fe56cdbe7e154e28544e7329550ddc262493868",
       "source_size": 88,
-      "source_mtime_ns": 1794083326601234000,
+      "source_mtime_ns": 1794173072917816300,
       "under": [
         {
           "name": "Temporary Campaign Memory",
@@ -3684,16 +3684,16 @@
       "name": "terms_and_nomenclature",
       "description": "This document describes the campaign runtime commands, state gates, and major technical processes. It is an administrative reference, not roleplay canon.",
       "location": "markdown_files/TERMS_AND_NOMENCLATURE.md",
-      "source_hash": "29b4cf38c084ce0ccdcdc8e2a756bf501a28ddd0147ad2a0f84ead9117a23303",
-      "content_hash": "29b4cf38c084ce0ccdcdc8e2a756bf501a28ddd0147ad2a0f84ead9117a23303",
-      "source_size": 9328,
-      "source_mtime_ns": 1793992618050213800,
+      "source_hash": "d14ccbae70112df7825fd8be7f5e936dba58cf8e629b0619d97ccced76cc53e0",
+      "content_hash": "d14ccbae70112df7825fd8be7f5e936dba58cf8e629b0619d97ccced76cc53e0",
+      "source_size": 12735,
+      "source_mtime_ns": 1794166528715060600,
       "under": [
         {
           "name": "Terms and Nomenclature",
           "description": "This document describes the campaign runtime commands, state gates, and major technical processes. It is an administrative reference, not roleplay canon.",
-          "location": "lines 1-222",
-          "content_hash": "7618867625e8b4ca13ab96672e362bc8d2b4d7b6b388c4c87ee542e691f1455c",
+          "location": "lines 1-256",
+          "content_hash": "3473af59ddc62e3022ff6015e09c014ba56696535d1e35b7772d46c1ea5843c2",
           "under": [
             {
               "name": "Runtime Command Reference",
@@ -3798,62 +3798,77 @@
               "name": "New-Game Setup Process",
               "description": "/new-game",
               "location": "lines 79-97",
-              "content_hash": "4ac9ab2e0901c96460a67a8411f4867a7ef820c438eda7e7f1ddab5c2db5e00d",
+              "content_hash": "d19e2bc2f5f45da9745f526dbebf97893ecf4a64972a3b799f768771107939c8",
               "under": []
             },
             {
               "name": "Normal Turn Process",
               "description": "player input",
-              "location": "lines 98-117",
-              "content_hash": "49913ff5c48320f0d2079183abd80f5c8ee297934b168ecf5cfedc23e8a9c0b2",
+              "location": "lines 98-130",
+              "content_hash": "a2601536c5bea39021dd98654df1e1f66c4d2244be7bb982084b6a8a6a8dc640",
+              "under": [
+                {
+                  "name": "In-World Discussion Process",
+                  "description": "player speaks, asks, explains, argues, or plans in-world",
+                  "location": "lines 117-130",
+                  "content_hash": "ef4a2f5f5fd9cffca9de6cb8445cf572d9e638a2316ecb80e2925effd199fd7a",
+                  "under": []
+                }
+              ]
+            },
+            {
+              "name": "Assumption and Initialization Process",
+              "description": "missing mechanism or starting value",
+              "location": "lines 131-145",
+              "content_hash": "10548716bab6730b7fbd5cfe9b2dfec5e3be5ca8df9ce1e44c02bdeee1a5b6c6",
               "under": []
             },
             {
               "name": "Explicit Pause and Resume Process",
               "description": "open roleplay",
-              "location": "lines 118-130",
+              "location": "lines 146-158",
               "content_hash": "6da32460a11283a6feb5261090b435ba252c5ba8a65a62e77f5efbe2c6eeb7ef",
               "under": []
             },
             {
               "name": "Administrative Request Process",
               "description": "OOC request",
-              "location": "lines 131-145",
+              "location": "lines 159-173",
               "content_hash": "a8d7d83a20b10d5c4b5f814de5319b86f343c2f1aeedfefcd2ceb404eac05b40",
               "under": []
             },
             {
               "name": "Day-End Process",
               "description": "end of day",
-              "location": "lines 146-166",
+              "location": "lines 174-194",
               "content_hash": "a5e4648eb237782ebef254c3d446b53651b7f5cf5d7f9e710f3aef80a7af89a7",
               "under": []
             },
             {
               "name": "Modifier-Creation Process",
-              "description": "history / cache / experiments / training",
-              "location": "lines 167-179",
-              "content_hash": "f67fc4c71f8818ca25d0f8490031dd7d0f73385e8ab64910646906777dcfe43d",
+              "description": "character history / player design brief / experiments / training",
+              "location": "lines 195-208",
+              "content_hash": "877ac5e412be57b85b97d2b589a77d2a01c7bb91ea8232ad759925b6520a0adf",
               "under": []
             },
             {
               "name": "Specialist and Resolution Responsibilities",
-              "description": "| Component | Responsibility |",
-              "location": "lines 180-198",
-              "content_hash": "f8f40fa2141b1671564135d6a92c1cf754cad4b638b2f01796e0eea44c55c513",
+              "description": "The runtime uses core specialist categories with scoped leaf specialists rather than one flat list of equal roles.",
+              "location": "lines 209-232",
+              "content_hash": "b3abd718ebd8ce78c748121f740618ae6477a01908c66419aee79329a8dc16d1",
               "under": []
             },
             {
               "name": "Markdown File Reference",
               "description": "| Markdown file | What it stores |",
-              "location": "lines 199-212",
+              "location": "lines 233-246",
               "content_hash": "92fe289ca01a379787429eb686259238ab4e6d86cb281b9e5b6a8063f7e46694",
               "under": []
             },
             {
               "name": "Markdown Storage Boundary",
               "description": "Persistent Markdown information must pass through the outside-game Admin Agent and approved Admin Editor before it is written.",
-              "location": "lines 213-222",
+              "location": "lines 247-256",
               "content_hash": "79f7d34e82053f5144181c2184df0e20c5249c3a04489418eabafc3f4dd85c47",
               "under": []
             }

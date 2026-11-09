@@ -26,6 +26,34 @@ class ModelGatewayTests(unittest.TestCase):
             self.assertEqual(result.content, '{}')
             self.assertFalse(result.reused)
 
+    def test_volatile_turn_metadata_does_not_defeat_exact_reuse(self):
+        with tempfile.TemporaryDirectory() as root:
+            answers = iter(['one'])
+            gateway = ModelGateway(root, transport=lambda request: next(answers))
+            args = dict(stage='rules', messages=[{'role': 'user', 'content': 'same question'}])
+            gateway.complete(**args, metadata={
+                'campaign_id': 'one', 'state_version': 3, 'turn_id': 'turn-a',
+                'revision': 1,
+            })
+            result = gateway.complete(**args, metadata={
+                'campaign_id': 'one', 'state_version': 3, 'turn_id': 'turn-b',
+                'revision': 2,
+            })
+            self.assertTrue(result.reused)
+            self.assertEqual(result.content, 'one')
+
+    def test_legacy_invalidation_tombstones_do_not_destroy_valid_cache(self):
+        with tempfile.TemporaryDirectory() as root:
+            answers = iter(['one'])
+            gateway = ModelGateway(root, transport=lambda request: next(answers))
+            args = dict(stage='rules', messages=[{'role': 'user', 'content': 'same question'}])
+            first = gateway.complete(**args)
+            with open(gateway.journal_path, 'a', encoding='utf-8') as handle:
+                handle.write(json.dumps({'status': 'invalidated', 'cache_key': first.cache_key}) + '\n')
+            result = gateway.complete(**args)
+            self.assertTrue(result.reused)
+            self.assertEqual(result.content, 'one')
+
 
 if __name__ == '__main__':
     unittest.main()

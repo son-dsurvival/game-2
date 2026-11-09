@@ -1,6 +1,7 @@
 """Non-destructive party drafting, independent of providers and document writes."""
 from __future__ import annotations
 
+import copy
 import math
 import uuid
 from typing import Any
@@ -108,6 +109,14 @@ class SetupDrafts:
         draft = state.get('draft')
         if not draft or state['play_gate'] != 'setup_draft':
             raise RuntimeError('No character question is pending.')
+        # Keep a bounded pre-input snapshot so the player can undo an
+        # accidental setup message without discarding the whole draft.
+        history_value = draft.get('edit_history')
+        edit_history = history_value if isinstance(history_value, list) else []
+        snapshot = copy.deepcopy(draft)
+        snapshot.pop('edit_history', None)
+        edit_history.append(snapshot)
+        draft['edit_history'] = edit_history[-10:]
         conversation_value = draft.get('conversation')
         conversation: list[dict[str, str]] = conversation_value if isinstance(conversation_value, list) else []
         conversation.append({'role': 'user', 'content': text})
@@ -220,6 +229,29 @@ class SetupDrafts:
             raise ValueError('Mid-campaign additions take one character at a time; review or cancel.')
         draft.update(question='identity', partial={}, conversation=[], party_done=False)
         self.state.save({'draft': draft, 'message': 'Tell me about the next character in your own words.'})
+
+    def undo_last_input(self) -> None:
+        """Undo the most recent conversational setup message only."""
+        state = self.state.load()
+        if state.get('play_gate') != 'setup_draft' or not state.get('draft'):
+            raise RuntimeError('No editable setup message is pending.')
+        draft = state['draft']
+        history_value = draft.get('edit_history')
+        history = history_value if isinstance(history_value, list) else []
+        if not history:
+            raise RuntimeError('There is no setup message to undo.')
+        restored = copy.deepcopy(history[-1])
+        restored['edit_history'] = history[:-1]
+        message = 'The last setup message was undone. Enter the corrected version now.'
+        restored['message'] = message
+        self.state.save({'draft': restored, 'message': message})
+        self.state.append_event(
+            'setup_input_undone',
+            operation_type='out_of_game',
+            campaign_id=restored.get('campaign_id'),
+            remaining_undo_steps=len(restored['edit_history']),
+            status='undone_by_player',
+        )
 
     def cancel(self) -> None:
         state = self.state.load()

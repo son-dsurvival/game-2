@@ -45,7 +45,16 @@ class CoverageCheck:
         if not isinstance(required, list):
             required = []
         required = [name for name in required if isinstance(name, str)]
-        required_set = set(required) | MANDATORY_SPECIALISTS
+        configured_mandatory = specialist_output.get("mandatory_specialists")
+        if isinstance(configured_mandatory, list):
+            mandatory = {
+                str(name) for name in configured_mandatory if isinstance(name, str)
+            }
+        else:
+            # Preserve the safe legacy default for direct callers that do not
+            # declare an orchestration policy.
+            mandatory = set(MANDATORY_SPECIALISTS)
+        required_set = set(required) | mandatory
 
         raw_results = specialist_output.get("specialist_results", [])
         if not isinstance(raw_results, list):
@@ -123,7 +132,7 @@ class CoverageCheck:
         ready = not any((missing, incomplete, malformed, duplicate_results, hard_gaps))
         return {
             "turn_id": specialist_output.get("turn_id"),
-            "mandatory_specialists": sorted(MANDATORY_SPECIALISTS),
+            "mandatory_specialists": sorted(mandatory),
             "required_specialists": sorted(required_set),
             "received_specialists": sorted(results_by_name),
             "missing_specialists": missing,

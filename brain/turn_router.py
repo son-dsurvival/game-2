@@ -37,9 +37,9 @@ except ModuleNotFoundError:  # Direct execution: python brain/turn_router.py
     from model_gateway import ModelGateway
 
 
-# Every normal turn has one specialist in each orchestration lane. Domain
-# specialists are added only when a routed tag or an unlocked branch needs them.
-MANDATORY_SPECIALISTS = ["cache", "rules", "character", "special", "create"]
+# Core analysis categories always exist. Evidence Bundle construction and the
+# Recorder handle context/memory; Create and leaf domains are routed as needed.
+MANDATORY_SPECIALISTS = ["rules", "character", "special"]
 TAXONOMY_PATH = (
     Path(__file__).resolve().parent
     / "info"
@@ -76,7 +76,7 @@ def _fallback_taxonomy() -> dict[str, Any]:
         "mechanic.resource_cost": tag("mechanic", "Resources, materials, or mana", ("resource", "mana", "cost", "spend", "material"), ("resources", "rules")),
         "mechanic.time_cost": tag("mechanic", "Time, phase, or duration", ("time", "phase", "wait", "day"), ("time", "rules")),
         "mechanic.cognitive_assistance": tag("mechanic", "Cognitive assistance", ("assist", "advice", "memory", "telepathy"), ("cognitive_assistance", "character")),
-        "mechanic.modifier_creation": tag("mechanic", "Creating or refining a reusable effect modifier", ("new modifier", "gain a modifier", "develop a technique", "refine a modifier", "breakthrough", "repeated success", "training breakthrough"), ("modifier_creation",)),
+        "mechanic.modifier_creation": tag("mechanic", "Creating or refining a stat or effect modifier", ("new modifier", "gain a modifier", "develop a technique", "refine a modifier", "breakthrough", "repeated success", "training breakthrough"), ("create_stat_modifier", "create_effect_modifier")),
         "mechanic.spell_creation": tag("mechanic", "Spell creation or magic", ("spell", "magic", "cast"), ("spell", "rules", "special")),
         "context.emotional": tag("context", "Emotional or relationship context", ("relationship", "trust", "love", "consent"), ("relationship", "character")),
         "context.class_system": tag("context", "Class or class progression", ("class", "skill", "level"), ("class", "special")),
@@ -135,7 +135,9 @@ CORE_OWNED_SPECIALISTS = {
     "npc_autonomy": "character",
     "modifier": "character",
     "cognitive_assistance": "character",
-    "modifier_creation": "modifier_creation",
+    "modifier_creation": "create_effect_modifier",
+    "create_stat_modifier": "create_stat_modifier",
+    "create_effect_modifier": "create_effect_modifier",
 }
 
 
@@ -210,7 +212,7 @@ EVIDENCE_REQUESTS = {
     },
     "mechanic.modifier_creation": {
         "required_sources": ["game rules (1).md", "Experimentation Register.md", "TEMP_MEMORY.md", "status sheet.md"],
-        "required_headings": ["Effect Modifier", "Completed Experiments", "Game Cache", "Status Sheet Modifier Index"],
+        "required_headings": ["Stat Modifiers", "Effect Modifier", "Completed Experiments", "Game Cache", "Status Sheet Modifier Index"],
     },
     "mechanic.world_event": {
         "required_sources": ["🌍 CORE WORLD FRAME (REFINED).md", "TEMP_MEMORY.md"],
@@ -251,6 +253,7 @@ class ActionSegment:
 class RoutingRecord:
     turn_id: str
     request_type: str
+    process_type: str
     mode: str | None
     segments: list[ActionSegment]
     tags: list[TagEvidence]
@@ -335,6 +338,7 @@ class TurnRouter:
         preflight["classifier"] = classification_source
         tags.extend(self._unlocked_branch_tags(player_message))
         tags = list({item.tag: item for item in tags}.values())
+        process_type = self._process_type(player_message, preflight, tags)
 
         specialists = set(MANDATORY_SPECIALISTS)
         tag_names = {tag.tag for tag in tags}
@@ -352,6 +356,14 @@ class TurnRouter:
         # Custom branches may not exist in the static taxonomy yet. Their
         # registry activation tags still route their unlocked specialist.
         specialists.update(self.branch_registry.specialists_for_tags(tag_names))
+
+        if process_type == "in_world_discussion":
+            # Discussion is a process, not a generic action. Do not run the
+            # category placeholders; activate only character/social leaf roles
+            # and any explicitly relevant unlocked branch specialist.
+            specialists = self._discussion_specialists(
+                player_message, tag_names, active_npcs, specialists
+            )
 
         evidence_requests = self._build_evidence_requests(tags)
         clarification_questions = self._clarification_questions(tags, mode, segments)
@@ -376,6 +388,7 @@ class TurnRouter:
         return RoutingRecord(
             turn_id=self._new_turn_id(current_phase),
             request_type=request_type,
+            process_type=process_type,
             mode=mode,
             segments=segments,
             tags=tags,
@@ -433,6 +446,59 @@ class TurnRouter:
         if result.returncode != 0:
             return "not_a_repository"
         return "dirty" if result.stdout.strip() else "clean"
+
+    @staticmethod
+    def _process_type(
+        message: str, preflight: dict[str, Any], tags: list[TagEvidence]
+    ) -> str:
+        """Identify the interaction process before selecting leaf specialists."""
+        if preflight.get("message_kind") != "normal_action":
+            return str(preflight.get("message_kind") or "command")
+        text = message.casefold()
+        discussion_markers = (
+            "talk to", "speak to", "speak with", "tell ", "ask ",
+            "say ", "says ", "discuss", "conversation", "explain to",
+            "argue", "debate", "negotiate", "persuade", "reassure",
+            "warn ", "reply", "respond", "question ", "listen to",
+        )
+        quoted_dialogue = ('"' in message or "'" in message) and any(
+            marker in text for marker in ("say", "tell", "ask", "reply", "answer")
+        )
+        if any(marker in text for marker in discussion_markers) or quoted_dialogue:
+            return "in_world_discussion"
+        return "action"
+
+    @staticmethod
+    def _discussion_specialists(
+        message: str,
+        tag_names: set[str],
+        active_npcs: Iterable[str],
+        routed: set[str],
+    ) -> set[str]:
+        """Choose discussion leaf roles without activating generic categories."""
+        text = message.casefold()
+        specialists = {
+            "current_state",
+        }
+        social = bool(
+            {"context.emotional", "participant.companion"} & tag_names
+            or any(word in text for word in ("trust", "relationship", "consent", "love", "friend", "argument"))
+        )
+        if social:
+            specialists.add("relationship")
+        if active_npcs or any(word in text for word in ("npc", "companion", "dara", "ava", "assistant")):
+            specialists.add("npc_autonomy")
+        if any(word in text for word in ("link", "telepathy", "relay", "cognitive")):
+            specialists.add("cognitive_assistance")
+        if any(word in text for word in ("remember", "know", "lore", "what happened", "explain the world")):
+            specialists.add("canon")
+        # Keep only concrete unlocked branch routes; discard category names
+        # such as rules, character, and special from taxonomy output.
+        specialists.update(
+            name for name in routed
+            if name not in {"cache", "rules", "character", "special", "create"}
+        )
+        return specialists
 
     @staticmethod
     def _message_kind(message: str) -> str:

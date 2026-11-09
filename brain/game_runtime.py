@@ -186,7 +186,7 @@ class CampaignPipeline:
         if state.get('draft'):
             result['draft'] = {
                 key: value for key, value in state['draft'].items()
-                if key not in {'previous_gate', 'previous_message', 'previous_position'}
+                if key not in {'previous_gate', 'previous_message', 'previous_position', 'edit_history'}
             }
         if state.get('pending_clarification'):
             result['question'] = state['pending_clarification']
@@ -355,6 +355,19 @@ class CampaignPipeline:
                         draft['party_done'] = True
                         self.state.save({'draft': draft})
                         state = self.state.load()
+                prior_clarification = state.get('pending_clarification')
+                if isinstance(prior_clarification, dict):
+                    operation['last_clarification'] = prior_clarification
+                    link_id = prior_clarification.get('link_id')
+                    links = operation.setdefault('clarification_links', [])
+                    if isinstance(link_id, str):
+                        for link in reversed(links):
+                            if isinstance(link, dict) and link.get('id') == link_id:
+                                link['answer'] = message
+                                link['status'] = 'answered'
+                                link['answered_revision'] = int(operation.get('revision', 0) or 0) + 1
+                                operation['active_clarification_link_id'] = link_id
+                                break
                 operation['answers'].append(message)
                 operation['revision'] += 1
                 operation['stage_run_id'] = uuid.uuid4().hex
@@ -555,6 +568,12 @@ class CampaignPipeline:
             SetupDrafts(self.state).cancel()
             return self.view()
 
+    def undo_setup_input(self) -> dict[str, Any]:
+        from brain.setup_drafts import SetupDrafts
+        with runtime_lease(self.root):
+            SetupDrafts(self.state).undo_last_input()
+            return self.view()
+
     def cancel_pending(self) -> dict[str, Any]:
         """Cancel an unapplied review/proposal without changing campaign files."""
         with runtime_lease(self.root):
@@ -678,10 +697,21 @@ class CampaignPipeline:
 
     def _context(self, operation: dict[str, Any]) -> dict[str, Any]:
         state = self.state.load()
+        links = operation.get('clarification_links', [])
+        if not isinstance(links, list):
+            links = []
+        active_link_id = operation.get('active_clarification_link_id')
+        active_clarification = next(
+            (link for link in reversed(links)
+             if isinstance(link, dict) and link.get('id') == active_link_id and link.get('status') == 'answered'),
+            None,
+        )
         return {
             'turn_id': operation['id'], 'campaign_id': (state.get('draft') or {}).get('campaign_id', state.get('campaign_id', 'legacy')),
             'position': operation['before'], 'message': operation['message'],
             'answers': operation['answers'], 'history': state.get('history', []),
+            'pending_clarification': state.get('pending_clarification') or operation.get('last_clarification'),
+            'clarification_links': links, 'active_clarification': active_clarification,
             'game_cache': state.get('game_cache', {}), 'revision': operation['revision'],
             'review_proposal': state.get('proposal'), 'completed_day': state.get('completed_day'),
             'world_pool': state.get('world_pool'), 'review_kind': operation.get('review_gate'),
@@ -1107,6 +1137,20 @@ class CampaignPipeline:
             **presented,
             'source': 'admin_agent' if stage in {'admin', 'prepare_setup', 'prepare_character'} else 'lead_resolver',
         }
+        links = operation.setdefault('clarification_links', [])
+        link_id = f"{operation.get('id', 'operation')}:clarification:{len(links) + 1}"
+        question_payload['link_id'] = link_id
+        links.append({
+            'id': link_id,
+            'source': question_payload['source'],
+            'stage': stage,
+            'question': question_payload.get('question', ''),
+            'result': response,
+            'answer': None,
+            'status': 'awaiting_answer',
+            'requested_revision': int(operation.get('revision', 0) or 0),
+        })
+        operation['active_clarification_link_id'] = link_id
         self._checkpoint(
             operation, stage, play_gate='awaiting_clarification',
             pending_clarification=question_payload,
@@ -1201,6 +1245,20 @@ class CampaignPipeline:
             )
             return
         question_payload = {**presented, 'source': 'setup'}
+        links = operation.setdefault('clarification_links', [])
+        link_id = f"{operation.get('id', 'operation')}:clarification:{len(links) + 1}"
+        question_payload['link_id'] = link_id
+        links.append({
+            'id': link_id,
+            'source': 'setup',
+            'stage': stage,
+            'question': question_payload.get('question', ''),
+            'result': response,
+            'answer': None,
+            'status': 'awaiting_answer',
+            'requested_revision': int(operation.get('revision', 0) or 0),
+        })
+        operation['active_clarification_link_id'] = link_id
         self._checkpoint(
             operation, stage, play_gate='awaiting_clarification',
             pending_clarification=question_payload,

@@ -3018,101 +3018,113 @@
         },
         {
           "heading": "1. Sources of New Effect Modifiers",
-          "level": 3,
+          "level": 4,
           "line_start": 1997,
           "line_end": 2008,
           "parent_path": [
             "Game rules",
-            "🧩 MODIFIER SYSTEM"
+            "🧩 MODIFIER SYSTEM",
+            "Effect Modifier"
           ],
           "heading_path": [
             "Game rules",
             "🧩 MODIFIER SYSTEM",
+            "Effect Modifier",
             "1. Sources of New Effect Modifiers"
           ],
-          "section_id": "markdown_files/game rules (1).md::Game rules > 🧩 MODIFIER SYSTEM > 1. Sources of New Effect Modifiers"
+          "section_id": "markdown_files/game rules (1).md::Game rules > 🧩 MODIFIER SYSTEM > Effect Modifier > 1. Sources of New Effect Modifiers"
         },
         {
           "heading": "2. Threshold",
-          "level": 3,
+          "level": 4,
           "line_start": 2009,
           "line_end": 2022,
           "parent_path": [
             "Game rules",
-            "🧩 MODIFIER SYSTEM"
+            "🧩 MODIFIER SYSTEM",
+            "Effect Modifier"
           ],
           "heading_path": [
             "Game rules",
             "🧩 MODIFIER SYSTEM",
+            "Effect Modifier",
             "2. Threshold"
           ],
-          "section_id": "markdown_files/game rules (1).md::Game rules > 🧩 MODIFIER SYSTEM > 2. Threshold"
+          "section_id": "markdown_files/game rules (1).md::Game rules > 🧩 MODIFIER SYSTEM > Effect Modifier > 2. Threshold"
         },
         {
           "heading": "3. Strength",
-          "level": 3,
+          "level": 4,
           "line_start": 2023,
           "line_end": 2033,
           "parent_path": [
             "Game rules",
-            "🧩 MODIFIER SYSTEM"
+            "🧩 MODIFIER SYSTEM",
+            "Effect Modifier"
           ],
           "heading_path": [
             "Game rules",
             "🧩 MODIFIER SYSTEM",
+            "Effect Modifier",
             "3. Strength"
           ],
-          "section_id": "markdown_files/game rules (1).md::Game rules > 🧩 MODIFIER SYSTEM > 3. Strength"
+          "section_id": "markdown_files/game rules (1).md::Game rules > 🧩 MODIFIER SYSTEM > Effect Modifier > 3. Strength"
         },
         {
           "heading": "4. Anti-Abuse Rules",
-          "level": 3,
+          "level": 4,
           "line_start": 2034,
           "line_end": 2037,
           "parent_path": [
             "Game rules",
-            "🧩 MODIFIER SYSTEM"
+            "🧩 MODIFIER SYSTEM",
+            "Effect Modifier"
           ],
           "heading_path": [
             "Game rules",
             "🧩 MODIFIER SYSTEM",
+            "Effect Modifier",
             "4. Anti-Abuse Rules"
           ],
-          "section_id": "markdown_files/game rules (1).md::Game rules > 🧩 MODIFIER SYSTEM > 4. Anti-Abuse Rules"
+          "section_id": "markdown_files/game rules (1).md::Game rules > 🧩 MODIFIER SYSTEM > Effect Modifier > 4. Anti-Abuse Rules"
         },
         {
           "heading": "Hard limits",
-          "level": 4,
+          "level": 5,
           "line_start": 2038,
           "line_end": 2057,
           "parent_path": [
             "Game rules",
             "🧩 MODIFIER SYSTEM",
+            "Effect Modifier",
             "4. Anti-Abuse Rules"
           ],
           "heading_path": [
             "Game rules",
             "🧩 MODIFIER SYSTEM",
+            "Effect Modifier",
             "4. Anti-Abuse Rules",
             "Hard limits"
           ],
-          "section_id": "markdown_files/game rules (1).md::Game rules > 🧩 MODIFIER SYSTEM > 4. Anti-Abuse Rules > Hard limits"
+          "section_id": "markdown_files/game rules (1).md::Game rules > 🧩 MODIFIER SYSTEM > Effect Modifier > 4. Anti-Abuse Rules > Hard limits"
         },
         {
           "heading": "5. Upgrade Rule",
-          "level": 3,
+          "level": 4,
           "line_start": 2058,
           "line_end": 2074,
           "parent_path": [
             "Game rules",
-            "🧩 MODIFIER SYSTEM"
+            "🧩 MODIFIER SYSTEM",
+            "Effect Modifier"
           ],
           "heading_path": [
             "Game rules",
             "🧩 MODIFIER SYSTEM",
+            "Effect Modifier",
             "5. Upgrade Rule"
           ],
-          "section_id": "markdown_files/game rules (1).md::Game rules > 🧩 MODIFIER SYSTEM > 5. Upgrade Rule"
+          "section_id": "markdown_files/game rules (1).md::Game rules > 🧩 MODIFIER SYSTEM > Effect Modifier > 5. Upgrade Rule"
         },
         {
           "heading": "6. Modifier Identity Rule",
@@ -3122,15 +3134,15 @@
           "parent_path": [
             "Game rules",
             "🧩 MODIFIER SYSTEM",
-            "5. Upgrade Rule"
+            "Effect Modifier"
           ],
           "heading_path": [
             "Game rules",
             "🧩 MODIFIER SYSTEM",
-            "5. Upgrade Rule",
+            "Effect Modifier",
             "6. Modifier Identity Rule"
           ],
-          "section_id": "markdown_files/game rules (1).md::Game rules > 🧩 MODIFIER SYSTEM > 5. Upgrade Rule > 6. Modifier Identity Rule"
+          "section_id": "markdown_files/game rules (1).md::Game rules > 🧩 MODIFIER SYSTEM > Effect Modifier > 6. Modifier Identity Rule"
         },
         {
           "heading": "Equipment Modifiers",
@@ -8485,7 +8497,7 @@
     },
     "markdown_files/TERMS_AND_NOMENCLATURE.md": {
       "path": "markdown_files/TERMS_AND_NOMENCLATURE.md",
-      "line_count": 222,
+      "line_count": 256,
       "sections": [
         {
           "heading": "Terms and Nomenclature",
@@ -8736,7 +8748,7 @@
           "heading": "Normal Turn Process",
           "level": 2,
           "line_start": 98,
-          "line_end": 117,
+          "line_end": 116,
           "parent_path": [
             "Terms and Nomenclature"
           ],
@@ -8747,10 +8759,40 @@
           "section_id": "markdown_files/TERMS_AND_NOMENCLATURE.md::Terms and Nomenclature > Normal Turn Process"
         },
         {
+          "heading": "In-World Discussion Process",
+          "level": 3,
+          "line_start": 117,
+          "line_end": 130,
+          "parent_path": [
+            "Terms and Nomenclature",
+            "Normal Turn Process"
+          ],
+          "heading_path": [
+            "Terms and Nomenclature",
+            "Normal Turn Process",
+            "In-World Discussion Process"
+          ],
+          "section_id": "markdown_files/TERMS_AND_NOMENCLATURE.md::Terms and Nomenclature > Normal Turn Process > In-World Discussion Process"
+        },
+        {
+          "heading": "Assumption and Initialization Process",
+          "level": 2,
+          "line_start": 131,
+          "line_end": 145,
+          "parent_path": [
+            "Terms and Nomenclature"
+          ],
+          "heading_path": [
+            "Terms and Nomenclature",
+            "Assumption and Initialization Process"
+          ],
+          "section_id": "markdown_files/TERMS_AND_NOMENCLATURE.md::Terms and Nomenclature > Assumption and Initialization Process"
+        },
+        {
           "heading": "Explicit Pause and Resume Process",
           "level": 2,
-          "line_start": 118,
-          "line_end": 130,
+          "line_start": 146,
+          "line_end": 158,
           "parent_path": [
             "Terms and Nomenclature"
           ],
@@ -8763,8 +8805,8 @@
         {
           "heading": "Administrative Request Process",
           "level": 2,
-          "line_start": 131,
-          "line_end": 145,
+          "line_start": 159,
+          "line_end": 173,
           "parent_path": [
             "Terms and Nomenclature"
           ],
@@ -8777,8 +8819,8 @@
         {
           "heading": "Day-End Process",
           "level": 2,
-          "line_start": 146,
-          "line_end": 166,
+          "line_start": 174,
+          "line_end": 194,
           "parent_path": [
             "Terms and Nomenclature"
           ],
@@ -8791,8 +8833,8 @@
         {
           "heading": "Modifier-Creation Process",
           "level": 2,
-          "line_start": 167,
-          "line_end": 179,
+          "line_start": 195,
+          "line_end": 208,
           "parent_path": [
             "Terms and Nomenclature"
           ],
@@ -8805,8 +8847,8 @@
         {
           "heading": "Specialist and Resolution Responsibilities",
           "level": 2,
-          "line_start": 180,
-          "line_end": 198,
+          "line_start": 209,
+          "line_end": 232,
           "parent_path": [
             "Terms and Nomenclature"
           ],
@@ -8819,8 +8861,8 @@
         {
           "heading": "Markdown File Reference",
           "level": 2,
-          "line_start": 199,
-          "line_end": 212,
+          "line_start": 233,
+          "line_end": 246,
           "parent_path": [
             "Terms and Nomenclature"
           ],
@@ -8833,8 +8875,8 @@
         {
           "heading": "Markdown Storage Boundary",
           "level": 2,
-          "line_start": 213,
-          "line_end": 222,
+          "line_start": 247,
+          "line_end": 256,
           "parent_path": [
             "Terms and Nomenclature"
           ],

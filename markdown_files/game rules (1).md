@@ -1994,7 +1994,7 @@ Effect modifiers are earned when repeated meaningful action, experimentation, br
 
 They are not granted automatically by time, level, or tier.<br>They must be justified by action history.
 
-### 1. Sources of New Effect Modifiers
+#### 1. Sources of New Effect Modifiers
 
 A new effect modifier may be gained from:
 
@@ -2006,7 +2006,7 @@ A new effect modifier may be gained from:
 - behavior repeatedly proven under pressure
 - Consumption of things
 
-### 2. Threshold
+#### 2. Threshold
 
 A new effect modifier may only be gained through one of the following:
 
@@ -2020,7 +2020,7 @@ Meaning:
 - one trivial repetition is not enough
 - the gain must represent stable capability, not temporary performance
 
-### 3. Strength
+#### 3. Strength
 
 New effect modifiers must obey the existing tier strength ranges.
 
@@ -2031,11 +2031,11 @@ Example:
 
 This prevents effect modifiers from breaking the existing modifier system.
 
-### 4. Anti-Abuse Rules
+#### 4. Anti-Abuse Rules
 
 Effect modifiers cannot be farmed freely.
 
-#### Hard limits
+##### Hard limits
 
 - no duplicate effect modifier from the same behavior
 - no trivial farming
@@ -2055,7 +2055,7 @@ Instead of specific effects like:
 - relay-space stabilization
 - controlled battlefield baiting
 
-### 5. Upgrade Rule
+#### 5. Upgrade Rule
 
 Effect modifiers do not automatically grow with the character.
 

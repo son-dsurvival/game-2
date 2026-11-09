@@ -73,6 +73,9 @@ class SessionRecorder:
         modifier_updates = self._modifier_updates(source)
         branch_updates = self._branch_updates(source)
         branch_candidates = self._branch_candidates(source)
+        assumption_record = resolution.get("assumption_record") if isinstance(resolution, dict) else None
+        if not isinstance(assumption_record, dict):
+            assumption_record = source.get("assumption_record") if isinstance(source.get("assumption_record"), dict) else None
         # LeadResolver wraps ordinary output in resolution_record; normalize
         # the cache delta from that canonical layer before recording it.
         cache_delta = source.get("cache_delta")
@@ -96,6 +99,7 @@ class SessionRecorder:
             "modifier_updates": modifier_updates,
             "branch_updates": branch_updates,
             "branch_candidates": branch_candidates,
+            "assumption_record": assumption_record,
             "cache_delta": cache_delta,
             "target_segments": segments,
         }
@@ -129,6 +133,7 @@ class SessionRecorder:
             "modifier_updates": modifier_updates,
             "branch_updates": branch_updates,
             "branch_candidates": branch_candidates,
+            "assumption_record": assumption_record,
             "target_segments": segments,
             "cache_delta": cache_delta,
             "source": str(self.temp_memory_path),
@@ -684,6 +689,21 @@ items, autonomy changes, and canonical event information only."""
                 f"reason {one_line(item['reason'])}"
             )
         if not branch_updates:
+            lines.append("- None.")
+        lines.extend(["", "### Provisional Assumption"])
+        assumption = record.get("assumption_record")
+        if isinstance(assumption, dict) and assumption.get("status") == "provisional":
+            lines.extend([
+                f"- name: {one_line(assumption.get('name'))}",
+                f"- type: {one_line(assumption.get('assumption_type'))}",
+                f"- scope: {one_line(assumption.get('scope'))}",
+                f"- statement: {one_line(assumption.get('statement'))}",
+                f"- procedure: {one_line(assumption.get('procedure'))}",
+                f"- basis: {one_line('; '.join(assumption.get('basis', [])))}",
+                f"- limitations: {one_line('; '.join(assumption.get('limitations', [])))}",
+                f"- review_trigger: {one_line(assumption.get('review_trigger'))}",
+            ])
+        else:
             lines.append("- None.")
         lines.extend(["", "### Branch Discovery"])
         branch_candidates = record.get("branch_candidates", [])

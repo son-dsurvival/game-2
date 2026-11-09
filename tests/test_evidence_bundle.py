@@ -6,6 +6,43 @@ from brain.evidence_bundle import EvidenceBundleBuilder
 
 
 class EvidenceBundleHistoryTests(unittest.TestCase):
+    def test_leaf_bundles_do_not_fall_back_to_full_history_or_terms(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'markdown_files').mkdir()
+            (root / 'markdown_files' / 'game rules (1).md').write_text(
+                '# Rules\n\n## Combat\n' + ('combat rule ' * 5000), encoding='utf-8'
+            )
+            (root / 'markdown_files' / 'TERMS_AND_NOMENCLATURE.md').write_text(
+                '# Terms\n\n## Everything\n' + ('unrelated terminology ' * 5000), encoding='utf-8'
+            )
+            (root / 'brain' / 'state').mkdir(parents=True)
+            (root / 'brain' / 'state' / 'player_prompt_history.txt').write_text(
+                'Day 1 — Early Morning (0% through phase)\n\nPlayer:\n'
+                + ('old unrelated history ' * 5000)
+                + '\n\nGame:\nold result\n', encoding='utf-8'
+            )
+            route = {
+                'turn_id': 'turn-budget',
+                'request_type': 'in_game',
+                'mode': 'combat',
+                'tags': [{'tag': 'activity.combat'}],
+                'required_specialists': ['combat', 'modifier'],
+                'segments': [{'text': 'I punch the monster.', 'tags': ['activity.combat']}],
+                'evidence_requests': [],
+            }
+            bundle = EvidenceBundleBuilder(root).build(
+                route,
+                player_input='I punch the monster.',
+                current_state={'position': {'day': 1}, 'party': [], 'game_cache': {'large': 'x' * 50000}},
+                selector='heuristic',
+            ).to_dict()
+            for name, scoped in bundle['specialist_bundles'].items():
+                self.assertLessEqual(sum(len(section.get('text', '')) for section in scoped['selected_sections']), 14000)
+                self.assertLessEqual(sum(len(str(item.get('text', ''))) for item in scoped['history']), 14000)
+                self.assertNotIn('game_cache', scoped['state'])
+            self.assertNotIn('TERMS_AND_NOMENCLATURE.md', '\n'.join(section['source'] for section in bundle['selected_sections']))
+
     def test_history_is_broken_down_and_scoped_for_specialists(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
