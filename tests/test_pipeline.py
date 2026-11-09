@@ -414,6 +414,33 @@ class PipelineTests(unittest.TestCase):
             review = pipeline.propose_specialist('beast_taming')
             self.assertEqual(review['status'], 'admin_review')
             self.assertEqual(pipeline.approve()['status'], 'open')
+    def test_setup_chat_links_ai_question_to_followup_answer(self):
+        with tempfile.TemporaryDirectory() as root:
+            store = RuntimeStateStore(root)
+            store.save({
+                'play_gate': 'setup_draft',
+                'draft': {
+                    'campaign_id': 'campaign-test', 'characters': [], 'main_character': None,
+                    'mode': 'new_game', 'question': 'identity', 'partial': {},
+                    'conversation': [], 'party_done': False,
+                },
+            })
+            from brain.setup_drafts import SetupDrafts
+            drafts = SetupDrafts(store)
+            drafts.record_chat_input('I want a technical survivor.')
+            drafts.apply_chat({
+                'assistant_message': 'What name and age should the survivor have?',
+                'complete': False,
+                'draft': {},
+            })
+            asked = store.load()['draft']
+            self.assertEqual(asked['question_links'][0]['status'], 'awaiting_answer')
+            self.assertIn('name and age', asked['question_links'][0]['question'])
+            drafts.record_chat_input('Femi, age 25')
+            answered = store.load()['draft']['question_links'][0]
+            self.assertEqual(answered['status'], 'answered')
+            self.assertEqual(answered['answer'], 'Femi, age 25')
+
     def test_setup_chat_persists_player_message_when_model_is_unavailable(self):
         class OfflineChat(ScriptedGame):
             def setup_chat(self, draft, message):

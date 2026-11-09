@@ -117,6 +117,14 @@ class SetupDrafts:
         snapshot.pop('edit_history', None)
         edit_history.append(snapshot)
         draft['edit_history'] = edit_history[-10:]
+        pending_link_id = draft.get('pending_question_link_id')
+        if isinstance(pending_link_id, str):
+            for link in reversed(draft.get('question_links', [])):
+                if isinstance(link, dict) and link.get('id') == pending_link_id and link.get('status') == 'awaiting_answer':
+                    link['answer'] = text
+                    link['status'] = 'answered'
+                    break
+        draft['pending_question_link_id'] = None
         conversation_value = draft.get('conversation')
         conversation: list[dict[str, str]] = conversation_value if isinstance(conversation_value, list) else []
         conversation.append({'role': 'user', 'content': text})
@@ -160,6 +168,22 @@ class SetupDrafts:
         assistant_message = str(response.get('assistant_message', '')).strip()
         if assistant_message:
             conversation.append({'role': 'assistant', 'content': assistant_message})
+
+        draft['pending_question_link_id'] = None
+        if assistant_message and '?' in assistant_message and not response.get('complete'):
+            links_value = draft.get('question_links')
+            question_links = links_value if isinstance(links_value, list) else []
+            link_id = f"setup-chat-{len(question_links) + 1}"
+            question_links.append({
+                'id': link_id,
+                'source': 'setup_chat',
+                'question': assistant_message,
+                'result': response,
+                'answer': None,
+                'status': 'awaiting_answer',
+            })
+            draft['question_links'] = question_links
+            draft['pending_question_link_id'] = link_id
 
         main_hint = response.get('main_character')
         if isinstance(main_hint, str) and main_hint.strip():
