@@ -136,6 +136,27 @@ class CharacterModeTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 drafts.another()
 
+    def test_setup_input_can_be_undone_without_cancelling_the_whole_draft(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = RuntimeStateStore(directory)
+            store.save({'play_gate': 'setup_required'})
+            drafts = SetupDrafts(store)
+            drafts.begin('new_game')
+            drafts.record_chat_input('The wrong name is Kaal.')
+            drafts.apply_chat({
+                'user_message': 'The wrong name is Kaal.',
+                'assistant_message': 'What age is Kaal?',
+                'complete': False,
+                'draft': {'identity': {'name': 'Kaal'}},
+            })
+            self.assertEqual(store.load()['draft']['partial']['identity']['name'], 'Kaal')
+            drafts.undo_last_input()
+            state = store.load()
+            self.assertEqual(state['play_gate'], 'setup_draft')
+            self.assertEqual(state['draft']['partial'], {})
+            self.assertEqual(state['draft']['conversation'], [])
+            self.assertIn('undone', state['message'])
+
 
 if __name__ == '__main__':
     unittest.main()

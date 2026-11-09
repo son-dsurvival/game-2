@@ -93,17 +93,16 @@ A failure stopped the current operation safely. `/retry` restarts that task from
 → opening scene
 ```
 
-The setup review includes class, world, and modifier-creation review. Modifier creation may identify a valid pre-existing modifier, but it does not grant one without evidence.
+The setup review includes class, world, and typed modifier design. Create Stat Modifier and Create Effect Modifier each produce five bounded choices, including no modifier when justified; the player selects before the approved result is persisted.
 
 ## Normal Turn Process
 
 ```text
 player input
-→ Turn Router
-→ Evidence Bundle
-→ Cache Specialist
-→ Rules / Character / Special / Create specialists
-→ optional domain specialists
+→ Turn Router identifies the process and action segments
+→ exact leaf-specialist activation plan
+→ scoped Evidence Bundles
+→ only relevant Rules, Character, and Special leaf instances
 → Coverage Check
 → Lead Resolver
 → dice or clarification continuation when required
@@ -113,7 +112,36 @@ player input
 → saved checkpoint
 ```
 
-The Cache Specialist runs first. The other specialists receive its bounded cache delta. Specialists analyze; the Lead Resolver decides; the Narrator reveals only approved visible information; the Recorder persists temporary session state.
+The category names are organizational boundaries, not automatic model calls. The Turn Router selects only the leaf specialists required by the action and participating characters. Specialists analyze; the Lead Resolver decides; the Narrator reveals only approved visible information; the Recorder persists temporary session state.
+
+### In-World Discussion Process
+
+```text
+player speaks, asks, explains, argues, or plans in-world
+→ Turn Router marks `in_world_discussion`
+→ participating character state
+→ NPC Autonomy, Relationships, Consent, or Cognitive Assistance when relevant
+→ relevant unlocked branch specialist, if any
+→ Lead Resolver resolves the conversation
+→ Narrator presents the response
+```
+
+An in-world discussion does not activate combat, resource, modifier-creation, or Create specialists unless the player commits to an actual action or explicitly requests a design. Discussion routes concrete character leaf specialists rather than the generic Rules, Character, or Special category placeholders.
+
+## Assumption and Initialization Process
+
+```text
+missing mechanism or starting value
+→ Rules or Character specialist reports the gap
+→ player authorizes delegation, such as “you decide”
+→ Assumption & Initialization Wizard creates a bounded provisional record
+→ Lead Resolver applies it only within its declared scope
+→ Recorder stores it in TEMP_MEMORY.md
+→ repeated use triggers Create and Admin Agent audit
+→ player approval and Admin Editor are required for permanent promotion
+```
+
+A provisional rule, starting value, or reward seed is not permanent canon. The Wizard may use an established rule band, a real-world baseline, or the nearest supported comparison, but it must state its basis, limitations, confidence, scope, and review trigger. Existing rules always take priority over an assumption.
 
 ## Explicit Pause and Resume Process
 
@@ -167,34 +195,40 @@ Branch discovery records candidates but does not activate specialists. Only a co
 ## Modifier-Creation Process
 
 ```text
-history / cache / experiments / training
-→ modifier_creation specialist
-→ proposed modifier and group placements
-→ Admin Agent defends every placement
-→ Lead Resolver decides whether the modifier is gained
-→ Recorder stores the approved result
+character history / player design brief / experiments / training
+→ Create Stat Modifier or Create Effect Modifier specialist
+→ exactly five bounded choices, including no modifier when justified
+→ player selects a choice
+→ Rules specialists validate legality and stacking
+→ Lead Resolver confirms the selection
+→ Admin Agent and Admin Editor persist the approved result
 ```
 
-The ordinary `modifier` specialist calculates current action-side modifiers. The `modifier_creation` specialist reviews whether a new reusable Effect Modifier is justified.
+The ordinary Modifier specialist calculates current action-side modifiers. Each character has typed creation specialists: Create Stat Modifier generates five stat choices, while Create Effect Modifier generates five reusable effect choices with evidence, limitations, activation conditions, stacking, and group placement.
 
 ## Specialist and Resolution Responsibilities
 
+The runtime uses core specialist categories with scoped leaf specialists rather than one flat list of equal roles.
+
 | Component | Responsibility |
 | --- | --- |
-| Turn Router | Classifies the request and selects lanes. |
-| Evidence Bundle | Freezes relevant source evidence. |
-| Cache Specialist | Extracts bounded durable context. |
-| Rules Specialist | Analyzes mechanics and task-side calculations. |
-| Character Specialist | Analyzes characters and action-side calculations. |
-| Special Specialist | Monitors unlocked branches. |
-| Create Specialist | Proposes missing specialist scopes. |
-| Modifier Specialist | Calculates current action modifiers. |
-| Modifier Creation Specialist | Proposes reusable effect modifiers and practical group placements. |
-| Lead Resolver | Makes the final mechanical and fictional decision. |
-| Narrator | Converts visible resolution data into player-facing prose. |
-| Recorder | Stores temporary session facts and promotion records. |
+| Evidence Bundle | Selects and freezes only the evidence needed for the current task and specialist. |
+| Rules Category | Owns game mechanics; leaf specialists cover time, resources, difficulty, XP, modifiers, combat, spells, classes, experimentation, and related rule domains. |
+| Character Category | Creates a unique specialist context for each named character, covering voice, reactions, motives, modifiers, relationships, participation, consent, and autonomy. |
+| Special Category | Handles unique unlocked branches such as dungeons, civilizations, religions, technologies, relay systems, factions, and other domains outside ordinary rules or character analysis. |
+| Create Specialist | Audits unlocked branches and new player-character arrivals, then proposes a bounded specialist only for a genuinely recurring uncovered domain. It is a meta-process, not an always-on analysis lane. |
+| Modifier Specialist | Calculates current action-side modifiers. |
+| Create Stat Modifier Specialist | Generates five character-grounded Stat Modifier choices for player selection. |
+| Create Effect Modifier Specialist | Generates five character-grounded Effect Modifier choices with evidence, limitations, activation, stacking, and group placement. |
+| Lead Resolver | Reconciles specialist findings and makes the final mechanical and fictional decision. |
+| Narrator | Converts approved visible resolution data into player-facing prose. |
+| Recorder | Stores temporary session facts, durable memory, and approved promotion records. |
 | Admin Agent | Answers OOC questions and prepares defended edit proposals. |
 | Admin Editor | Applies approved Markdown changes atomically. |
+
+There is no mandatory Cache Specialist. Evidence Bundle selection and Recorder persistence handle context and memory. Legacy cache fields may remain in old records for replay compatibility, but new turns do not require or run a cache specialist.
+
+Each category receives only a scoped Evidence Bundle. Rules receives relevant mechanics and state; each Character specialist receives that character's records and relationships; and each Special specialist receives only the lore, state, rules, and evidence needed by its branch.
 
 ## Markdown File Reference
 

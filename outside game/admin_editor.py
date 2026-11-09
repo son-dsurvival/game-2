@@ -236,9 +236,11 @@ class AdminEditor:
     def _target_path(self, target: str) -> tuple[Path, str | None]:
         campaign = target.startswith("markdown_files/")
         templates = target.startswith("outside game/templates/")
-        if not target.endswith(".md") or not (campaign or templates):
+        technical = target.startswith("brain/")
+        if not target.endswith(".md") or not (campaign or templates or technical):
             return self.root, "target is forbidden"
-        allowed = self.root / ("markdown_files" if campaign else "outside game/templates")
+        allowed_root = "markdown_files" if campaign else "outside game/templates" if templates else "brain"
+        allowed = self.root / allowed_root
         path = (self.root / target).resolve()
         try:
             path.relative_to(allowed.resolve())

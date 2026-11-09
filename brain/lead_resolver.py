@@ -51,7 +51,11 @@ The rules and character specialists are the designated numeric analysts
 when replaying an older route). Only use their validated `calculation`
 contracts for numeric resolution; do not reconstruct numbers from prose
 recommendations. If a required contract for this action is missing or marked
-invalid, do not roll or resolve the outcome. The rules specialist owns the
+invalid, do not roll or resolve the outcome. If `campaign_context.assumption_record`
+is present with status `provisional`, it is a player-authorized temporary
+assumption. Apply it only within its stated scope and limitations, copy it into
+`assumption_record`, and never turn it into permanent canon or a new ability. If
+it is blocked, do not resolve the missing mechanism. The rules specialist owns the
  task-side target: Difficulty, Novelty, Integration, Independence, Field Risk,
 Practice Carryover reduction, Task Value, or opponent Reaction Total. The
 character specialist owns the
@@ -148,6 +152,7 @@ Return JSON only:
   "modifier_changes": [],
   "branch_changes": [],
   "cache_delta": null,
+  "assumption_record": null,
   "visibility": {},
   "mutation_requirements": [],
   "narrative_packet": {
@@ -298,6 +303,9 @@ class LeadResolver:
             campaign_context,
             dice_result,
         )
+        assumption_record = chat_context.get("assumption_record") if isinstance(chat_context, dict) else None
+        if isinstance(assumption_record, dict):
+            result["assumption_record"] = assumption_record
         # Cache is a bounded preprocessor result, not a Lead inference. Carry
         # the validated cache lane forward deterministically.
         cache_result = next(

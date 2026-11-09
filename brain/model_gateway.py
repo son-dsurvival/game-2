@@ -37,9 +37,10 @@ def model_scope(root: Path, metadata: dict[str, Any], transport: Callable[[dict[
     try:
         yield
     except Exception:
-        gateway = ModelGateway(root)
-        for cache_key in scope['calls']:
-            gateway._append({'status': 'invalidated', 'cache_key': cache_key})
+        # A downstream stage failing does not make an otherwise valid, exact
+        # model response stale. The request already contains the relevant
+        # prompt, evidence, and state version; invalidating successful calls
+        # here destroys useful cache entries and makes retries pay again.
         raise
     finally:
         _SCOPES.reset(token)
@@ -119,7 +120,19 @@ class ModelGateway:
             "ollama_host": ollama_host.rstrip("/") if isinstance(ollama_host, str) else None,
         }
         request['endpoint'] = (ollama_host or os.getenv('OLLAMA_HOST', 'http://127.0.0.1:11434')) if provider == 'ollama' else (os.getenv('DEEPSEEK_BASE_URL') or os.getenv('BASE_URL') or 'https://api.deepseek.com')
-        cache_key = self._hash({'request': request, 'stage': stage, 'scope': metadata})
+        # Turn IDs, revisions, and operation IDs identify a journal entry but
+        # do not change the answer. Excluding them lets exact retries and
+        # independently resumable batches reuse a valid response. Campaign and
+        # source/state versions remain part of the key to prevent stale reuse.
+        volatile_metadata = {
+            'turn_id', 'request_id', 'operation_id', 'stage_run_id', 'revision',
+            'run_id',
+        }
+        cache_scope = {
+            key: value for key, value in metadata.items()
+            if key not in volatile_metadata
+        }
+        cache_key = self._hash({'request': request, 'stage': stage, 'scope': cache_scope})
         self._successes = self._load_successes()
         prior = self._successes.get(cache_key)
         if reuse and prior:
@@ -260,8 +273,11 @@ class ModelGateway:
                         record = json.loads(line)
                     except json.JSONDecodeError:
                         continue
-                    if isinstance(record, dict) and record.get('status') == 'invalidated':
-                        successes.pop(str(record.get('cache_key')), None)
+                    # Older runtimes wrote invalidated tombstones whenever a
+                    # downstream stage failed. Those tombstones did not mean
+                    # the exact provider response was bad, so they are ignored
+                    # during migration; request/source versions already guard
+                    # against stale reuse.
                     if (
                         isinstance(record, dict)
                         and record.get("status") == "succeeded"

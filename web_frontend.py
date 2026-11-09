@@ -69,6 +69,7 @@ HTML = r'''<!doctype html>
     form { display:flex; gap:10px; border-top:1px solid var(--line); padding-top:18px; }
     textarea { flex:1; min-height:48px; max-height:160px; resize:vertical; border:1px solid var(--line); border-radius:8px; padding:12px; background:var(--panel); color:var(--text); font:inherit; }
     form button { align-self:stretch; background:var(--accent); color:#07111d; border-color:var(--accent); font-weight:700; text-align:center; min-width:82px; }
+    form button.secondary { background:var(--panel2); color:var(--text); border-color:var(--line); min-width:72px; }
     @media (max-width:700px) { .file-bar { min-height:52px; } .shell { display:block; height:calc(100vh - 52px); } aside { top:52px; height:auto; max-height:44vh; border-right:0; border-bottom:1px solid var(--line); } .actions { grid-template-columns:repeat(2, 1fr); } main { height:56vh; min-height:56vh; } }
   </style>
 </head>
@@ -88,6 +89,7 @@ HTML = r'''<!doctype html>
         <button data-command="/new-game">New game</button>
         <button data-command="/new-character">New character</button>
         <button data-command="/new-party-member">New party member</button>
+        <button data-command="/undo">Undo setup input</button>
         <button data-command="/review">Review</button>
         <button data-command="/next-file">Next file</button>
         <button data-command="/approve">Approve</button>
@@ -101,6 +103,7 @@ HTML = r'''<!doctype html>
       <section id="transcript" aria-live="polite"></section>
       <form id="input-form">
         <textarea id="input" placeholder="Describe what you do, or answer the current question…" autofocus></textarea>
+        <button type="button" class="secondary" id="clear-input">Cancel</button>
         <button type="submit">Send</button>
       </form>
     </main>
@@ -156,6 +159,7 @@ HTML = r'''<!doctype html>
   }
 
   document.querySelector('#input-form').addEventListener('submit', event => { event.preventDefault(); send(input.value); });
+  document.querySelector('#clear-input').addEventListener('click', () => { input.value = ''; input.focus(); });
   input.addEventListener('keydown', event => {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();

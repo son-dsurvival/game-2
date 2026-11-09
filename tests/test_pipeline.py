@@ -233,6 +233,68 @@ class PipelineTests(unittest.TestCase):
             restarted = CampaignPipeline(root, modules=game)
             self.assertEqual(restarted.continue_run()['status'], 'open')
 
+    def test_clarification_answer_remains_linked_to_original_gameplay_result(self):
+        class LinkedQuestionGame(ScriptedGame):
+            def __init__(self):
+                self.seen = []
+
+            def resolve(self, analysis, context, dice=None):
+                self.seen.append(context)
+                if not context['answers']:
+                    return {
+                        'status': 'needs_clarification',
+                        'player_question': {'question': 'Which gate?'},
+                        'candidate_result': {'gate_options': ['north', 'south']},
+                    }
+                return super().resolve(analysis, context, dice)
+
+        with tempfile.TemporaryDirectory() as root:
+            RuntimeStateStore(root).save({'play_gate': 'open', 'campaign_id': 'test'})
+            game = LinkedQuestionGame()
+            pipeline = CampaignPipeline(root, modules=game)
+            self.assertEqual(pipeline.submit('Enter the gate')['question']['question'], 'Which gate?')
+            pipeline.submit('The north gate')
+            continuation = game.seen[-1].get('active_clarification')
+            self.assertIsNotNone(continuation)
+            self.assertEqual(continuation['result']['candidate_result']['gate_options'], ['north', 'south'])
+            self.assertEqual(continuation['answer'], 'The north gate')
+
+    def test_clarification_answer_remains_linked_to_original_setup_result(self):
+        class LinkedSetupGame(ScriptedGame):
+            def __init__(self):
+                self.seen = []
+
+            def prepare_setup(self, context):
+                self.seen.append(context)
+                if not context.get('answers'):
+                    return {
+                        'status': 'needs_clarification',
+                        'player_question': 'Choose one modifier.',
+                        'clarification_result': {
+                            'effect_modifier_options': ['Indexed Recall', 'None'],
+                        },
+                    }
+                return super().prepare_setup(context)
+
+        with tempfile.TemporaryDirectory() as root:
+            Path(root, 'markdown_files').mkdir()
+            Path(root, 'markdown_files/TEMP_MEMORY.md').write_text('before', encoding='utf-8')
+            RuntimeStateStore(root).save({'play_gate': 'setup_required'})
+            game = LinkedSetupGame()
+            pipeline = CampaignPipeline(root, modules=game)
+            pipeline.begin_setup()
+            pipeline.add_character({'name': 'Kael', 'age': 24, 'race': 'Human'},
+                                   {'AGI': 6, 'INT': 6, 'STR': 6, 'END': 5, 'WIS': 4, 'PRE': 3},
+                                   'A frontier hunter.', 'Hunter')
+            pipeline.select_main('Kael')
+            review = pipeline.review_setup()
+            self.assertEqual(review['status'], 'awaiting_clarification')
+            pipeline.submit('Indexed Recall')
+            continuation = game.seen[-1].get('active_clarification')
+            self.assertIsNotNone(continuation)
+            self.assertEqual(continuation['result']['clarification_result']['effect_modifier_options'], ['Indexed Recall', 'None'])
+            self.assertEqual(continuation['answer'], 'Indexed Recall')
+
     def test_pending_event_cannot_be_skipped_by_crossing_its_deadline(self):
         class EventGame(ScriptedGame):
             def resolve(self, analysis, context, dice=None):
@@ -352,6 +414,33 @@ class PipelineTests(unittest.TestCase):
             review = pipeline.propose_specialist('beast_taming')
             self.assertEqual(review['status'], 'admin_review')
             self.assertEqual(pipeline.approve()['status'], 'open')
+    def test_setup_chat_links_ai_question_to_followup_answer(self):
+        with tempfile.TemporaryDirectory() as root:
+            store = RuntimeStateStore(root)
+            store.save({
+                'play_gate': 'setup_draft',
+                'draft': {
+                    'campaign_id': 'campaign-test', 'characters': [], 'main_character': None,
+                    'mode': 'new_game', 'question': 'identity', 'partial': {},
+                    'conversation': [], 'party_done': False,
+                },
+            })
+            from brain.setup_drafts import SetupDrafts
+            drafts = SetupDrafts(store)
+            drafts.record_chat_input('I want a technical survivor.')
+            drafts.apply_chat({
+                'assistant_message': 'What name and age should the survivor have?',
+                'complete': False,
+                'draft': {},
+            })
+            asked = store.load()['draft']
+            self.assertEqual(asked['question_links'][0]['status'], 'awaiting_answer')
+            self.assertIn('name and age', asked['question_links'][0]['question'])
+            drafts.record_chat_input('Femi, age 25')
+            answered = store.load()['draft']['question_links'][0]
+            self.assertEqual(answered['status'], 'answered')
+            self.assertEqual(answered['answer'], 'Femi, age 25')
+
     def test_setup_chat_persists_player_message_when_model_is_unavailable(self):
         class OfflineChat(ScriptedGame):
             def setup_chat(self, draft, message):

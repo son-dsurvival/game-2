@@ -54,6 +54,26 @@ This step extracts intent only and does not select evidence sections.
 """
 
 
+# Per-leaf evidence budgets. These are hard shaping limits for the payload sent
+# to each specialist; they are not limits on the campaign's private records.
+SPECIALIST_BUNDLE_CONTRACTS: dict[str, dict[str, int]] = {
+    "combat": {"max_sections": 8, "max_section_chars": 14000, "max_history_items": 6, "max_history_chars": 9000},
+    "difficulty": {"max_sections": 6, "max_section_chars": 10000, "max_history_items": 4, "max_history_chars": 6000},
+    "modifier": {"max_sections": 6, "max_section_chars": 10000, "max_history_items": 5, "max_history_chars": 7000},
+    "create_stat_modifier": {"max_sections": 7, "max_section_chars": 12000, "max_history_items": 10, "max_history_chars": 14000},
+    "create_effect_modifier": {"max_sections": 8, "max_section_chars": 14000, "max_history_items": 10, "max_history_chars": 14000},
+    "spell": {"max_sections": 7, "max_section_chars": 12000, "max_history_items": 5, "max_history_chars": 7000},
+    "current_state": {"max_sections": 5, "max_section_chars": 8000, "max_history_items": 4, "max_history_chars": 5000},
+    "relationship": {"max_sections": 6, "max_section_chars": 9000, "max_history_items": 6, "max_history_chars": 8000},
+    "npc_autonomy": {"max_sections": 7, "max_section_chars": 10000, "max_history_items": 6, "max_history_chars": 8000},
+    "cognitive_assistance": {"max_sections": 6, "max_section_chars": 10000, "max_history_items": 5, "max_history_chars": 7000},
+    "canon": {"max_sections": 7, "max_section_chars": 12000, "max_history_items": 5, "max_history_chars": 7000},
+    "special": {"max_sections": 8, "max_section_chars": 14000, "max_history_items": 5, "max_history_chars": 7000},
+    "create": {"max_sections": 8, "max_section_chars": 14000, "max_history_items": 8, "max_history_chars": 12000},
+}
+_DEFAULT_BUNDLE_CONTRACT = {"max_sections": 6, "max_section_chars": 10000, "max_history_items": 5, "max_history_chars": 7000}
+
+
 SELECTOR_PROMPT = """You are the Evidence Section Selector for a tabletop campaign.
 
 Select indexed evidence sections that specialists should read. You are given a
@@ -205,6 +225,7 @@ class EvidenceBundleBuilder:
                 deduped_history.append(item)
         history = deduped_history
         history_breakdown = self._break_down_history(history)
+        compact_history = self._compact_history(history_breakdown, max_items=24, max_chars=10000)
         tags: list[str] = []
         for item in record.get("tags", []):
             if isinstance(item, dict) and isinstance(item.get("tag"), str):
@@ -257,7 +278,7 @@ class EvidenceBundleBuilder:
                 action_frames,
                 evidence_note,
                 120 if evidence_note else 180,
-                history=history,
+                history=history_breakdown,
             )
             model_sections, model_gaps, selector_source = self._select_with_model(
                 prompt,
@@ -266,11 +287,13 @@ class EvidenceBundleBuilder:
                 selector,
                 action_frames,
                 evidence_note,
-                history,
+                self._compact_history(history_breakdown, max_items=12, max_chars=6000),
             )
             gaps.extend(model_gaps)
             for node, reason in model_sections:
                 self._add_selection(selected, node, "semantic_selector", reason)
+            for node, reason in self._specialist_required_sections(record, candidates, tags):
+                self._add_selection(selected, node, "specialist_contract", reason)
             self._remove_entity_mismatches(selected, action_frames, gaps)
             selection_source = f"{frame_source}+{selector_source}"
         elif is_admin:
@@ -280,12 +303,13 @@ class EvidenceBundleBuilder:
                 self._add_selection(selected, node, "admin_context", "temporary session state is relevant to administrative review")
             for node, reason in self._admin_required_sections(record, prompt):
                 self._add_selection(selected, node, "admin_requirement", reason)
-            candidates = self._candidate_nodes(prompt, tags, requests, selected, action_frames, evidence_note, 120, history=history)
+            candidates = self._candidate_nodes(prompt, tags, requests, selected, action_frames, evidence_note, 120, history=history_breakdown)
             if selector == "heuristic" or not self._deepseek_api_key():
                 model_sections, model_gaps, selector_source = [], [], "admin_deterministic_selector"
             else:
                 model_sections, model_gaps, selector_source = self._select_with_model(
-                    prompt, record, candidates, selector, action_frames, evidence_note, history
+                    prompt, record, candidates, selector, action_frames, evidence_note,
+                    self._compact_history(history_breakdown, max_items=12, max_chars=6000)
                 )
             gaps.extend(model_gaps)
             for node, reason in model_sections:
@@ -341,11 +365,12 @@ class EvidenceBundleBuilder:
                 history=history,
                 history_breakdown=history_breakdown,
                 current_state=current_state or {},
+                action_frames=action_frames,
                 additional_specialists=additional_specialists,
             ),
             admin_sources=tuple(self._admin_sources(record, prompt)) if is_admin else (),
-            conversation_history=history,
-            history_breakdown=tuple(history_breakdown),
+            conversation_history=compact_history,
+            history_breakdown=tuple(compact_history),
         )
 
     def _read_section_text(self, section: dict[str, Any]) -> str:
@@ -436,8 +461,32 @@ class EvidenceBundleBuilder:
         return result
 
     @staticmethod
+    def _compact_history(
+        history: Iterable[dict[str, Any]], *, max_items: int, max_chars: int
+    ) -> list[dict[str, Any]]:
+        """Return a bounded history view for selectors and specialist bundles."""
+        result: list[dict[str, Any]] = []
+        used = 0
+        for item in history:
+            if not isinstance(item, dict):
+                continue
+            text = str(item.get("text", "")).strip()
+            if not text:
+                continue
+            remaining = max_chars - used
+            if remaining <= 0 or len(result) >= max_items:
+                break
+            if len(text) > remaining:
+                text = text[:remaining].rsplit(" ", 1)[0].strip()
+            if not text:
+                continue
+            result.append({**item, "text": text})
+            used += len(text)
+        return result
+
+    @staticmethod
     def _break_down_history(history: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        """Extract lightweight, source-linked categories without inventing facts."""
+        """Extract bounded source-linked snippets without inventing facts."""
         category_terms = {
             'identity': ('name', 'age', 'race', 'ancestry', 'identity'),
             'background': ('background', 'work', 'engineer', 'trainer', 'family', 'home', 'live'),
@@ -451,22 +500,42 @@ class EvidenceBundleBuilder:
         broken_down: list[dict[str, Any]] = []
         for item in history:
             text = str(item.get('text', ''))
-            lowered = text.casefold()
-            categories = [
-                category for category, terms in category_terms.items()
-                if any(term in lowered for term in terms)
-            ]
-            if not categories:
-                categories = ['context']
-            priority = str(item.get('priority') or 'normal')
-            important = priority == 'foundational' or len(categories) > 1 or any(
-                category in categories for category in ('identity', 'ability', 'system', 'rule_or_constraint', 'decision')
-            )
-            broken_down.append({
-                **item,
-                'categories': categories,
-                'important': important,
-            })
+            # Paragraph-sized excerpts preserve source identity while avoiding
+            # transmission of an entire character document or old transcript.
+            raw_parts = [part.strip() for part in re.split(r'\n{2,}', text) if part.strip()]
+            parts: list[str] = []
+            for part in raw_parts or [text]:
+                if len(part) <= 1200:
+                    parts.append(part)
+                    continue
+                sentences = re.split(r'(?<=[.!?])\s+', part)
+                current = ''
+                for sentence in sentences:
+                    if current and len(current) + len(sentence) + 1 > 1200:
+                        parts.append(current.strip())
+                        current = ''
+                    current = f'{current} {sentence}'.strip()
+                if current:
+                    parts.append(current)
+            for excerpt_index, excerpt in enumerate(parts or [text]):
+                lowered = excerpt.casefold()
+                categories = [
+                    category for category, terms in category_terms.items()
+                    if any(term in lowered for term in terms)
+                ]
+                if not categories:
+                    categories = ['context']
+                priority = str(item.get('priority') or 'normal')
+                important = priority == 'foundational' or len(categories) > 1 or any(
+                    category in categories for category in ('identity', 'ability', 'system', 'rule_or_constraint', 'decision')
+                )
+                broken_down.append({
+                    **item,
+                    'text': excerpt,
+                    'excerpt_index': excerpt_index,
+                    'categories': categories,
+                    'important': important,
+                })
         return broken_down
 
     @staticmethod
@@ -919,20 +988,18 @@ class EvidenceBundleBuilder:
         return {name for name in names if name}
 
     def _temporary_memory_sections(self) -> list[dict[str, Any]]:
-        """Return session memory plus the stable terminology reference.
+        """Return only the compact temporary-memory root when it has content.
 
-        Both are bounded reference sources that specialists should see directly
-        rather than rediscovering through semantic candidate selection.
+        The terminology document is reference infrastructure, not turn evidence;
+        sending every terminology section to every specialist caused large,
+        duplicated bundles. Specialists receive their contracts in prompts and
+        request only the specific rule sections they need.
         """
-        nodes: list[dict[str, Any]] = []
-        for source in (
-            "markdown_files/TEMP_MEMORY.md",
-            "markdown_files/TERMS_AND_NOMENCLATURE.md",
-        ):
-            indexed = self.indexed_sources.get(source)
-            if indexed:
-                nodes.extend(indexed["nodes"])
-        return nodes
+        indexed = self.indexed_sources.get("markdown_files/TEMP_MEMORY.md")
+        if not indexed:
+            return []
+        nodes = indexed.get("nodes", [])
+        return [node for node in nodes if len(node.get("path", [])) <= 1]
 
     def _specialist_bundles(
         self,
@@ -943,6 +1010,7 @@ class EvidenceBundleBuilder:
         history: list[dict[str, Any]] | None = None,
         history_breakdown: list[dict[str, Any]] | None = None,
         current_state: dict[str, Any] | None = None,
+        action_frames: Iterable[dict[str, Any]] = (),
         additional_specialists: Iterable[str] = (),
     ) -> dict[str, dict[str, Any]]:
         """Partition the frozen references so each specialist gets a scoped bundle."""
@@ -959,22 +1027,28 @@ class EvidenceBundleBuilder:
             # Core lanes receive broad but intentional views of the same frozen
             # bundle. The Create Specialist must be able to compare all current
             # scopes before proposing a new branch specialist.
-            "rules": ("rule", "combat", "difficulty", "xp", "time", "resource", "experiment", "terms"),
-            "character": ("character", "status", "relationship", "modifier", "autonomy", "terms"),
-            "special": ("business", "alchemy", "class", "politic", "faction", "relay", "lore", "branch", "registry", "terms"),
+            "rules": ("rule", "combat", "difficulty", "xp", "time", "resource", "experiment"),
+            "character": ("character", "status", "relationship", "modifier", "autonomy"),
+            "special": ("business", "alchemy", "class", "politic", "faction", "relay", "lore", "branch", "registry"),
             "create": (),
-            "resources": ("resource", "mana", "ledger", "status", "spell", "terms"),
-            "time": ("time", "phase", "day", "action", "terms"),
-            "experimentation": ("experiment", "practice", "refinement", "spell", "terms"),
-            "relay": ("relay", "mana", "spell computer", "terms"),
-            "cognitive_assistance": ("ava", "cognitive", "spell computer", "terms"),
-            "modifier": ("resource", "mana", "cost", "modifier", "spell", "terms"),
-            "modifier_creation": ("effect modifier", "repeated", "breakthrough", "training", "experiment", "modifier", "terms"),
-            "spell": ("spell", "magic", "mana", "relay", "cost", "terms"),
-            "difficulty": ("difficulty", "task", "reaction", "opponent", "roll", "experiment", "spell", "terms"),
-            "current_state": ("status", "current", "temporary", "state", "terms"),
+            "combat": ("combat", "attack", "reaction", "action economy", "opponent"),
+            "world": ("world event", "event trigger", "number pool", "event roll", "event tier"),
+            "class": ("class", "class xp", "class progression", "skill"),
+            "consequences": ("consequence", "irreversible", "contested"),
+            "resources": ("resource", "mana", "ledger", "status", "spell"),
+            "time": ("time", "phase", "day", "action"),
+            "experimentation": ("experiment", "practice", "refinement", "spell"),
+            "relay": ("relay", "mana", "spell computer"),
+            "cognitive_assistance": ("ava", "cognitive", "spell computer"),
+            "modifier": ("resource", "mana", "cost", "modifier", "spell"),
+            "create_stat_modifier": ("stat modifier", "stat", "character", "draft"),
+            "create_effect_modifier": ("effect modifier", "repeated", "breakthrough", "training", "experiment", "modifier"),
+            "modifier_creation": ("effect modifier", "repeated", "breakthrough", "training", "experiment", "modifier"),
+            "spell": ("spell", "magic", "mana", "relay", "cost"),
+            "difficulty": ("difficulty", "task", "reaction", "opponent", "roll", "experiment", "spell"),
+            "current_state": ("status", "current", "temporary", "state"),
             "rules": ("rule", "game rules", "terms"),
-            "xp": ("xp", "experience", "practice", "terms"),
+            "xp": ("xp", "experience", "practice"),
         }
         history = history or []
         history_breakdown = history_breakdown or []
@@ -990,6 +1064,8 @@ class EvidenceBundleBuilder:
             'relay': ('position', 'party', 'game_cache', 'answers'),
             'cognitive_assistance': ('position', 'party', 'main_character', 'game_cache', 'answers'),
             'modifier': ('position', 'party', 'draft', 'game_cache', 'answers'),
+            'create_stat_modifier': ('position', 'party', 'draft', 'game_cache', 'answers'),
+            'create_effect_modifier': ('position', 'party', 'draft', 'game_cache', 'answers'),
             'modifier_creation': ('position', 'party', 'draft', 'game_cache', 'answers'),
             'spell': ('position', 'party', 'game_cache', 'answers'),
             'difficulty': ('position', 'party', 'pending_world_event', 'saved_rolls', 'game_cache', 'answers'),
@@ -1008,18 +1084,15 @@ class EvidenceBundleBuilder:
                 branch = BranchRegistry(self.repo_root).entry(name)
                 raw_activation = branch.get("activation_tags", []) if branch else []
                 activation = set(raw_activation if isinstance(raw_activation, list) else [raw_activation])
-            keywords = keyword_map.get(name, (name.replace("_", " "), "terms"))
+            keywords = keyword_map.get(name, (name.replace("_", " "),))
             scoped = []
             for section in sections:
                 text = " ".join(str(section.get(key, "")) for key in ("name", "description", "source", "path", "selected_by", "reasons")).lower()
-                if "terms_and_nomenclature.md" in text or "temp_memory.md" in text:
-                    scoped.append(section)
-                elif any(keyword in text for keyword in keywords):
+                if any(keyword in text for keyword in keywords):
                     scoped.append(section)
                 elif any(tag in text for tag in activation):
                     scoped.append(section)
-            if not scoped:
-                scoped = sections[:]
+            scoped = self._limit_specialist_sections(name, scoped, sections)
             history_keywords = tuple(keywords) + tuple(str(tag).replace('_', ' ') for tag in activation)
             scoped_history = []
             for item in history_breakdown:
@@ -1028,14 +1101,19 @@ class EvidenceBundleBuilder:
                 relevant = any(keyword.casefold() in text for keyword in history_keywords if keyword)
                 if name in {'character', 'create'} and foundational:
                     relevant = True
-                if item.get('important') and foundational and name in {'rules', 'special', 'resources', 'difficulty', 'modifier', 'modifier_creation'}:
+                if item.get('important') and foundational and name in {'rules', 'special', 'resources', 'difficulty', 'modifier', 'modifier_creation', 'create_stat_modifier', 'create_effect_modifier'}:
                     relevant = True
                 if relevant or (not history_breakdown and history):
                     scoped_history.append(item)
-            if not scoped_history and history:
-                scoped_history = history
+            contract = SPECIALIST_BUNDLE_CONTRACTS.get(name, _DEFAULT_BUNDLE_CONTRACT)
+            scoped_history = self._compact_history(
+                scoped_history,
+                max_items=contract["max_history_items"],
+                max_chars=contract["max_history_chars"],
+            )
             state_keys = state_scopes.get(name, ('position', 'party', 'draft', 'answers', 'game_cache'))
-            scoped_state = {key: current_state[key] for key in state_keys if key in current_state}
+            raw_state = {key: current_state[key] for key in state_keys if key in current_state}
+            scoped_state = self._scope_state(name, raw_state, action_frames)
             scoped_ids = {section.get("id") for section in scoped}
             scoped_gaps = []
             for gap in gaps:
@@ -1058,7 +1136,11 @@ class EvidenceBundleBuilder:
                 "selected_sections": scoped,
                 "evidence_gaps": scoped_gaps,
                 "history": scoped_history,
-                "history_breakdown": [item for item in history_breakdown if item.get('history_id') in scoped_history_ids],
+                "history_breakdown": self._compact_history(
+                    [item for item in history_breakdown if item.get('history_id') in scoped_history_ids],
+                    max_items=contract["max_history_items"],
+                    max_chars=contract["max_history_chars"],
+                ),
                 "state": scoped_state,
                 "citation_allowlist": {
                     "evidence_ids": evidence_ids,
@@ -1069,6 +1151,101 @@ class EvidenceBundleBuilder:
             }
         return result
 
+    @staticmethod
+    def _scope_state(
+        specialist: str,
+        state: dict[str, Any],
+        action_frames: Iterable[dict[str, Any]],
+    ) -> dict[str, Any]:
+        """Filter large state collections to entities in the current action."""
+        names: set[str] = set()
+        for frame in action_frames:
+            for key in ("actor", "target"):
+                entity = frame.get(key)
+                if isinstance(entity, dict) and entity.get("name"):
+                    names.add(re.sub(r"[^a-z0-9]+", " ", str(entity["name"]).casefold()).strip())
+            for entity in frame.get("participants", []):
+                if isinstance(entity, dict) and entity.get("name"):
+                    names.add(re.sub(r"[^a-z0-9]+", " ", str(entity["name"]).casefold()).strip())
+
+        result = dict(state)
+        if not names and isinstance(result.get("main_character"), str):
+            names.add(re.sub(r"[^a-z0-9]+", " ", result["main_character"].casefold()).strip())
+        # The old cache is redundant with frozen evidence and Recorder state.
+        # Never transmit it as a full specialist context.
+        result.pop("game_cache", None)
+
+        party = result.get("party")
+        if isinstance(party, list) and names:
+            filtered = []
+            for item in party:
+                if not isinstance(item, dict):
+                    continue
+                identity = item.get("identity", {}) if isinstance(item.get("identity"), dict) else {}
+                candidate = str(item.get("name") or identity.get("name") or "")
+                normalized = re.sub(r"[^a-z0-9]+", " ", candidate.casefold()).strip()
+                if normalized in names:
+                    filtered.append(item)
+            result["party"] = filtered
+        elif isinstance(party, dict) and names:
+            result["party"] = {
+                key: value for key, value in party.items()
+                if re.sub(r"[^a-z0-9]+", " ", str(key).casefold()).strip() in names
+            }
+        elif specialist not in {"character", "current_state", "relationship", "npc_autonomy", "cognitive_assistance"}:
+            result.pop("party", None)
+
+        draft = result.get("draft")
+        if isinstance(draft, dict) and names and specialist not in {"create_stat_modifier", "create_effect_modifier", "create"}:
+            characters = draft.get("characters")
+            if isinstance(characters, list):
+                draft = dict(draft)
+                draft["characters"] = [
+                    item for item in characters
+                    if isinstance(item, dict) and re.sub(
+                        r"[^a-z0-9]+", " ", str((item.get("identity") or {}).get("name", "")).casefold()
+                    ).strip() in names
+                ]
+                result["draft"] = draft
+        return result
+
+    @staticmethod
+    def _limit_specialist_sections(
+        name: str,
+        scoped: list[dict[str, Any]],
+        all_sections: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        """Keep required, relevant sections while enforcing a leaf budget."""
+        contract = SPECIALIST_BUNDLE_CONTRACTS.get(name, _DEFAULT_BUNDLE_CONTRACT)
+        if not scoped:
+            return []
+        ranked = sorted(
+            scoped,
+            key=lambda item: (
+                0 if "routing_requirement" in item.get("selected_by", []) else
+                1 if "semantic_selector" in item.get("selected_by", []) else 2,
+                len(str(item.get("text", ""))),
+                str(item.get("id", "")),
+            ),
+        )
+        limited: list[dict[str, Any]] = []
+        used_chars = 0
+        for section in ranked:
+            if len(limited) >= contract["max_sections"]:
+                break
+            remaining = contract["max_section_chars"] - used_chars
+            if remaining <= 0:
+                break
+            value = dict(section)
+            text = str(value.get("text", ""))
+            if len(text) > remaining:
+                text = text[:remaining].rsplit(" ", 1)[0].strip()
+                value["text"] = text
+                value["evidence_truncated"] = True
+            used_chars += len(text)
+            limited.append(value)
+        return limited
+
     def _node_by_id(self, section_id: Any) -> dict[str, Any] | None:
         if not isinstance(section_id, str):
             return None
@@ -1077,6 +1254,48 @@ class EvidenceBundleBuilder:
                 if node["id"] == section_id:
                     return node
         return None
+
+    def _specialist_required_sections(
+        self,
+        record: dict[str, Any],
+        candidates: list[dict[str, Any]],
+        tags: list[str],
+    ) -> list[tuple[dict[str, Any], str]]:
+        """Seed compact deterministic evidence when the semantic selector is absent."""
+        names = record.get("required_specialists", [])
+        if not isinstance(names, list):
+            return []
+        hints = {
+            "rules": ("game rules", "combat", "action", "validity", "modifier", "time", "resource"),
+            "character": ("status", "character", "relationship", "autonomy", "modifier"),
+            "special": ("world", "branch", "lore", "registry", "dungeon", "technology"),
+            "combat": ("combat", "action", "reaction", "opponent", "attack"),
+            "current_state": ("status", "current", "state", "temporary"),
+            "relationship": ("relationship", "trust", "consent"),
+            "npc_autonomy": ("autonomy", "npc", "companion"),
+            "cognitive_assistance": ("cognitive", "assistance", "relay", "ava"),
+            "create_stat_modifier": ("stat", "modifier", "background", "capability"),
+            "create_effect_modifier": ("effect", "modifier", "experiment", "training"),
+            "spell": ("spell", "magic", "mana"),
+            "difficulty": ("difficulty", "task", "reaction"),
+        }
+        tag_words = {str(tag).replace(".", " ").replace("_", " ") for tag in tags}
+        result: list[tuple[dict[str, Any], str]] = []
+        for name in names:
+            if name in {"cache", "create"}:
+                continue
+            keywords = hints.get(str(name), (str(name).replace("_", " "),))
+            ranked: list[tuple[int, dict[str, Any]]] = []
+            for node in candidates:
+                text = " ".join(str(node.get(key, "")) for key in ("name", "description", "source", "path")).casefold()
+                score = sum(2 for keyword in keywords if keyword.casefold() in text)
+                score += sum(1 for tag in tag_words if tag.casefold() in text)
+                if score:
+                    ranked.append((score, node))
+            ranked.sort(key=lambda item: (-item[0], str(item[1].get("id", ""))))
+            limit = SPECIALIST_BUNDLE_CONTRACTS.get(str(name), _DEFAULT_BUNDLE_CONTRACT)["max_sections"]
+            result.extend((node, f"required by {name} evidence contract") for _score, node in ranked[:limit])
+        return result
 
     def _candidate_nodes(
         self,

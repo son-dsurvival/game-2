@@ -29,14 +29,14 @@ BATCHES: tuple[dict[str, Any], ...] = (
     {
         'id': 'status_identity_stats_derived', 'file': 'status sheet.md',
         'sections': ('Identity', 'Stats', 'Derived Stats'),
-        'specialists': ('rules', 'character', 'class', 'world'),
+        'specialists': ('rules', 'character', 'class', 'world', 'create'),
         'purpose': 'Establish identity, approved base stats, deterministic derived values, and show both XP tracks as current XP / XP required for the next level. At Level 1, Tier 0, use Class XP 0 / 200 and Normal XP 0 / 500.',
     },
     {
         'id': 'status_stat_modifiers', 'file': 'status sheet.md',
         'sections': ('Stat Modifiers',),
-        'specialists': ('rules', 'character', 'modifier_creation'),
-        'purpose': 'Derive only background-supported stat modifiers from demonstrated capabilities.',
+        'specialists': ('rules', 'character', 'create_stat_modifier'),
+        'purpose': 'Generate five character-grounded Stat Modifier choices, including no modifier when justified, for player selection.',
     },
     {
         'id': 'status_class_modifiers', 'file': 'status sheet.md',
@@ -53,8 +53,8 @@ BATCHES: tuple[dict[str, Any], ...] = (
     {
         'id': 'status_effect_modifiers', 'file': 'status sheet.md',
         'sections': ('Effect Modifiers',),
-        'specialists': ('rules', 'character', 'modifier_creation'),
-        'purpose': 'Review earned effect modifiers; a new campaign normally has none.',
+        'specialists': ('rules', 'character', 'create_effect_modifier'),
+        'purpose': 'Generate five character-grounded Effect Modifier choices, including no modifier when justified, for player selection.',
     },
     {
         'id': 'status_equipment', 'file': 'status sheet.md',
@@ -65,8 +65,8 @@ BATCHES: tuple[dict[str, Any], ...] = (
     {
         'id': 'status_modifier_groups', 'file': 'status sheet.md',
         'sections': ('Modifier Groups',),
-        'specialists': ('rules', 'character', 'modifier_creation'),
-        'purpose': 'Review actual modifier-group placements; an empty section is valid and needs no placement.',
+        'specialists': ('rules', 'character', 'create_effect_modifier'),
+        'purpose': 'Review proposed Effect Modifier placements; an empty section is valid and needs no placement.',
     },
     {
         'id': 'ledger_resources', 'file': 'Ledger Resources.md',
@@ -83,8 +83,8 @@ BATCHES: tuple[dict[str, Any], ...] = (
     {
         'id': 'experimentation', 'file': 'Experimentation Register.md',
         'sections': ('Active Experiments', 'Completed Experiments'),
-        'specialists': ('rules', 'modifier_creation'),
-        'purpose': 'Start experiments and earned effect modifiers at an empty baseline.',
+        'specialists': ('rules', 'create_effect_modifier'),
+        'purpose': 'Start experiments and typed Effect Modifier design at an empty baseline.'
     },
     {
         'id': 'temporary_memory', 'file': 'TEMP_MEMORY.md',

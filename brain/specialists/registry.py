@@ -29,7 +29,10 @@ class SpecialistDefinition:
     evidence_requirements: tuple[str, ...] = ()
 
 
-CORE_SPECIALISTS = ("cache", "rules", "character", "special", "create")
+# Core specialists are analysis categories. Evidence Bundle construction and
+# Recorder persistence handle context and memory; there is no mandatory cache
+# specialist. Special is a category that monitors relevant unlocked branches.
+CORE_SPECIALISTS = ("rules", "character", "special")
 
 
 def _core(
@@ -50,10 +53,28 @@ def _core(
     )
 
 
+def _routed(
+    name: str,
+    purpose: str,
+    questions: tuple[str, ...],
+    *,
+    activation_tags: tuple[str, ...] = (),
+) -> SpecialistDefinition:
+    return SpecialistDefinition(
+        name=name,
+        purpose=purpose,
+        questions=questions,
+        activation_tags=activation_tags,
+        mandatory=False,
+        category="special",
+        description=purpose,
+    )
+
+
 SPECIALIST_DEFINITIONS: dict[str, SpecialistDefinition] = {
-    # These five lanes are run for every normal turn. Cache runs first so the
-    # remaining lanes receive the latest compact conversation context. Domain
-    # roles below are retained as unlockable specialists for finer routing.
+    # The three core analysis categories run on every normal turn. Evidence
+    # Bundle construction supplies scoped context; Create remains explicitly
+    # routed when a recurring uncovered domain is detected.
     "cache": _core(
         "cache",
         (
@@ -101,7 +122,7 @@ SPECIALIST_DEFINITIONS: dict[str, SpecialistDefinition] = {
         ),
         activation_tags=("participant.companion", "context.emotional", "mechanic.cognitive_assistance"),
     ),
-    "special": _core(
+    "special": _routed(
         "special",
         (
             "Monitor only branches marked unlocked in the Branch Registry. Use "
@@ -117,19 +138,23 @@ SPECIALIST_DEFINITIONS: dict[str, SpecialistDefinition] = {
         ),
         activation_tags=("activity.business", "context.class_system", "context.factional", "context.relay_system"),
     ),
-    "create": _core(
+    "create": _routed(
         "create",
         (
             "Read the complete rules, current state, character records, world lore, "
-            "and active branch evidence. Propose a new bounded specialist only "
-            "when the game has an uncovered recurring domain, and verify that "
-            "every existing specialist's scope is still up to date. This role "
+            "and active branch evidence. When a branch becomes active or a new "
+            "player character arrives, audit whether the existing Rules, Character, "
+            "and Special categories cover the new recurring domain. Propose a new "
+            "bounded specialist only when a genuinely uncovered recurring domain "
+            "exists, and verify that existing scopes remain current. This role "
             "proposes definitions; it never silently changes canon or executes "
-            "a proposal."
+            "a proposal. A new character normally receives a unique Character "
+            "specialist context, not an unnecessary new global specialist."
         ),
         (
-            "Is any recurring branch insufficiently covered by the current specialists?",
-            "What new specialist name, purpose, questions, and activation tags would safely cover it?",
+            "When a branch is unlocked or a new player character arrives, is an existing category or leaf specialist insufficient?",
+            "Does the new domain need a unique Character specialist context, a Special branch specialist, or only existing coverage?",
+            "What new specialist name, purpose, questions, and activation tags would safely cover a genuinely recurring gap?",
             "Which existing specialist scopes need an update or are already sufficient?",
         ),
     ),
@@ -186,25 +211,53 @@ SPECIALIST_DEFINITIONS: dict[str, SpecialistDefinition] = {
         ("Who is the primary actor and who is actively helping?", "Which exact numeric stat, skill, tool, preparation, teamwork, active-node, assistance, Realistic Approach, resource, cost, and timing modifiers apply?", "What are each participant's Action Values, Main/Sub relationship boost, Sub contribution, and final Team Action Value? Which action-side modifiers apply, which are +0, and which are excluded with a reason?"),
         ("mechanic.resource_cost", "mechanic.cognitive_assistance", "mechanic.spell_creation", "mechanic.difficulty", "mode.combat"),
     ),
-    "modifier_creation": SpecialistDefinition(
-        "modifier_creation",
+    "create_stat_modifier": SpecialistDefinition(
+        "create_stat_modifier",
         (
-            "Review the complete action history, experiments, training, combat adaptation, "
-            "breakthroughs, consumption, and existing modifier ledger to determine "
-            "whether a new reusable Effect Modifier is justified. This specialist "
-            "proposes only evidence-backed modifier candidates; it never grants a "
-            "modifier, changes canon, or replaces Lead Resolver judgment. At new-game "
-            "setup, review the draft and supplied history for valid pre-existing "
-            "evidence, but do not convert a job, stat, item, AI, lore possibility, "
-            "or one-time capability into a modifier. Return no proposal when the "
-            "threshold is not met."
+            "Design character-specific starting or earned Stat Modifier options from the "
+            "character's stated life, demonstrated capability, meaningful practice, and "
+            "the supplied evidence. Return exactly five distinct valid choices when a "
+            "design is requested, including a no-modifier choice when the evidence does "
+            "not justify five positive options. Never grant raw stats, invent history, "
+            "or bypass the universal stat-modifier laws. Each option must state the "
+            "affected stat, major/minor classification, magnitude, evidence, limits, "
+            "growth or conversion rule, and stacking behavior."
         ),
         (
-            "Does the history show repeated meaningful success, a breakthrough, or successful modifier creation?",
-            "Is the proposed effect stable, narrow, reusable, non-duplicative, and supported by action history?",
-            "What exact name, tier, boost domain, description, evidence, and anti-farming boundary should be proposed, or why is no modifier justified?",
+            "Which character evidence supports a Stat Modifier or a no-modifier choice?",
+            "Which stat, major/minor classification, magnitude, limits, and growth rule apply?",
+            "What five distinct options can the player choose from without inventing history or violating tier rules?",
+        ),
+        ("mechanic.modifier_creation", "context.class_system", "activity.training", "stakes.breakthrough"),
+        category="character",
+    ),
+    "create_effect_modifier": SpecialistDefinition(
+        "create_effect_modifier",
+        (
+            "Design character-specific starting or earned reusable Effect Modifier options "
+            "from the character's stated life, demonstrated capability, meaningful practice, "
+            "player-authored design brief, and supplied evidence. Return exactly five "
+            "distinct valid choices when a design is requested, including a no-modifier "
+            "choice when necessary. A player may request something novel; novelty is not "
+            "a violation by itself. Do not grant the modifier or invent history. Every "
+            "option must include activation conditions, limitations, anti-farming boundary, "
+            "stacking behavior, and evidence-backed Modifier Group placement."
+        ),
+        (
+            "What character history, current design brief, or meaningful achievement supports an Effect Modifier?",
+            "Is each effect stable, narrow, reusable, non-duplicative, and compatible with tier and material rules?",
+            "What five distinct options, limitations, activation conditions, placements, and upgrade paths can the player choose from?",
         ),
         ("mechanic.modifier_creation", "activity.experiment", "activity.training", "stakes.breakthrough", "mode.combat"),
+        category="character",
+    ),
+    # Compatibility name for saved routes and old records. New setup and
+    # routing use the two typed character specialists above.
+    "modifier_creation": SpecialistDefinition(
+        "modifier_creation",
+        "Legacy modifier-design compatibility lane; use create_stat_modifier or create_effect_modifier for new work.",
+        ("Which typed modifier designer should handle this request?", "What evidence and rules apply?", "Is a new design justified?"),
+        ("mechanic.modifier_creation",),
         category="character",
     ),
     "spell": SpecialistDefinition(
@@ -309,9 +362,10 @@ for _name in _UNLOCKABLE_SPECIAL_NAMES:
         )
 
 SPECIALIST_GROWTH_NOTE = (
-    "The four core specialists run on every turn. Special specialists are unlocked "
-    "when a recurring lore or player-created branch expands; the Create Specialist "
-    "proposes bounded definitions and checks that existing scopes stay current."
+    "Rules, Character, and Special are the three core analysis categories. "
+    "Create audits new player-character arrivals and unlocked branches for "
+    "genuinely recurring uncovered domains, proposes bounded definitions, and "
+    "checks that existing scopes stay current."
 )
 
 _CREATED_NAME = re.compile(r"^[a-z][a-z0-9_]{1,31}$")
