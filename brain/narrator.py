@@ -14,9 +14,9 @@ import sys
 from pathlib import Path
 from typing import Any
 try:
-    from brain.model_gateway import ModelGateway
+    from brain.state.model_gateway import ModelGateway
 except ModuleNotFoundError:  # Direct execution: python brain/narrator.py
-    from model_gateway import ModelGateway
+    from brain.state.model_gateway import ModelGateway
 
 
 NARRATOR_SYSTEM = """You are the campaign Narrator.

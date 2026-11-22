@@ -1,0 +1,409 @@
+{
+  "character": {
+    "identity": {
+      "name": "Nia",
+      "age": 27,
+      "race": "Human"
+    },
+    "stats": {
+      "AGI": 6,
+      "INT": 6,
+      "STR": 5,
+      "END": 5,
+      "WIS": 4,
+      "PRE": 4
+    },
+    "description": "A patient field naturalist who tracks, calms, and trains injured wild beasts.",
+    "class": "Ranger"
+  },
+  "player_assumption_authorization": "You decide",
+  "trigger": "New named character Nia arrived with a field-naturalist description.",
+  "pipeline_result": {
+    "status": "open",
+    "play_gate": "open",
+    "position": {
+      "day": 1,
+      "phase": "Early Morning",
+      "progress": 0.0
+    },
+    "message": "Nia's description has been converted into a character-scoped specialist context covering her voice, motives, modifiers, relationships, participation, consent, and autonomy.",
+    "turn_id": null,
+    "stage": null,
+    "specialist_proposals": [
+      {
+        "name": "character_nia_identity_behavior",
+        "purpose": "Monitor Nia's identity and behavioral state as a character-scoped specialist. Ground all analysis in this description: A patient field naturalist who tracks, calms, and trains injured wild beasts.",
+        "questions": [
+          "How does this character's description shape voice, reactions, motives, and current status?",
+          "What behavior is established, uncertain, or changing?"
+        ],
+        "activation_tags": [
+          "character.nia",
+          "character_group.identity_behavior"
+        ],
+        "category": "character",
+        "unlockable": false,
+        "sections": [
+          "Voice and Reactions",
+          "Motives and Status"
+        ],
+        "evidence_requirements": [
+          "character description",
+          "character history",
+          "current status records"
+        ],
+        "status": "proposed",
+        "initialization_assumption": {
+          "status": "provisional",
+          "player_authorized": true,
+          "scope": "current_entity",
+          "statement": "For Nia's identity and behavioral state specialist, use the supplied description and approved records as the initial evidence boundary; do not treat missing facts as established history.",
+          "limitations": [
+            "This initializes specialist requirements only.",
+            "It does not grant modifiers, class abilities, relationships, or autonomy facts.",
+            "Missing facts remain evidence requests for later play."
+          ],
+          "persistence": "temporary_memory"
+        }
+      },
+      {
+        "name": "character_nia_stats",
+        "purpose": "Monitor Nia's stats and stat modifiers as a character-scoped specialist. Ground all analysis in this description: A patient field naturalist who tracks, calms, and trains injured wild beasts.",
+        "questions": [
+          "What are this character's core and derived stats?",
+          "Which broad stat-specific modifiers, capacities, and unlocks apply?"
+        ],
+        "activation_tags": [
+          "character.nia",
+          "character_group.stats"
+        ],
+        "category": "character",
+        "unlockable": false,
+        "sections": [
+          "Core Stats",
+          "Derived Stats",
+          "Stat Modifiers"
+        ],
+        "evidence_requirements": [
+          "approved core stats",
+          "derived-stat rules",
+          "stat modifier records"
+        ],
+        "status": "proposed",
+        "initialization_assumption": {
+          "status": "provisional",
+          "player_authorized": true,
+          "scope": "current_entity",
+          "statement": "For Nia's stats and stat modifiers specialist, use the supplied description and approved records as the initial evidence boundary; do not treat missing facts as established history.",
+          "limitations": [
+            "This initializes specialist requirements only.",
+            "It does not grant modifiers, class abilities, relationships, or autonomy facts.",
+            "Missing facts remain evidence requests for later play."
+          ],
+          "persistence": "temporary_memory"
+        }
+      },
+      {
+        "name": "character_nia_actions_effects",
+        "purpose": "Monitor Nia's actions and effect modifiers as a character-scoped specialist. Ground all analysis in this description: A patient field naturalist who tracks, calms, and trains injured wild beasts.",
+        "questions": [
+          "What action patterns and techniques does this character demonstrate?",
+          "Which reusable Effect Modifiers, conditions, limits, and upgrades apply?"
+        ],
+        "activation_tags": [
+          "character.nia",
+          "character_group.actions_effects"
+        ],
+        "category": "character",
+        "unlockable": false,
+        "sections": [
+          "Actions",
+          "Effect Modifiers"
+        ],
+        "evidence_requirements": [
+          "action history",
+          "effect modifier records",
+          "experimentation or training evidence"
+        ],
+        "status": "proposed",
+        "initialization_assumption": {
+          "status": "provisional",
+          "player_authorized": true,
+          "scope": "current_entity",
+          "statement": "For Nia's actions and effect modifiers specialist, use the supplied description and approved records as the initial evidence boundary; do not treat missing facts as established history.",
+          "limitations": [
+            "This initializes specialist requirements only.",
+            "It does not grant modifiers, class abilities, relationships, or autonomy facts.",
+            "Missing facts remain evidence requests for later play."
+          ],
+          "persistence": "temporary_memory"
+        }
+      },
+      {
+        "name": "character_nia_class",
+        "purpose": "Monitor Nia's class and class modifiers as a character-scoped specialist. Ground all analysis in this description: A patient field naturalist who tracks, calms, and trains injured wild beasts.",
+        "questions": [
+          "What class identity, progression, and class rules apply?",
+          "Which class-specific modifiers and class slots are available?"
+        ],
+        "activation_tags": [
+          "character.nia",
+          "character_group.class"
+        ],
+        "category": "character",
+        "unlockable": false,
+        "sections": [
+          "Class",
+          "Class Modifiers"
+        ],
+        "evidence_requirements": [
+          "approved class",
+          "class rules",
+          "class modifier records"
+        ],
+        "status": "proposed",
+        "initialization_assumption": {
+          "status": "provisional",
+          "player_authorized": true,
+          "scope": "current_entity",
+          "statement": "For Nia's class and class modifiers specialist, use the supplied description and approved records as the initial evidence boundary; do not treat missing facts as established history.",
+          "limitations": [
+            "This initializes specialist requirements only.",
+            "It does not grant modifiers, class abilities, relationships, or autonomy facts.",
+            "Missing facts remain evidence requests for later play."
+          ],
+          "persistence": "temporary_memory"
+        }
+      },
+      {
+        "name": "character_nia_social_autonomy",
+        "purpose": "Monitor Nia's social and autonomy as a character-scoped specialist. Ground all analysis in this description: A patient field naturalist who tracks, calms, and trains injured wild beasts.",
+        "questions": [
+          "Which relationships and relationship changes apply?",
+          "What participation, consent, autonomy, and independent behavior rules apply?"
+        ],
+        "activation_tags": [
+          "character.nia",
+          "character_group.social_autonomy"
+        ],
+        "category": "character",
+        "unlockable": false,
+        "sections": [
+          "Relationships",
+          "Participation and Consent",
+          "Autonomy"
+        ],
+        "evidence_requirements": [
+          "relationship records",
+          "participation and consent records",
+          "autonomy records"
+        ],
+        "status": "proposed",
+        "initialization_assumption": {
+          "status": "provisional",
+          "player_authorized": true,
+          "scope": "current_entity",
+          "statement": "For Nia's social and autonomy specialist, use the supplied description and approved records as the initial evidence boundary; do not treat missing facts as established history.",
+          "limitations": [
+            "This initializes specialist requirements only.",
+            "It does not grant modifiers, class abilities, relationships, or autonomy facts.",
+            "Missing facts remain evidence requests for later play."
+          ],
+          "persistence": "temporary_memory"
+        }
+      }
+    ]
+  },
+  "stored_specialist_proposals": [
+    {
+      "name": "character_nia_identity_behavior",
+      "purpose": "Monitor Nia's identity and behavioral state as a character-scoped specialist. Ground all analysis in this description: A patient field naturalist who tracks, calms, and trains injured wild beasts.",
+      "questions": [
+        "How does this character's description shape voice, reactions, motives, and current status?",
+        "What behavior is established, uncertain, or changing?"
+      ],
+      "activation_tags": [
+        "character.nia",
+        "character_group.identity_behavior"
+      ],
+      "category": "character",
+      "unlockable": false,
+      "sections": [
+        "Voice and Reactions",
+        "Motives and Status"
+      ],
+      "evidence_requirements": [
+        "character description",
+        "character history",
+        "current status records"
+      ],
+      "status": "proposed",
+      "initialization_assumption": {
+        "status": "provisional",
+        "player_authorized": true,
+        "scope": "current_entity",
+        "statement": "For Nia's identity and behavioral state specialist, use the supplied description and approved records as the initial evidence boundary; do not treat missing facts as established history.",
+        "limitations": [
+          "This initializes specialist requirements only.",
+          "It does not grant modifiers, class abilities, relationships, or autonomy facts.",
+          "Missing facts remain evidence requests for later play."
+        ],
+        "persistence": "temporary_memory"
+      }
+    },
+    {
+      "name": "character_nia_stats",
+      "purpose": "Monitor Nia's stats and stat modifiers as a character-scoped specialist. Ground all analysis in this description: A patient field naturalist who tracks, calms, and trains injured wild beasts.",
+      "questions": [
+        "What are this character's core and derived stats?",
+        "Which broad stat-specific modifiers, capacities, and unlocks apply?"
+      ],
+      "activation_tags": [
+        "character.nia",
+        "character_group.stats"
+      ],
+      "category": "character",
+      "unlockable": false,
+      "sections": [
+        "Core Stats",
+        "Derived Stats",
+        "Stat Modifiers"
+      ],
+      "evidence_requirements": [
+        "approved core stats",
+        "derived-stat rules",
+        "stat modifier records"
+      ],
+      "status": "proposed",
+      "initialization_assumption": {
+        "status": "provisional",
+        "player_authorized": true,
+        "scope": "current_entity",
+        "statement": "For Nia's stats and stat modifiers specialist, use the supplied description and approved records as the initial evidence boundary; do not treat missing facts as established history.",
+        "limitations": [
+          "This initializes specialist requirements only.",
+          "It does not grant modifiers, class abilities, relationships, or autonomy facts.",
+          "Missing facts remain evidence requests for later play."
+        ],
+        "persistence": "temporary_memory"
+      }
+    },
+    {
+      "name": "character_nia_actions_effects",
+      "purpose": "Monitor Nia's actions and effect modifiers as a character-scoped specialist. Ground all analysis in this description: A patient field naturalist who tracks, calms, and trains injured wild beasts.",
+      "questions": [
+        "What action patterns and techniques does this character demonstrate?",
+        "Which reusable Effect Modifiers, conditions, limits, and upgrades apply?"
+      ],
+      "activation_tags": [
+        "character.nia",
+        "character_group.actions_effects"
+      ],
+      "category": "character",
+      "unlockable": false,
+      "sections": [
+        "Actions",
+        "Effect Modifiers"
+      ],
+      "evidence_requirements": [
+        "action history",
+        "effect modifier records",
+        "experimentation or training evidence"
+      ],
+      "status": "proposed",
+      "initialization_assumption": {
+        "status": "provisional",
+        "player_authorized": true,
+        "scope": "current_entity",
+        "statement": "For Nia's actions and effect modifiers specialist, use the supplied description and approved records as the initial evidence boundary; do not treat missing facts as established history.",
+        "limitations": [
+          "This initializes specialist requirements only.",
+          "It does not grant modifiers, class abilities, relationships, or autonomy facts.",
+          "Missing facts remain evidence requests for later play."
+        ],
+        "persistence": "temporary_memory"
+      }
+    },
+    {
+      "name": "character_nia_class",
+      "purpose": "Monitor Nia's class and class modifiers as a character-scoped specialist. Ground all analysis in this description: A patient field naturalist who tracks, calms, and trains injured wild beasts.",
+      "questions": [
+        "What class identity, progression, and class rules apply?",
+        "Which class-specific modifiers and class slots are available?"
+      ],
+      "activation_tags": [
+        "character.nia",
+        "character_group.class"
+      ],
+      "category": "character",
+      "unlockable": false,
+      "sections": [
+        "Class",
+        "Class Modifiers"
+      ],
+      "evidence_requirements": [
+        "approved class",
+        "class rules",
+        "class modifier records"
+      ],
+      "status": "proposed",
+      "initialization_assumption": {
+        "status": "provisional",
+        "player_authorized": true,
+        "scope": "current_entity",
+        "statement": "For Nia's class and class modifiers specialist, use the supplied description and approved records as the initial evidence boundary; do not treat missing facts as established history.",
+        "limitations": [
+          "This initializes specialist requirements only.",
+          "It does not grant modifiers, class abilities, relationships, or autonomy facts.",
+          "Missing facts remain evidence requests for later play."
+        ],
+        "persistence": "temporary_memory"
+      }
+    },
+    {
+      "name": "character_nia_social_autonomy",
+      "purpose": "Monitor Nia's social and autonomy as a character-scoped specialist. Ground all analysis in this description: A patient field naturalist who tracks, calms, and trains injured wild beasts.",
+      "questions": [
+        "Which relationships and relationship changes apply?",
+        "What participation, consent, autonomy, and independent behavior rules apply?"
+      ],
+      "activation_tags": [
+        "character.nia",
+        "character_group.social_autonomy"
+      ],
+      "category": "character",
+      "unlockable": false,
+      "sections": [
+        "Relationships",
+        "Participation and Consent",
+        "Autonomy"
+      ],
+      "evidence_requirements": [
+        "relationship records",
+        "participation and consent records",
+        "autonomy records"
+      ],
+      "status": "proposed",
+      "initialization_assumption": {
+        "status": "provisional",
+        "player_authorized": true,
+        "scope": "current_entity",
+        "statement": "For Nia's social and autonomy specialist, use the supplied description and approved records as the initial evidence boundary; do not treat missing facts as established history.",
+        "limitations": [
+          "This initializes specialist requirements only.",
+          "It does not grant modifiers, class abilities, relationships, or autonomy facts.",
+          "Missing facts remain evidence requests for later play."
+        ],
+        "persistence": "temporary_memory"
+      }
+    }
+  ],
+  "checks": {
+    "new_character_present": true,
+    "five_character_specialists_stored": true,
+    "proposal_is_not_auto_installed": true,
+    "proposals_have_safe_scope": true,
+    "assumptions_are_provisional": true
+  },
+  "status": "passed"
+}

@@ -70,11 +70,5 @@ Description:
 ### Effect Modifiers
 {check Effect modifier template}
 
-### Modifier Groups
-
-Each group lists the party members and the modifiers that may practically contribute to that action. Modifiers may appear in multiple groups when each placement is separately defended by the Admin Agent. Modifiers within a group may stack unless an exclusion rule is recorded.
-
-{check modifier groups template}
-
 ### Equipment
 {check Equipment modifier template}

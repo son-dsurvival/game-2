@@ -10,229 +10,127 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from contextvars import copy_context
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 try:
     from .registry import (
-        CORE_SPECIALISTS,
         SPECIALIST_DEFINITIONS,
         SpecialistDefinition,
         get_specialist,
         validate_created_definition,
     )
-    from brain.branch_registry import BranchRegistry
-    from brain.branch_discovery import BranchDiscovery
-    from brain.model_gateway import ModelGateway
+    from brain.specialists.branch_registry import BranchRegistry
+    from brain.specialists.branch_discovery import BranchDiscovery
+    from brain.state.model_gateway import ModelGateway
     from .calculation_contract import CalculationContractError, validate_calculation
 except ImportError:  # Direct execution: python brain/specialists/runner.py
     from registry import (
-        CORE_SPECIALISTS,
         SPECIALIST_DEFINITIONS,
         SpecialistDefinition,
         get_specialist,
         validate_created_definition,
     )
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-    from brain.branch_registry import BranchRegistry
-    from brain.branch_discovery import BranchDiscovery
-    from brain.model_gateway import ModelGateway
+    from brain.specialists.branch_registry import BranchRegistry
+    from brain.specialists.branch_discovery import BranchDiscovery
+    from brain.state.model_gateway import ModelGateway
     from calculation_contract import CalculationContractError, validate_calculation
+
+from brain.specialists.modifier_contract import validate_magnitude
 
 
 SPECIALIST_PROMPT = """You are the {specialist_name} Specialist in an evidence-backed game runtime.
 
-Your bounded purpose:
+## Scope
+Your purpose is:
 {purpose}
 
 Answer only these questions:
 {questions}
 
-The Evidence Bundle contains references selected for this turn. The excerpts
-below are the read-only source sections you are allowed to inspect. Do not use
-unstated campaign memory or invent facts. However, treat facts and premises
-stated by the player as provisional canon for this turn when they are plausible
-and do not contradict established evidence. Do not demand a Markdown citation
-merely because the player supplied the fact directly. Report a contradiction
-only when established evidence actually conflicts with it.
+Use only the Evidence Bundle, scoped history, scoped state, and player input in
+this request. They are read-only. Do not use unstated campaign memory, invent
+facts, resolve the final outcome, roll dice, mutate files, change resources, or
+create permanent canon. Treat plausible player-provided facts as provisional
+for this request, but report contradictions with established evidence.
 
-The user payload includes a `citation_allowlist` containing the exact evidence
-and history IDs supplied to this specialist. Cite only IDs in that allowlist.
-Never reconstruct IDs from file paths, headings, or line ranges. A history entry
-must use its exact `history_id`; a campaign excerpt must use its exact
-`evidence_id`.
+## Evidence discipline
+- Cite only evidence_id or history_id values in citation_allowlist.
+- Never reconstruct citations from paths, headings, or line ranges.
+- Keep evidence requests specific to the missing fact or rule.
+- Do not repeat the transcript or unrelated evidence in findings.
+- Return only work owned by this specialist; do not answer another lane's questions.
 
-For the rules specialist (or the legacy difficulty specialist), calculate
-any required task-side target: experiment tier, Difficulty, Novelty, Integration,
-Independence, Field Risk, Practice Carryover, and Task Value or Reaction Total.
-Do not calculate Action Value in that lane. For the character specialist (or the
-legacy modifier specialist), calculate any required action-side components:
-relevant stats, skills, tools,
-preparation, assistance, Realistic Approach, Practice Carryover on Action, and
-resource/time/cost modifiers. Select one positive numeric Realistic Approach
-value from the applicable tier band; never leave it at zero for a valid action.
-For a spell, mana action, magical attack, or
-magical shield/block, use the INT/WIS mental-magic stat basis and inspect the
-Status Sheet Modifier Index for matching intelligence, Wisdom, mana, spell,
-concentration, systems, and flow modifiers. Do not use STR/END merely because
-the word 'block' appears; use physical STR/END only for a genuinely physical
-block. For cooperative actions, identify the Main (lead character) and each Sub.
-Calculate each participant's own Action Value, then apply the Collaborative
-Action / Team Action Value rule: Main Action + Σ(relationship boost between Sub
-and Main × Sub Action). In noncombat the relationship boost applies once. Read
-relationship tiers from the relationship record; do not replace this formula
-with a flat teamwork bonus or averaged stats. If Main/Sub roles are unclear,
-request clarification. Shared network effects such as Telepathy, Linked
-Cognition, Network Awareness, and Cognitive Relay are separate action-side
-modifiers when their scopes match. If the player explicitly says linked
-characters are working together and the helper has a real role, they do not
-require separate activation. Intent Weaving remains separately activated. Do
-not average character stats unless a rule requires it. Do not calculate the
-final Task Value or Reaction Total. Infer
-values from the player's declared action, procedure, setting, participants,
-and the rules. Do not mark all components unresolved merely because the player
-did not name the numbers. Use +0 when the rules support no factor, such as a
-safely reversible attempt or direct mentor correction, but list every excluded
-teamwork modifier and explain why it is excluded. Ask for clarification only
-when the action is materially contradictory or genuinely lacks the information
-needed to choose between materially different resolutions.
-
-Do not resolve the final outcome, roll dice, mutate files, change resources,
-create permanent canon, or override another specialist.
-
-Return JSON only in this shape:
+## Shared output contract
+Return JSON only:
 {{
   "specialist": "{specialist_name}",
   "status": "complete|blocked|needs_evidence",
-  "citations": [
-    {{"evidence_id": "...", "claim": "..."}}
-  ],
+  "citations": [{{"evidence_id": "...", "claim": "..."}}],
   "applicable_rules": [],
   "excluded_rules": [],
   "findings": [],
   "assumptions": [],
   "evidence_requests": [],
   "conflicts": [],
-  "recommendation": null,
-  "calculation": null,
-  "world_event": null,
-  "cache_delta": null,
-  "created_specialists": [],
-  "stat_modifier_options": [],
-  "effect_modifier_options": []
+  "recommendation": null
 }}
 
-For the rules or difficulty specialist when a numeric task target is needed, calculation must be:
-{{
-  "kind": "difficulty",
-  "target_type": "Task Value|Reaction Total",
-  "tier": 0,
-  "components": {{"difficulty": 0, "novelty": 0, "integration": 0, "independence": 0, "field_risk": 0, "practice_carryover": 0}},
-  "reaction_reference": 0,
-  "total": 0,
-  "formula": "..."
-}}
-
-For the character or modifier specialist when a numeric action value is needed, calculation must be:
-{{
-  "kind": "modifier",
-  "action_type": "physical|magical|spell|mana|social|other",
-  "stat_formula": "...",
-  "components": [{{"name": "...", "value": 0, "included": true, "reason": "..."}}],
-  "realistic_approach": 0,
-  "action_value_before_d20": 0,
-  "participants": [],
-  "team_action": null
-}}
-
-Recommendations are advisory findings for the Lead Resolver, never final outcomes.
-For the cache specialist, include a `cache_delta` object with these lists:
-`durable_facts`, `active_threads`, `pending_commitments`, `unresolved_questions`,
-and `expiring_facts`. Each entry must include a concise value and its source
-turn or evidence reference. Mark facts as new, confirmed, superseded, or
-expired when applicable. Do not copy the entire transcript into the cache.
-
-For the world specialist, when a new world event is generated, include a
-`world_event` object with `roll`, `selected_trigger`, `pool_adjustments`,
-`event_tier`, `generated_event`, `encounter_condition`, and `latest_phase`.
-`encounter_condition` must state the condition that makes the encounter occur
-or become available. `latest_phase` must state the final phase in which that
-encounter can occur. If the roll selects Nothing or no event is being generated,
-`world_event` may be null. Do not put an event proposal only in free-form text.
-When asked to prepare a world pool (new-game setup or day-end review), also
-return `world_pool`: an object mapping trigger names to explicit integer lists
-whose union is 1–100 with no duplicates. Use established rules and state, not
-the example pool blindly. A supplied frozen pool must not be modified after its
-roll is known.
-
-For `create_stat_modifier`, review the character draft, stated life, demonstrated
-capabilities, supplied history, and stat-modifier rules. When a design is requested,
-return exactly five `stat_modifier_options`. Each option must include `name`,
-`stat`, `major_or_minor`, `magnitude`, `description`, `evidence`, `limitations`,
-`growth_or_conversion_rule`, and `stacking`. Include a no-modifier option instead
-of inventing evidence. Do not award a choice; the player selects and Lead Resolver
-confirms it.
-
-For `create_effect_modifier`, review the character draft, stated life, player design
-brief, supplied history, experimentation records, and effect-modifier rules. When a
-design is requested, return exactly five `effect_modifier_options`. Each option must
-include `name`, `tier`, `description`, `boost_domain`, `evidence`,
-`activation_conditions`, `limitations`, `anti_farming_boundary`, `stacking`, and
-`placements`. Each placement must contain `group`, `use_in_group`,
-`activation_conditions`, `limitations`, `stacking`, `evidence`, and
-`placement_reason`. A novel player-authored design is allowed when compatible with
-rules. Include a no-modifier option instead of inventing history. Do not award the
-choice; the player selects and Lead Resolver confirms it.
-
-The legacy `modifier_creation` name is compatibility-only and should not be used for
-new setup batches.
-
-For the create specialist, include a `created_specialists` list only for safe,
-recurring uncovered branches. Each item must contain `name` (lowercase snake
-case), `purpose`, `questions`, and `activation_tags`; it may also contain a safe
-Markdown `template`, bounded `sections`, and `evidence_requirements` that define
-how the branch is broken into readable records. Proposals are reviewed by
-Python and are not automatically written to the backend. Also list any existing
-specialist whose scope needs updating in `findings` rather than silently editing
-it. Use the supplied `branch_discovery` report: lore-only candidates are not
-established branches; recurring active evidence may justify a proposal, but it
-still requires Lead Resolver confirmation and approval.
-For rules/character numeric analysis (and legacy difficulty/modifier roles),
-put the evidence-backed numeric calculation in recommendation, including each
-component, formula, units, and whether a value is exact, bounded, zero, or unresolved. Derive numbers from
-player-declared facts and the rules. When a rules band applies and the action is
-otherwise clear, choose one numeric value and explain the choice; do not defer
-that choice to the Lead Resolver. Use a supported zero when appropriate, and
-reserve ranges/unresolved values for genuine contradiction or material
-ambiguity. Every factual finding must cite one of the supplied evidence sections or
-player history entries. Cite only the supplied evidence_id or history_id; do
-not cite file paths or line ranges. Keep findings concise and keep the complete
-JSON response compact; escape quotation marks inside string values.
+Use concise findings. Recommendations are advisory handoffs, never final
+outcomes. Add a specialist-specific field only when the task contract below
+requires it.
 """
-
 
 class SpecialistRunner:
     def __init__(self, repo_root: str | Path = "."):
         self.repo_root = Path(repo_root).resolve()
 
+    @staticmethod
+    def _specialist_contract(definition: SpecialistDefinition) -> dict[str, Any]:
+        """Return the complete registry-owned contract for one specialist."""
+        return {
+            "name": definition.name,
+            "category": definition.category,
+            "purpose": definition.purpose,
+            "questions": list(definition.questions),
+            "task_prompt": definition.task_prompt,
+            "activation_tags": list(definition.activation_tags),
+            "sections": list(definition.sections),
+            "evidence_requirements": list(definition.evidence_requirements),
+        }
+
+    @classmethod
+    def _system_prompt(cls, definition: SpecialistDefinition) -> str:
+        task_prompt = definition.task_prompt or (
+            "No additional task contract is defined. Follow the purpose and questions "
+            "only; do not perform another specialist's work."
+        )
+        return SPECIALIST_PROMPT.format(
+            specialist_name=definition.name,
+            purpose=definition.purpose,
+            questions="\n".join(f"- {question}" for question in definition.questions),
+        ) + (
+            "\n\n## Registry-owned specialist contract\n"
+            "This contract is authoritative for this specialist.\\n"
+            f"Category: {definition.category}\\n"
+            f"Owned sections: {', '.join(definition.sections) or 'none specified'}\\n"
+            f"Evidence requirements: {', '.join(definition.evidence_requirements) or 'none specified'}\n"
+            "Task rules:\n" + task_prompt + "\n"
+            "Do not infer permissions or duties from another specialist's contract."
+        )
+
     def run(
         self,
         bundle_record: dict[str, Any],
         specialist_names: list[str],
-        *,
-        mandatory_specialists: Iterable[str] | None = None,
     ) -> dict[str, Any]:
         bundle = bundle_record.get("evidence_bundle", bundle_record)
-        # Normal turns retain the small mandatory core. Setup batches pass an
-        # explicit empty tuple so they run only their declared specialists;
-        # this keeps independent resumable batches from paying for unrelated
-        # lanes.
-        mandatory = list(dict.fromkeys(
-            CORE_SPECIALISTS if mandatory_specialists is None else
-            [str(name) for name in mandatory_specialists if str(name)]
-        ))
+        # Every caller must declare the specialists for its own scoped task.
+        # There is no implicit core lane; this prevents unrelated specialists
+        # from receiving evidence or running by default.
         names = list(dict.fromkeys(
-            name for name in [*mandatory, *(specialist_names or [])]
-            if name != "cache"
+            name for name in (specialist_names or [])
+            if name not in {"cache", "rules", "character"}
         ))
         branch_discovery = BranchDiscovery(self.repo_root).discover(bundle_record)
         current_turn_candidates = [
@@ -289,10 +187,8 @@ class SpecialistRunner:
             return definition, section_inputs, section_gaps, local_bundle
 
         prepared = [prepare(definition) for definition in definitions]
-        # Core categories and routed leaf specialists run against their own
-        # scoped bundles and are collected in route order for deterministic
-        # replay. Memory is supplied by Evidence Bundle/Recorder state rather
-        # than a mandatory cache specialist.
+        # Run only the explicitly requested specialists against their scoped
+        # bundles, preserving caller order for deterministic replay.
         results_by_name: dict[str, dict[str, Any]] = {}
         cache_prepared = None
         if cache_prepared is not None:
@@ -335,7 +231,6 @@ class SpecialistRunner:
         ]
         return {
             "turn_id": bundle_record.get("turn_id", bundle.get("turn_id")),
-            "mandatory_specialists": mandatory,
             "action_frames": bundle.get("action_frames", []),
             "selected_sections": sections,
             "evidence_gaps": bundle.get("evidence_gaps", []),
@@ -391,6 +286,7 @@ class SpecialistRunner:
                 template=str(entry.get("template")) if entry.get("template") else None,
                 sections=tuple(str(section) for section in sections[:12]),
                 evidence_requirements=tuple(str(item) for item in evidence[:12]),
+                branch=name,
             )
 
     def _run_one(
@@ -430,8 +326,11 @@ class SpecialistRunner:
                 "process_type": bundle_record.get("process_type", "action"),
                 "tags": bundle_record.get("tags", []),
                 "required_specialists": bundle_record.get("required_specialists", []),
+                "setup_batch_id": bundle_record.get("setup_batch_id"),
+                "setup_policy": bundle_record.get("setup_policy", {}),
             },
             "specialist": definition.name,
+            "specialist_contract": self._specialist_contract(definition),
             "evidence_sections": model_evidence_sections,
             "citation_allowlist": bundle.get("citation_allowlist", {}),
             "admin_request": bundle_record.get("admin_request", {}),
@@ -450,11 +349,7 @@ class SpecialistRunner:
         messages = [
             {
                 "role": "system",
-                "content": SPECIALIST_PROMPT.format(
-                    specialist_name=definition.name,
-                    purpose=definition.purpose,
-                    questions="\n".join(f"- {question}" for question in definition.questions),
-                ),
+                "content": self._system_prompt(definition),
             },
             {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
         ]
@@ -491,6 +386,8 @@ class SpecialistRunner:
             section_inputs,
             history=scoped_history if isinstance(scoped_history, list) else [],
             citation_allowlist=bundle.get("citation_allowlist"),
+            setup_batch_id=bundle_record.get("setup_batch_id"),
+            setup_policy=bundle_record.get("setup_policy", {}),
         )
 
     def _read_selected_sections(
@@ -546,9 +443,13 @@ class SpecialistRunner:
         *,
         history: list[dict[str, Any]] | None = None,
         citation_allowlist: dict[str, Any] | None = None,
+        setup_batch_id: str | None = None,
+        setup_policy: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         if not isinstance(result, dict):
             raise RuntimeError(f"Specialist {definition.name} did not return an object")
+        def supplied(value: Any) -> bool:
+            return value is not None and value != "" and value != [] and value != {}
         if result.get("specialist") != definition.name:
             raise RuntimeError(f"Specialist identity mismatch for {definition.name}")
         if result.get("status") not in {"complete", "blocked", "needs_evidence"}:
@@ -615,48 +516,167 @@ class SpecialistRunner:
         if definition.name in {"create_stat_modifier", "create_effect_modifier"} and result.get("status") == "complete":
             field = "stat_modifier_options" if definition.name == "create_stat_modifier" else "effect_modifier_options"
             options = result.get(field)
-            if not isinstance(options, list) or len(options) != 5:
+            if definition.name == "create_stat_modifier":
+                # Stat design is three choices per eligible stat slot, not three total
+                # choices across the character. This lets a player compare three
+                # low/high-basis directions for each justified stat opportunity.
+                if not isinstance(options, list) or not options:
+                    result["status"] = "needs_evidence"
+                    result.setdefault("conflicts", []).append({
+                        "type": "invalid_modifier_option_count",
+                        "field": field,
+                        "expected": "three options for each eligible stat slot",
+                        "actual": len(options) if isinstance(options, list) else None,
+                        "reason": "Stat modifier design must provide three choices per eligible stat slot.",
+                    })
+                else:
+                    required = ("name", "stat", "tier", "breadth", "basis_level", "major_or_minor", "magnitude", "description", "evidence", "limitations", "growth_or_conversion_rule")
+                    invalid = [
+                        index for index, option in enumerate(options)
+                        if not isinstance(option, dict) or any(not supplied(option.get(key)) for key in required)
+                        or (isinstance(option, dict) and option.get("breadth") != "broad_stat_domain")
+                        or (isinstance(option, dict) and option.get("basis_level") not in {"high", "low", "assumed_low"})
+                    ]
+                    magnitude_invalid = [
+                        index for index, option in enumerate(options)
+                        if isinstance(option, dict)
+                        and not any(not supplied(option.get(key)) for key in ("tier", "magnitude"))
+                        and validate_magnitude(option.get("magnitude"), option.get("tier"))
+                    ]
+                    if magnitude_invalid:
+                        result.setdefault("conflicts", []).append({
+                            "type": "modifier_magnitude_out_of_tier",
+                            "field": field,
+                            "options": magnitude_invalid,
+                            "reason": "Each modifier magnitude must fit the universal tier band.",
+                        })
+                        invalid.extend(magnitude_invalid)
+                    groups: dict[str, int] = {}
+                    order: list[str] = []
+                    for option in options:
+                        if isinstance(option, dict) and option.get("stat"):
+                            stat = str(option["stat"]).strip().upper()
+                            groups[stat] = groups.get(stat, 0) + 1
+                            if not order or order[-1] != stat:
+                                order.append(stat)
+                    wrong_groups = {stat: count for stat, count in groups.items() if count != 3}
+                    if len(order) != len(groups):
+                        result.setdefault("conflicts", []).append({
+                            "type": "non_contiguous_modifier_option_groups",
+                            "field": field,
+                            "reason": "Options for each stat must be grouped contiguously.",
+                        })
+                        invalid.append(-1)
+                    if wrong_groups:
+                        result.setdefault("conflicts", []).append({
+                            "type": "invalid_modifier_option_group_count",
+                            "field": field,
+                            "groups": wrong_groups,
+                            "expected": 3,
+                            "reason": "Each eligible stat slot must have exactly three choices.",
+                        })
+                        invalid.append(-1)
+                    if invalid:
+                        result["status"] = "needs_evidence"
+                        result.setdefault("conflicts", []).append({
+                            "type": "incomplete_modifier_options",
+                            "field": field,
+                            "options": sorted(set(invalid)),
+                            "reason": "Every stat choice needs bounded mechanics, basis labeling, and evidence.",
+                        })
+            elif setup_batch_id == 'status_effect_modifiers' and (not isinstance(options, list) or len(options) != 10):
+                result["status"] = "needs_evidence"
+                result.setdefault("conflicts", []).append({
+                    "type": "invalid_modifier_option_count",
+                    "field": field,
+                    "expected": 10,
+                    "actual": len(options) if isinstance(options, list) else None,
+                    "reason": "Starting Effect Modifier design must provide ten choices from which the player selects three.",
+                })
+            elif setup_batch_id != 'status_effect_modifiers' and (not isinstance(options, list) or len(options) != 5):
                 result["status"] = "needs_evidence"
                 result.setdefault("conflicts", []).append({
                     "type": "invalid_modifier_option_count",
                     "field": field,
                     "expected": 5,
                     "actual": len(options) if isinstance(options, list) else None,
-                    "reason": "Typed modifier design must return exactly five player choices.",
+                    "reason": "Effect modifier design must return exactly five player choices.",
                 })
             else:
-                required = (
-                    ("name", "stat", "major_or_minor", "magnitude", "description", "evidence", "limitations", "growth_or_conversion_rule", "stacking")
-                    if definition.name == "create_stat_modifier" else
-                    ("name", "tier", "description", "boost_domain", "evidence", "activation_conditions", "limitations", "anti_farming_boundary", "stacking", "placements")
-                )
+                setup_effect = setup_batch_id == 'status_effect_modifiers'
+                required = (("name", "basis_level", "tier", "magnitude", "description", "boost_domain", "evidence", "activation_conditions", "limitations", "anti_farming_boundary", "stacking", "placements") if setup_effect else ("name", "tier", "magnitude", "description", "boost_domain", "evidence", "activation_conditions", "limitations", "anti_farming_boundary", "stacking", "placements"))
                 invalid = [
                     index for index, option in enumerate(options)
-                    if not isinstance(option, dict) or any(not option.get(key) for key in required)
+                    if not isinstance(option, dict) or any(not supplied(option.get(key)) for key in required)
                 ]
+                magnitude_invalid = [
+                    index for index, option in enumerate(options)
+                    if isinstance(option, dict)
+                    and not any(not supplied(option.get(key)) for key in ("tier", "magnitude"))
+                    and validate_magnitude(option.get("magnitude"), option.get("tier"))
+                ]
+                if magnitude_invalid:
+                    invalid.extend(magnitude_invalid)
+                    result.setdefault("conflicts", []).append({
+                        "type": "modifier_magnitude_out_of_tier",
+                        "field": field,
+                        "options": magnitude_invalid,
+                        "reason": "Each modifier magnitude must fit the universal tier band.",
+                    })
                 if invalid:
                     result["status"] = "needs_evidence"
                     result.setdefault("conflicts", []).append({
                         "type": "incomplete_modifier_options",
                         "field": field,
                         "options": invalid,
-                        "reason": "Every modifier choice needs bounded mechanics and evidence.",
+                        "reason": "Every effect choice needs bounded mechanics and evidence.",
                     })
-                elif definition.name == "create_effect_modifier":
-                    placement_fields = ("group", "use_in_group", "activation_conditions", "limitations", "stacking", "evidence", "placement_reason")
-                    invalid_placements = [
-                        index for index, option in enumerate(options)
-                        for placement in option.get("placements", [])
-                        if not isinstance(placement, dict) or any(not placement.get(key) for key in placement_fields)
-                    ]
-                    if invalid_placements:
-                        result["status"] = "needs_evidence"
-                        result.setdefault("conflicts", []).append({
-                            "type": "incomplete_modifier_group_placements",
-                            "field": field,
-                            "options": invalid_placements,
-                            "reason": "Every effect choice placement needs use, limits, stacking, evidence, and rationale.",
-                        })
+                else:
+                    # Effect Modifiers are self-contained records. Their
+                    # activation, scope, limitations, and stacking rules are
+                    # validated on the option itself; no second Modifier Group
+                    # placement taxonomy is required.
+                    pass
+        if definition.name == "class" and setup_batch_id == "status_class_modifiers" and result.get("status") == "complete":
+            options = result.get("class_modifier_options")
+            required = ("slot", "name", "class", "tier", "basis_level", "magnitude", "description", "evidence", "activation_conditions", "limitations")
+            invalid = []
+            magnitude_invalid = []
+            groups: dict[str, int] = {}
+            order: list[str] = []
+            if not isinstance(options, list) or not options:
+                invalid.append(-1)
+            else:
+                for index, option in enumerate(options):
+                    if not isinstance(option, dict) or any(not supplied(option.get(key)) for key in required):
+                        invalid.append(index)
+                        continue
+                    magnitude_error = validate_magnitude(option.get("magnitude"), option.get("tier"))
+                    if magnitude_error:
+                        magnitude_invalid.append(index)
+                        invalid.append(index)
+                    slot = str(option.get("slot"))
+                    groups[slot] = groups.get(slot, 0) + 1
+                    if not order or order[-1] != slot:
+                        order.append(slot)
+                if any(count != 5 for count in groups.values()) or len(order) != len(groups):
+                    invalid.append(-1)
+            if magnitude_invalid:
+                result.setdefault("conflicts", []).append({
+                    "type": "modifier_magnitude_out_of_tier",
+                    "field": "class_modifier_options",
+                    "options": sorted(set(magnitude_invalid)),
+                    "reason": "Each modifier magnitude must fit the universal tier band.",
+                })
+            if invalid:
+                result["status"] = "needs_evidence"
+                result.setdefault("conflicts", []).append({
+                    "type": "invalid_class_modifier_options",
+                    "field": "class_modifier_options",
+                    "options": sorted(set(invalid)),
+                    "reason": "Every available Class Modifier slot must provide five contiguous choices and valid tier magnitudes.",
+                })
+
         if definition.name == "create":
             proposals = result.get("created_specialists", result.get("specialist_proposals", []))
             if not isinstance(proposals, list):
@@ -713,22 +733,12 @@ class SpecialistRunner:
                 "expiring_facts": [],
             })
         try:
-            calculation_owner = {
-                "rules": "difficulty",
-                "character": "modifier",
-            }.get(definition.name, definition.name)
             raw_calculation = result.get("calculation")
-            # Core lanes cover many non-roll turns. A null calculation is valid
-            # there; when a numeric contract is needed, the model must still
-            # provide the structured contract and it is validated below.
-            if definition.name in {"rules", "character"} and raw_calculation is None:
-                result["calculation"] = None
-            else:
-                result["calculation"] = validate_calculation(
-                    calculation_owner,
-                    raw_calculation,
-                    status=result["status"],
-                )
+            result["calculation"] = validate_calculation(
+                definition.name,
+                raw_calculation,
+                status=result["status"],
+            )
         except CalculationContractError as exc:
             result["status"] = "needs_evidence" if result["status"] == "complete" else result["status"]
             result.setdefault("conflicts", []).append({

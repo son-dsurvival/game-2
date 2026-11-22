@@ -1,11 +1,9 @@
 ##### Personality
+{character personality}
 
-##### Goals
-
-##### Risk Tolerance
-
+##### Voice, Tone and Mannerism
+{character Voice, Tone and Mannerism}
 ##### Decision Threshold
-
-##### Response Types
-
-##### Emotional Drivers
+{character Decision Threshold}
+##### Notes
+{useful quirks player finds about character}

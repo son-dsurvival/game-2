@@ -1,0 +1,100 @@
+{
+  "scenario": {
+    "character": {
+      "name": "Femi",
+      "class": "Swordsman",
+      "stats": {
+        "STR": 7,
+        "INT": 7,
+        "WIS": 5,
+        "AGI": 5,
+        "END": 4,
+        "PRE": 2
+      },
+      "description": "A technically minded swordsman who studies opponents and practices precise cuts."
+    },
+    "description": "Femi analyzes the opponent, notices a flaw, steps into range, and uses practiced swordplay to deliver a precise cut.",
+    "stat_modifier_slots_allowed_by_stats": {
+      "STR": 1,
+      "INT": 1,
+      "WIS": 1,
+      "AGI": 1
+    },
+    "stat_modifiers_available": [
+      {
+        "type": "stat",
+        "name": "Strength-Based Force",
+        "stat": "STR",
+        "domain": "forceful physical actions",
+        "bonus": 2,
+        "description": "Strength supports any forceful swing, strike, push, or lift; it is not sword-only."
+      },
+      {
+        "type": "stat",
+        "name": "Analytical Pattern Recognition",
+        "stat": "INT",
+        "domain": "analysis and noticing flaws",
+        "bonus": 1,
+        "description": "Intelligence supports reading patterns, noticing flaws, and solving problems; it is not combat-only."
+      }
+    ],
+    "effect_modifier_options": [
+      "Swordplay: controlled blade technique",
+      "Opponent Reading: identify a predictable guard",
+      "Footwork: reposition during a strike",
+      "Feinting: disguise the attack line",
+      "Parry Timing: redirect a committed blow",
+      "Weapon Maintenance: preserve edge and balance",
+      "Rapid Recovery: reset after a missed cut",
+      "Grip Switching: change attack angle",
+      "Distance Management: maintain ideal range",
+      "Target Selection: choose a vulnerable opening"
+    ],
+    "effect_modifiers_selected_from_ten": [
+      {
+        "type": "effect",
+        "name": "Swordplay",
+        "domain": "sword technique",
+        "bonus": 3
+      },
+      {
+        "type": "effect",
+        "name": "Opponent Reading",
+        "domain": "sword action",
+        "bonus": 1
+      },
+      {
+        "type": "effect",
+        "name": "Footwork",
+        "domain": "sword action",
+        "bonus": 1
+      }
+    ],
+    "class_modifier_options": [
+      "Swordsman: disciplined sword form",
+      "Swordsman: shield integration",
+      "Swordsman: dueling tempo",
+      "Swordsman: battlefield line control",
+      "Swordsman: weapon recovery"
+    ],
+    "class_modifier_selected_from_five": {
+      "type": "class",
+      "name": "Disciplined Sword Form",
+      "class": "Swordsman",
+      "domain": "swordplay",
+      "bonus": 2
+    }
+  },
+  "pipeline_result": {
+    "status": "open",
+    "play_gate": "open",
+    "position": {
+      "day": 1,
+      "phase": "Early Morning",
+      "progress": 0.0
+    },
+    "message": "Femi analyzes the opening, notices the flaw, shifts with disciplined footwork, and drives a precise sword cut through the target's guard. His strength supplies broad physical force, his intelligence spots the weakness, Swordplay supplies the technique, and his Swordsman training sharpens the execution.",
+    "turn_id": null,
+    "stage": null
+  }
+}

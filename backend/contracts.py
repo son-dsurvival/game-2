@@ -121,7 +121,10 @@ class BackgroundTickRecord:
     actions: tuple[dict[str, Any], ...] = ()
     automatic_updates: tuple[dict[str, Any], ...] = ()
     resource_changes: tuple[dict[str, Any], ...] = ()
+    process_results: tuple[dict[str, Any], ...] = ()
+    world_entity_changes: tuple[dict[str, Any], ...] = ()
     world_updates: tuple[dict[str, Any], ...] = ()
+    world_event: dict[str, Any] | None = None
     visibility_events: tuple[dict[str, Any], ...] = ()
     completed_directives: tuple[str, ...] = ()
     notes: tuple[str, ...] = ()
@@ -133,7 +136,10 @@ class BackgroundTickRecord:
             "actions": list(self.actions),
             "automatic_updates": list(self.automatic_updates),
             "resource_changes": list(self.resource_changes),
+            "process_results": list(self.process_results),
+            "world_entity_changes": list(self.world_entity_changes),
             "world_updates": list(self.world_updates),
+            "world_event": self.world_event,
             "visibility_events": list(self.visibility_events),
             "completed_directives": list(self.completed_directives),
             "notes": list(self.notes),

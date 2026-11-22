@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from brain.branch_registry import BranchRegistry
+from brain.specialists.branch_registry import BranchRegistry
 from brain.recorder import SessionRecorder
 from brain.turn_router import TurnRouter
 

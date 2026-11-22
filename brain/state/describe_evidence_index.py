@@ -15,9 +15,9 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from brain.model_gateway import ModelGateway
+    from brain.state.model_gateway import ModelGateway
 except ModuleNotFoundError:  # Direct execution: python brain/describe_evidence_index.py
-    from model_gateway import ModelGateway
+    from brain.state.model_gateway import ModelGateway
 
 
 SYSTEM_PROMPT = """You describe a hierarchical Markdown evidence index.
@@ -88,7 +88,7 @@ def flatten_index(index: dict[str, Any], repo_root: Path) -> list[dict[str, Any]
         if source_location == "":
             source_location = node["location"]
         flattened.append({
-            "id": str(len(flattened)),
+            "id": str(node.get("id") or len(flattened)),
             "path": current_path,
             "source_location": source_location,
             "location": node["location"],
@@ -108,7 +108,7 @@ def flatten_index(index: dict[str, Any], repo_root: Path) -> list[dict[str, Any]
     return flattened
 
 
-def request_descriptions(gateway: ModelGateway, model: str, batch: list[dict[str, Any]]) -> dict[str, str]:
+def _request_descriptions_once(gateway: ModelGateway, model: str, batch: list[dict[str, Any]]) -> dict[str, str]:
     payload = [
         {
             "id": item["id"],
@@ -154,6 +154,50 @@ def request_descriptions(gateway: ModelGateway, model: str, batch: list[dict[str
         missing = sorted(expected - set(descriptions))
         raise RuntimeError(f"DeepSeek omitted descriptions: {missing}")
     return descriptions
+
+
+def request_descriptions(gateway: ModelGateway, model: str, batch: list[dict[str, Any]]) -> dict[str, str]:
+    """Request a batch, splitting it when the model returns an out-of-scope ID."""
+    try:
+        return _request_descriptions_once(gateway, model, batch)
+    except RuntimeError:
+        if len(batch) <= 1:
+            raise
+        midpoint = len(batch) // 2
+        left = request_descriptions(gateway, model, batch[:midpoint])
+        right = request_descriptions(gateway, model, batch[midpoint:])
+        return {**left, **right}
+
+
+def describe_index_nodes(
+    index_path: Path,
+    repo_root: Path,
+    target_ids: set[str] | list[str],
+    *,
+    batch_size: int = 20,
+    model: str | None = None,
+) -> int:
+    """Describe only the supplied stable evidence IDs and persist each batch."""
+    index = json.loads(index_path.read_text(encoding="utf-8"))
+    wanted = {str(identifier) for identifier in target_ids}
+    nodes = [item for item in flatten_index(index, repo_root) if item["id"] in wanted]
+    pending = [item for item in nodes if item["node"].get("description_source") != "deepseek"]
+    if not pending:
+        return 0
+    gateway = ModelGateway(repo_root)
+    selected_model = model or os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
+    total = 0
+    for offset in range(0, len(pending), batch_size):
+        batch = pending[offset:offset + batch_size]
+        descriptions = request_descriptions(gateway, selected_model, batch)
+        for item in batch:
+            node = item["node"]
+            node["description"] = descriptions[item["id"]]
+            node["description_source"] = "deepseek"
+            node["description_model"] = selected_model
+        write_index(index_path, index)
+        total += len(batch)
+    return total
 
 
 def write_index(path: Path, index: dict[str, Any]) -> None:

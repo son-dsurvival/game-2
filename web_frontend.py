@@ -66,6 +66,11 @@ HTML = r'''<!doctype html>
     .entry.system { color:var(--text); }
     .entry.error { color:#ff9d9d; }
     .entry .tag { display:block; margin-bottom:3px; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.08em; }
+    .choice-card { margin:10px 0; padding:14px; border:1px solid var(--line); border-radius:8px; background:var(--panel); }
+    .choice-card h3 { margin:0 0 10px; color:var(--accent); }
+    .choice-card details { margin:8px 0; border-top:1px solid var(--line); padding-top:8px; }
+    .choice-card summary { cursor:pointer; font-weight:650; }
+    .choice-card pre { margin:8px 0 0; white-space:pre-wrap; font:13px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace; color:var(--text); }
     form { display:flex; gap:10px; border-top:1px solid var(--line); padding-top:18px; }
     textarea { flex:1; min-height:48px; max-height:160px; resize:vertical; border:1px solid var(--line); border-radius:8px; padding:12px; background:var(--panel); color:var(--text); font:inherit; }
     form button { align-self:stretch; background:var(--accent); color:#07111d; border-color:var(--accent); font-weight:700; text-align:center; min-width:82px; }
@@ -114,6 +119,7 @@ HTML = r'''<!doctype html>
   const statusEl = document.querySelector('#status');
   const positionEl = document.querySelector('#position');
   const fileLinksEl = document.querySelector('#file-links');
+  let characterChoicesShown = false;
 
   function addEntry(kind, text) {
     if (!text) return null;
@@ -133,10 +139,46 @@ HTML = r'''<!doctype html>
     document.querySelectorAll('button').forEach(button => button.disabled = busy);
   }
 
+  function addCharacterChoices(choices) {
+    if (!Array.isArray(choices) || !choices.length || characterChoicesShown) return;
+    characterChoicesShown = true;
+    const entry = document.createElement('div');
+    entry.className = 'entry system';
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.textContent = 'Character choices';
+    entry.appendChild(tag);
+    const intro = document.createElement('div');
+    intro.textContent = 'Review each character independently. Effect Modifiers are shown first, followed by that character’s Stat Modifier slots.';
+    entry.appendChild(intro);
+    for (const character of choices) {
+      const card = document.createElement('section');
+      card.className = 'choice-card';
+      const heading = document.createElement('h3');
+      heading.textContent = character.character || 'Character';
+      card.appendChild(heading);
+      for (const section of character.sections || []) {
+        if (!Array.isArray(section.lines) || !section.lines.length) continue;
+        const details = document.createElement('details');
+        details.open = true;
+        const summary = document.createElement('summary');
+        summary.textContent = section.name;
+        const pre = document.createElement('pre');
+        pre.textContent = section.lines.join('\\n');
+        details.append(summary, pre);
+        card.appendChild(details);
+      }
+      entry.appendChild(card);
+    }
+    transcript.appendChild(entry);
+    transcript.scrollTop = transcript.scrollHeight;
+  }
+
   function applyState(data) {
     statusEl.textContent = (data.status || 'unknown').replaceAll('_', ' ');
     const p = data.position || {};
     positionEl.textContent = p.day ? `Day ${p.day} — ${p.phase}` : '—';
+    addCharacterChoices(data.character_choice_preview);
     addEntry(data.error ? 'error' : 'system', data.text || 'Done.');
   }
 
@@ -208,6 +250,9 @@ class FrontendService:
         question = result.get('question')
         if isinstance(question, dict):
             public['question'] = {'question': question.get('question', '')}
+        choices = result.get('character_choice_preview')
+        if isinstance(choices, list):
+            public['character_choice_preview'] = choices
         draft = result.get('draft')
         if isinstance(draft, dict):
             characters = draft.get('characters') or []

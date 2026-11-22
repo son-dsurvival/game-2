@@ -1,0 +1,206 @@
+{
+  "random_seed": 20260304,
+  "option_pool": {
+    "stat": {
+      "STR": [
+        "Forceful Motion",
+        "Physical Drive",
+        "Power Transfer"
+      ],
+      "INT": [
+        "Pattern Recognition",
+        "Flaw Detection",
+        "Logical Analysis"
+      ]
+    },
+    "effect": [
+      "Swordplay",
+      "Opponent Reading",
+      "Footwork",
+      "Feinting",
+      "Parry Timing",
+      "Distance Management",
+      "Target Selection",
+      "Grip Switching",
+      "Rapid Recovery",
+      "Weapon Maintenance"
+    ],
+    "class": [
+      "Swordsman: disciplined sword form",
+      "Swordsman: dueling tempo",
+      "Swordsman: battlefield line control",
+      "Swordsman: weapon recovery",
+      "Swordsman: shield integration"
+    ]
+  },
+  "random_player_selection": {
+    "stat": [
+      "Physical Drive",
+      "Flaw Detection"
+    ],
+    "effect": [
+      "Feinting",
+      "Swordplay",
+      "Distance Management"
+    ],
+    "class": "Swordsman: weapon recovery"
+  },
+  "initial_review": {
+    "status": "awaiting_clarification",
+    "play_gate": "awaiting_clarification",
+    "position": {
+      "day": 1,
+      "phase": "Early Morning",
+      "progress": 0.0
+    },
+    "message": "Character drafted. Tell me about another character, or choose the main character when the party is ready.",
+    "turn_id": "setup-81ff870356a54abfbe0eb340dcadde8d",
+    "stage": "prepare_setup",
+    "draft": {
+      "campaign_id": "campaign-e73a654af9594667963df5b24f3b455e",
+      "characters": [
+        {
+          "identity": {
+            "name": "Dara",
+            "age": 29,
+            "race": "Human"
+          },
+          "stats": {
+            "AGI": 6,
+            "INT": 7,
+            "STR": 6,
+            "END": 5,
+            "WIS": 3,
+            "PRE": 3
+          },
+          "description": "A disciplined swordswoman who studies opponents and trains precise movement.",
+          "class": "Swordsman"
+        }
+      ],
+      "main_character": "Dara",
+      "mode": "new_game",
+      "question": "party",
+      "partial": {},
+      "conversation": [],
+      "party_done": true
+    },
+    "question": {
+      "question": "Choose your Stat, Effect, and Class Modifiers.",
+      "source": "admin_agent",
+      "link_id": "setup-81ff870356a54abfbe0eb340dcadde8d:clarification:1"
+    }
+  },
+  "answered_result": {
+    "status": "setup_review",
+    "play_gate": "setup_review",
+    "position": {
+      "day": 1,
+      "phase": "Early Morning",
+      "progress": 0.0
+    },
+    "message": "Review the proposed campaign records one file at a time.",
+    "turn_id": "setup-81ff870356a54abfbe0eb340dcadde8d",
+    "stage": "prepare_setup",
+    "draft": {
+      "campaign_id": "campaign-e73a654af9594667963df5b24f3b455e",
+      "characters": [
+        {
+          "identity": {
+            "name": "Dara",
+            "age": 29,
+            "race": "Human"
+          },
+          "stats": {
+            "AGI": 6,
+            "INT": 7,
+            "STR": 6,
+            "END": 5,
+            "WIS": 3,
+            "PRE": 3
+          },
+          "description": "A disciplined swordswoman who studies opponents and trains precise movement.",
+          "class": "Swordsman"
+        }
+      ],
+      "main_character": "Dara",
+      "mode": "new_game",
+      "question": "party",
+      "partial": {},
+      "conversation": [],
+      "party_done": true
+    },
+    "proposal_files_total": 1,
+    "proposal_files_reviewed": 0,
+    "proposal_file": {
+      "number": 1,
+      "total": 1,
+      "target_file": "markdown_files/status sheet.md",
+      "filename": "status sheet.md",
+      "action": "update",
+      "summary": "Set up each character’s identity, Tier 0 status, derived values, background-based stat modifiers, skills, and equipment.",
+      "preview": [
+        "## Linked Modifier Selection",
+        "Stat selections: Physical Drive, Flaw Detection",
+        "Effect selections: Feinting, Swordplay, Distance Management",
+        "Class selection: Swordsman: weapon recovery",
+        "Admin handoff verified: the selections came from the linked player answer."
+      ]
+    }
+  },
+  "admin_linked_continuation": {
+    "id": "setup-81ff870356a54abfbe0eb340dcadde8d:clarification:1",
+    "source": "admin_agent",
+    "stage": "prepare_setup",
+    "question": "Choose your Stat, Effect, and Class Modifiers.",
+    "result": {
+      "status": "needs_clarification",
+      "player_question": "Choose your Stat, Effect, and Class Modifiers.",
+      "clarification_result": {
+        "stat_modifier_options": {
+          "STR": [
+            "Forceful Motion",
+            "Physical Drive",
+            "Power Transfer"
+          ],
+          "INT": [
+            "Pattern Recognition",
+            "Flaw Detection",
+            "Logical Analysis"
+          ]
+        },
+        "effect_modifier_options": [
+          "Swordplay",
+          "Opponent Reading",
+          "Footwork",
+          "Feinting",
+          "Parry Timing",
+          "Distance Management",
+          "Target Selection",
+          "Grip Switching",
+          "Rapid Recovery",
+          "Weapon Maintenance"
+        ],
+        "class_modifier_options": [
+          "Swordsman: disciplined sword form",
+          "Swordsman: dueling tempo",
+          "Swordsman: battlefield line control",
+          "Swordsman: weapon recovery",
+          "Swordsman: shield integration"
+        ]
+      }
+    },
+    "answer": "{\"stat\": [\"Physical Drive\", \"Flaw Detection\"], \"effect\": [\"Feinting\", \"Swordplay\", \"Distance Management\"], \"class\": \"Swordsman: weapon recovery\"}",
+    "status": "answered",
+    "requested_revision": 0,
+    "answered_revision": 1
+  },
+  "stored_approved_content": "## Linked Modifier Selection\nStat selections: Physical Drive, Flaw Detection\nEffect selections: Feinting, Swordplay, Distance Management\nClass selection: Swordsman: weapon recovery\nAdmin handoff verified: the selections came from the linked player answer.",
+  "checks": {
+    "answer_preserved_exactly": true,
+    "original_options_preserved": true,
+    "selected_effect_count": true,
+    "selected_class_count": true,
+    "selected_content_reached_handoff": true
+  },
+  "status": "passed"
+}

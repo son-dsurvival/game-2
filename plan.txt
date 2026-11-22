@@ -1,0 +1,1236 @@
+ ## Player Turn Resolution Process                                                                                                  
+                                                                                                                                      
+   A Player Turn is an in-world action or discussion submitted while the runtime is in the `open` state.                              
+                                                                                                                                      
+   A runtime clarification is always OOC. It is not an in-world question and does not represent dialogue from a character.            
+                                                                                                                                      
+   ### Runtime Flow                                                                                                                   
+                                                                                                                                      
+   ```text                                                                                                                            
+   open                                                                                                                               
+   → Player Input                                                                                                                     
+   → Turn Router                                                                                                                      
+   → action or in-world discussion classification                                                                                     
+   → action-segment extraction                                                                                                        
+   → Evidence Bundle Builder                                                                                                          
+   → scoped Specialist Modules                                                                                                        
+   → Lead Resolver Coverage Check                                                                                                     
+   → Lead Resolver                                                                                                                    
+   → Recorder                                                                                                                         
+   → Narrator                                                                                                                         
+   → phase processing, if required                                                                                                    
+   → saved checkpoint                                                                                                                 
+ ```                                                                                                                                  
+                                                                                                                                      
+ ### 1. Route the Player Input                                                                                                        
+                                                                                                                                      
+ The Turn Router identifies:                                                                                                          
+                                                                                                                                      
+ - acting character                                                                                                                   
+ - action or discussion                                                                                                               
+ - intended outcome                                                                                                                   
+ - target                                                                                                                             
+ - location                                                                                                                           
+ - participants                                                                                                                       
+ - relevant action segments                                                                                                           
+ - required specialist domains                                                                                                        
+                                                                                                                                      
+ The Turn Router selects the route but does not decide whether the available evidence is sufficient.                                  
+                                                                                                                                      
+ An in-world question such as:                                                                                                        
+                                                                                                                                      
+ │ “What do I see in the room?”                                                                                                       
+                                                                                                                                      
+ is resolved as in-world perception or discussion.                                                                                    
+                                                                                                                                      
+ A runtime question such as:                                                                                                          
+                                                                                                                                      
+ │ “Which door do you mean: the iron door or the wooden door?”                                                                        
+                                                                                                                                      
+ is an OOC clarification.                                                                                                             
+                                                                                                                                      
+ ### 2. Build the Evidence Bundle                                                                                                     
+                                                                                                                                      
+ The Evidence Bundle Builder gathers the records required by the route and freezes them into an immutable Evidence Bundle.            
+                                                                                                                                      
+ It may include:                                                                                                                      
+                                                                                                                                      
+ - core rules                                                                                                                         
+ - character status                                                                                                                   
+ - relationships                                                                                                                      
+ - resources                                                                                                                          
+ - current position                                                                                                                   
+ - temporary memory                                                                                                                   
+ - active skills, spells, and modifiers                                                                                               
+ - unlocked branches                                                                                                                  
+ - visible world information                                                                                                          
+                                                                                                                                      
+ The Evidence Bundle Builder only collects and freezes evidence. It does not determine whether the bundle is adequate.                
+                                                                                                                                      
+ ### 3. Run Scoped Specialists                                                                                                        
+                                                                                                                                      
+ The selected specialists analyze the Evidence Bundle.                                                                                
+                                                                                                                                      
+ Each specialist returns:                                                                                                             
+                                                                                                                                      
+ - findings                                                                                                                           
+ - evidence references                                                                                                                
+ - applicable rules                                                                                                                   
+ - conflicts                                                                                                                          
+ - unresolved requirements                                                                                                            
+ - domain-specific recommendations                                                                                                    
+                                                                                                                                      
+ Specialists do not make the final game decision.                                                                                     
+                                                                                                                                      
+ ### 4. Lead Resolver Coverage Check                                                                                                  
+                                                                                                                                      
+ The Lead Resolver owns the Coverage Check.                                                                                           
+                                                                                                                                      
+ It determines whether the Evidence Bundle and specialist findings are sufficient to resolve the turn.                                
+                                                                                                                                      
+ The Lead Resolver may return:                                                                                                        
+                                                                                                                                      
+ ```text                                                                                                                              
+   ready_for_resolution                                                                                                               
+ ```                                                                                                                                  
+                                                                                                                                      
+ or:                                                                                                                                  
+                                                                                                                                      
+ ```text                                                                                                                              
+   evidence_gap                                                                                                                       
+ ```                                                                                                                                  
+                                                                                                                                      
+ An Evidence Gap must identify:                                                                                                       
+                                                                                                                                      
+ - the missing fact, rule, or calculation contract                                                                                    
+ - why it is required                                                                                                                 
+ - whether the player can provide it                                                                                                  
+ - whether an assumption is allowed                                                                                                   
+                                                                                                                                      
+ If a player response is required:                                                                                                    
+                                                                                                                                      
+ ```text                                                                                                                              
+   awaiting_clarification                                                                                                             
+ ```                                                                                                                                  
+                                                                                                                                      
+ The runtime asks the player an OOC clarification question and saves the current operation.                                           
+                                                                                                                                      
+ The player’s response resumes the saved operation. It is not routed as a new in-world turn.                                          
+                                                                                                                                      
+ If the player authorizes delegation:                                                                                                 
+                                                                                                                                      
+ ```text                                                                                                                              
+   player authorization                                                                                                               
+   → Assumption & Initialization Wizard                                                                                               
+   → bounded provisional assumption                                                                                                   
+   → Lead Resolver Coverage Check resumes                                                                                             
+ ```                                                                                                                                  
+                                                                                                                                      
+ ### 5. Resolve the Turn                                                                                                              
+                                                                                                                                      
+ After the Coverage Check succeeds, the Lead Resolver determines:                                                                     
+                                                                                                                                      
+ - action legality                                                                                                                    
+ - capability                                                                                                                         
+ - difficulty and opposition                                                                                                          
+ - modifiers                                                                                                                          
+ - dice requirements                                                                                                                  
+ - success, failure, or partial success                                                                                               
+ - costs                                                                                                                              
+ - resource changes                                                                                                                   
+ - time advancement                                                                                                                   
+ - consequences                                                                                                                       
+ - relationship changes                                                                                                               
+ - branch changes                                                                                                                     
+ - player-visible resolution                                                                                                          
+                                                                                                                                      
+ If dice are required:                                                                                                                
+                                                                                                                                      
+ ```text                                                                                                                              
+   awaiting_dice                                                                                                                      
+   → saved operation                                                                                                                  
+   → dice result supplied                                                                                                             
+   → Lead Resolver resumes                                                                                                            
+ ```                                                                                                                                  
+                                                                                                                                      
+ The normal Lead Resolver result is already player-safe. Normal player turns do not pass through the backend Visibility Filter.       
+                                                                                                                                      
+ ### 6. Record the Resolution                                                                                                         
+                                                                                                                                      
+ The Recorder commits the resolved turn using an idempotent turn_id.                                                                  
+                                                                                                                                      
+ The record includes:                                                                                                                 
+                                                                                                                                      
+ - player intent                                                                                                                      
+ - Evidence Bundle references                                                                                                         
+ - specialist findings                                                                                                                
+ - Coverage Check result                                                                                                              
+ - dice results                                                                                                                       
+ - Lead Resolver decision                                                                                                             
+ - state changes                                                                                                                      
+ - time advancement                                                                                                                   
+ - follow-up operations                                                                                                               
+                                                                                                                                      
+ Temporary session facts are stored in TEMP_MEMORY.md.                                                                                
+                                                                                                                                      
+ Persistent Markdown changes use the administrative proposal and approval process.                                                    
+                                                                                                                                      
+ ### 7. Narrate the Result                                                                                                            
+                                                                                                                                      
+ The Narrator converts the player-safe Lead Resolver result into player-facing prose.                                                 
+                                                                                                                                      
+ The Narrator must not:                                                                                                               
+                                                                                                                                      
+ - change the resolution                                                                                                              
+ - introduce new mechanics                                                                                                            
+ - override the Lead Resolver                                                                                                         
+ - ask an OOC clarification unless the runtime explicitly creates one                                                                 
+ - reveal backend-only information                                                                                                    
+                                                                                                                                      
+ ### 8. Process Time Advancement                                                                                                      
+                                                                                                                                      
+ If the turn advances the phase clock:                                                                                                
+                                                                                                                                      
+ ```text                                                                                                                              
+   Lead Resolver time change                                                                                                          
+   → Phase Clock                                                                                                                      
+   → Backend Autonomy Tick                                                                                                            
+   → Backend Lead Resolver                                                                                                            
+   → Visibility Filter                                                                                                                
+   → private backend commit                                                                                                           
+ ```                                                                                                                                  
+                                                                                                                                      
+ The Visibility Filter is primarily a backend-autonomy mechanism. It prevents unrevealed background events from reaching the          
+ Narrator.                                                                                                                            
+                                                                                                                                      
+ ### 9. Save the Checkpoint                                                                                                           
+                                                                                                                                      
+ The runtime saves:                                                                                                                   
+                                                                                                                                      
+ - current phase                                                                                                                      
+ - current location                                                                                                                   
+ - completed turn_id                                                                                                                  
+ - operation status                                                                                                                   
+ - pending clarification or dice request                                                                                              
+ - temporary memory changes                                                                                                           
+ - background tick status                                                                                                             
+                                                                                                                                      
+ A completed turn returns the runtime to:                                                                                             
+                                                                                                                                      
+ ```text                                                                                                                              
+   open                                                                                                                               
+ ```                                                                                                                                  
+                                                                                                                                      
+ ```                                                                                                                                  
+                                                                                                                                      
+   ## Important distinction                                                                                                           
+                                                                                                                                      
+   There are now three separate concepts:                                                                                             
+                                                                                                                                      
+   | Concept | Meaning |                                                                                                              
+   |---|---|                                                                                                                          
+   | In-world question | A character/player question inside the fiction |                                                             
+   | OOC clarification | A runtime request needed to continue an operation |                                                          
+   | OOC administrative request | A request to inspect, design, or modify campaign data |                                             
+                                                                                                                                      
+   Only the second one resumes a paused turn.                                                                                         
+ ```                                           
+
+
+ OOC Administrative Process                                                                                                           
+                                                                                                                                      
+ ```markdown                                                                                                                          
+   ## OOC Administrative Request Process                                                                                              
+                                                                                                                                      
+   An OOC interaction communicates with the runtime rather than with characters inside the fiction.                                   
+                                                                                                                                      
+   There are two OOC interaction types:                                                                                               
+                                                                                                                                      
+   1. `OOC Clarification` — a response required to resume a paused operation.                                                         
+   2. `OOC Administrative Request` — a player request to inspect, explain, design, or modify campaign data.                           
+                                                                                                                                      
+   An OOC clarification does not enter the full administrative request process. It resumes the saved operation that requested it.     
+                                                                                                                                      
+   ### Runtime Flow                                                                                                                   
+                                                                                                                                      
+   ```text                                                                                                                            
+   OOC Administrative Request                                                                                                         
+   → OOC Router                                                                                                                       
+   → request classification                                                                                                           
+   → Evidence Bundle Builder                                                                                                          
+   → scoped Specialist Modules                                                                                                        
+   → Admin Agent Coverage Check                                                                                                       
+   → Admin Agent                                                                                                                      
+   → answer or Edit Proposal                                                                                                          
+   → Player Language Agent                                                                                                            
+   → player response                                                                                                                  
+   → approval, correction, or cancellation                                                                                            
+   → Admin Editor, if approved                                                                                                        
+   → audit receipt                                                                                                                    
+ ```                                                                                                                                  
+                                                                                                                                      
+ ### 1. Receive the OOC Request                                                                                                       
+                                                                                                                                      
+ An OOC request may be submitted using the configured OOC syntax:                                                                     
+                                                                                                                                      
+ ```text                                                                                                                              
+   {player request}                                                                                                                   
+ ```                                                                                                                                  
+                                                                                                                                      
+ The OOC Router classifies the request as one of:                                                                                     
+                                                                                                                                      
+ - information request                                                                                                                
+ - rules explanation                                                                                                                  
+ - contradiction report                                                                                                               
+ - correction request                                                                                                                 
+ - creation request                                                                                                                   
+ - edit request                                                                                                                       
+ - new-game request                                                                                                                   
+ - day-end request                                                                                                                    
+ - specialist request                                                                                                                 
+ - setup-control command                                                                                                              
+                                                                                                                                      
+ Commands such as /approve, /cancel-setup, /new-game, and /end-day use their associated control processes.                            
+                                                                                                                                      
+ ### 2. Build the Evidence Bundle                                                                                                     
+                                                                                                                                      
+ The Evidence Bundle Builder gathers and freezes the records relevant to the OOC request.                                             
+                                                                                                                                      
+ Possible sources include:                                                                                                            
+                                                                                                                                      
+ - TERMS_AND_NOMENCLATURE.md                                                                                                          
+ - game rules (1).md                                                                                                                  
+ - status sheet.md                                                                                                                    
+ - character relationship.md                                                                                                          
+ - Ledger Resources.md                                                                                                                
+ - Branch Registry.md                                                                                                                 
+ - Experimentation Register.md                                                                                                        
+ - TEMP_MEMORY.md                                                                                                                     
+ - 🌍 CORE WORLD FRAME (REFINED).md                                                                                                   
+ - approved runtime state                                                                                                             
+ - previous proposals and audit records                                                                                               
+                                                                                                                                      
+ The Evidence Bundle Builder only gathers and freezes evidence. It does not decide whether the evidence is sufficient.                
+                                                                                                                                      
+ ### 3. Run Scoped Specialist Modules                                                                                                 
+                                                                                                                                      
+ The OOC Router activates only the specialist modules required by the request.                                                        
+                                                                                                                                      
+ Examples:                                                                                                                            
+                                                                                                                                      
+ - rules specialist for a rules question                                                                                              
+ - character specialist for a character-status request                                                                                
+ - relationship specialist for a relationship request                                                                                 
+ - resource specialist for a ledger request                                                                                           
+ - branch specialist for branch administration                                                                                        
+ - creation specialist for a new modifier, skill, spell, or character                                                                 
+ - template specialist for Markdown structure                                                                                         
+                                                                                                                                      
+ Each specialist returns:                                                                                                             
+                                                                                                                                      
+ - findings                                                                                                                           
+ - evidence references                                                                                                                
+ - conflicts                                                                                                                          
+ - missing requirements                                                                                                               
+ - recommended next step                                                                                                              
+                                                                                                                                      
+ ### 4. Admin Agent Coverage Check                                                                                                    
+                                                                                                                                      
+ The Admin Agent determines whether the Evidence Bundle and specialist findings are sufficient to answer or prepare the request.      
+                                                                                                                                      
+ If information is missing, the Admin Agent creates an OOC clarification request.                                                     
+                                                                                                                                      
+ ```text                                                                                                                              
+   awaiting_clarification                                                                                                             
+   → player supplies information                                                                                                      
+   → saved OOC operation resumes                                                                                                      
+ ```                                                                                                                                  
+                                                                                                                                      
+ If the player authorizes delegation, the Assumption & Initialization Wizard may create a bounded provisional assumption.             
+                                                                                                                                      
+ The assumption must state:                                                                                                           
+                                                                                                                                      
+ - basis                                                                                                                              
+ - scope                                                                                                                              
+ - limitations                                                                                                                        
+ - confidence                                                                                                                         
+ - review condition                                                                                                                   
+ - whether it can be used only temporarily                                                                                            
+                                                                                                                                      
+ ### 5. Produce an Answer or Edit Proposal                                                                                            
+                                                                                                                                      
+ The Admin Agent is read-only.                                                                                                        
+                                                                                                                                      
+ It may produce either:                                                                                                               
+                                                                                                                                      
+ #### Direct OOC Answer                                                                                                               
+                                                                                                                                      
+ Used for:                                                                                                                            
+                                                                                                                                      
+ - rules explanations                                                                                                                 
+ - terminology explanations                                                                                                           
+ - status inspection                                                                                                                  
+ - evidence-backed comparisons                                                                                                        
+ - process explanations                                                                                                               
+                                                                                                                                      
+ A direct answer does not modify campaign files.                                                                                      
+                                                                                                                                      
+ #### Edit Proposal                                                                                                                   
+                                                                                                                                      
+ Used for:                                                                                                                            
+                                                                                                                                      
+ - character creation                                                                                                                 
+ - relationship changes                                                                                                               
+ - ledger updates                                                                                                                     
+ - branch updates                                                                                                                     
+ - modifier creation                                                                                                                  
+ - skill or spell creation                                                                                                            
+ - new-game setup                                                                                                                     
+ - day-end promotion                                                                                                                  
+ - persistent rule or world updates                                                                                                   
+                                                                                                                                      
+ An Edit Proposal must include:                                                                                                       
+                                                                                                                                      
+ - proposal ID                                                                                                                        
+ - affected files                                                                                                                     
+ - exact changes                                                                                                                      
+ - evidence references                                                                                                                
+ - assumptions                                                                                                                        
+ - reason for each change                                                                                                             
+ - expected consequences                                                                                                              
+ - proposal version                                                                                                                   
+ - proposal hash                                                                                                                      
+ - approval requirement                                                                                                               
+                                                                                                                                      
+ ### 6. Convert the Result into Player Language                                                                                       
+                                                                                                                                      
+ The Player Language Agent converts technical administrative findings into clear OOC language.                                        
+                                                                                                                                      
+ It must not:                                                                                                                         
+                                                                                                                                      
+ - change the proposed facts                                                                                                          
+ - change the exact edit                                                                                                              
+ - make a new game decision                                                                                                           
+ - apply an edit                                                                                                                      
+ - convert an OOC answer into roleplay narration                                                                                      
+                                                                                                                                      
+ The result should clearly state whether it is:                                                                                       
+                                                                                                                                      
+ - an informational answer                                                                                                            
+ - a question requiring player input                                                                                                  
+ - a draft requiring player selection                                                                                                 
+ - a proposal requiring approval                                                                                                      
+ - a rejected or blocked request                                                                                                      
+                                                                                                                                      
+ ### 7. Player Response                                                                                                               
+                                                                                                                                      
+ The player may:                                                                                                                      
+                                                                                                                                      
+ - accept an option                                                                                                                   
+ - select a creation choice                                                                                                           
+ - request clarification                                                                                                              
+ - correct information                                                                                                                
+ - approve a proposal                                                                                                                 
+ - reject a proposal                                                                                                                  
+ - cancel the operation                                                                                                               
+                                                                                                                                      
+ Player approval is required before persistent Markdown changes are applied.                                                          
+                                                                                                                                      
+ Approval must be bound to the exact proposal version and proposal hash.                                                              
+                                                                                                                                      
+ ### 8. Apply an Approved Proposal                                                                                                    
+                                                                                                                                      
+ The Admin Editor applies only an approved proposal.                                                                                  
+                                                                                                                                      
+ It must:                                                                                                                             
+                                                                                                                                      
+ - verify the proposal ID                                                                                                             
+ - verify the proposal hash                                                                                                           
+ - verify source-file versions                                                                                                        
+ - verify exact old-text matches                                                                                                      
+ - validate templates                                                                                                                 
+ - reject unauthorized files                                                                                                          
+ - write atomically                                                                                                                   
+ - create a recoverable edit record                                                                                                   
+ - append an audit receipt                                                                                                            
+                                                                                                                                      
+ The Admin Editor does not reinterpret the Admin Agent’s proposal.                                                                    
+                                                                                                                                      
+ ### 9. Complete the OOC Operation                                                                                                    
+                                                                                                                                      
+ After a direct answer:                                                                                                               
+                                                                                                                                      
+ ```text                                                                                                                              
+   return to previous runtime state                                                                                                   
+ ```                                                                                                                                  
+                                                                                                                                      
+ After an approved edit:                                                                                                              
+                                                                                                                                      
+ ```text                                                                                                                              
+   Admin Editor                                                                                                                       
+   → audit receipt                                                                                                                    
+   → evidence-index refresh, if required                                                                                              
+   → return to previous runtime state                                                                                                 
+ ```                                                                                                                                  
+                                                                                                                                      
+ New-game and day-end operations may instead enter:                                                                                   
+                                                                                                                                      
+ ```text                                                                                                                              
+   new_game_pending                                                                                                                   
+ ```                                                                                                                                  
+                                                                                                                                      
+ or:                                                                                                                                  
+                                                                                                                                      
+ ```text                                                                                                                              
+   new_day_pending                                                                                                                    
+ ```                                                                                                                                  
+                                                                                                                                      
+ Roleplay resumes only after the player uses:                                                                                         
+                                                                                                                                      
+ ```text                                                                                                                              
+   {resume}                                                                                                                           
+ ```                                                                                                                                  
+                                                                                                                                      
+ ### OOC Process Invariants                                                                                                           
+                                                                                                                                      
+ 1. OOC requests do not become in-world dialogue.                                                                                     
+ 2. OOC clarifications resume the paused operation that requested them.                                                               
+ 3. The Evidence Bundle Builder gathers evidence but does not judge adequacy.                                                         
+ 4. The Admin Agent judges OOC request readiness and prepares answers or proposals.                                                   
+ 5. The Admin Agent never writes campaign files.                                                                                      
+ 6. The Admin Editor never invents or reinterprets content.                                                                           
+ 7. Persistent changes require explicit player approval.                                                                              
+ 8. Direct answers do not require approval.                                                                                           
+ 9. Every proposal is version-bound and hash-bound.                                                                                   
+ 10. Every applied proposal produces an audit receipt.                                                                                
+ 11. OOC information is not automatically character knowledge.                                                                        
+ 12. {resume} is required after new-game or day-end administrative processing.                                                        
+ ```                                                                                                                                  
+                                                                                                                                      
+   The key distinction is:                                                                                                            
+                                                                                                                                      
+   ```text                                                                                                                            
+   OOC clarification = resume an existing operation                                                                                   
+   OOC administrative request = answer or prepare a controlled edit       
+                                                            
+ ```  
+
+OOC Command Processing                                                                                                               
+                                                                                                                                      
+ 0. Command intake                                                                                                                    
+                                                                                                                                      
+ - when player sends any message                                                                                                      
+ - check whether message begins with / or is {pause} / {resume}                                                                       
+ - if command                                                                                                                         
+     - separate command name from arguments                                                                                           
+     - check command exists                                                                                                           
+     - check current runtime state allows command                                                                                     
+     - if command is invalid                                                                                                          
+         - show error                                                                                                                 
+         - show correct command format                                                                                                
+         - stop                                                                                                                       
+     - create operation_id                                                                                                            
+     - run the command-specific process                                                                                               
+ - else if runtime is awaiting_clarification                                                                                          
+     - treat player message as the answer to the pending OOC clarification                                                            
+     - attach response to the saved operation                                                                                         
+     - resume that operation                                                                                                          
+ - else if message is enclosed in {...}                                                                                               
+     - route to OOC administrative request                                                                                            
+ - else                                                                                                                               
+     - route to Player Turn Resolution                                                                                                
+                                                                                                                                      
+ ────────────────────────────────────────────────────────────────────────────────                                                     
+                                                                                                                                      
+ 1. /new-character                                                                                                                    
+                                                                                                                                      
+ - when /new-character is received                                                                                                    
+ - check whether character creation is allowed in the current state                                                                   
+ - create a non-destructive character draft                                                                                           
+ - do not modify status sheet.md                                                                                                      
+ - do not modify character relationship.md                                                                                            
+ - gather:                                                                                                                            
+     - name                                                                                                                           
+     - age                                                                                                                            
+     - identity                                                                                                                       
+     - background                                                                                                                     
+     - description                                                                                                                    
+     - desired class                                                                                                                  
+     - desired abilities                                                                                                              
+     - relevant relationships                                                                                                         
+ - build an Evidence Bundle for character creation                                                                                    
+ - if evidence or player information is missing                                                                                       
+     - create an OOC clarification                                                                                                    
+     - store the unfinished draft                                                                                                     
+     - set state to awaiting_clarification                                                                                            
+     - show the question to the player                                                                                                
+     - when the player responds                                                                                                       
+         - attach the answer to the draft                                                                                             
+         - continue character creation                                                                                                
+ - run the relevant creation specialists                                                                                              
+ - generate stats, class, modifiers, skills, and spells according to game rules                                                       
+ - if a choice is required                                                                                                            
+     - show the available options                                                                                                     
+     - if the player asks a question                                                                                                  
+         - answer the question using the current Evidence Bundle                                                                      
+         - show the options again                                                                                                     
+     - player selects an option                                                                                                       
+     - validate the selection                                                                                                         
+     - confirm the selection with the player                                                                                          
+ - create the character relationship draft                                                                                            
+ - create any required character-scoped specialist proposal                                                                           
+ - Admin Agent reviews the complete draft                                                                                             
+ - if the draft is incomplete                                                                                                         
+     - create an OOC clarification                                                                                                    
+     - pause the operation                                                                                                            
+ - else                                                                                                                               
+     - generate a setup proposal                                                                                                      
+     - store the proposal and proposal hash                                                                                           
+     - set state to setup_review                                                                                                      
+     - show the complete proposal to the player                                                                                       
+ - wait for /approve, correction, or cancellation                                                                                     
+                                                                                                                                      
+ ────────────────────────────────────────────────────────────────────────────────                                                     
+                                                                                                                                      
+ 2. /new-party-member                                                                                                                 
+                                                                                                                                      
+ - when /new-party-member is received                                                                                                 
+ - check whether setup or live play permits a new party member                                                                        
+ - create a non-destructive party-member draft                                                                                        
+ - gather character identity and background                                                                                           
+ - gather relationship to the player character                                                                                        
+ - gather relationship to existing party members                                                                                      
+ - build an Evidence Bundle                                                                                                           
+ - if evidence or information is missing                                                                                              
+     - create an OOC clarification                                                                                                    
+     - save the draft                                                                                                                 
+     - set state to awaiting_clarification                                                                                            
+ - run character, relationship, autonomy, class, and modifier specialists                                                             
+ - generate required options                                                                                                          
+ - show options to the player                                                                                                         
+ - if player asks a question                                                                                                          
+     - answer the question                                                                                                            
+     - keep the player on the same selection step                                                                                     
+ - player selects options                                                                                                             
+ - confirm selections                                                                                                                 
+ - create status and relationship drafts                                                                                              
+ - Admin Agent reviews the draft                                                                                                      
+ - generate an edit proposal                                                                                                          
+ - show the proposal                                                                                                                  
+ - wait for /approve or cancellation                                                                                                  
+                                                                                                                                      
+ ────────────────────────────────────────────────────────────────────────────────                                                     
+                                                                                                                                      
+ 3. /new-game                                                                                                                         
+                                                                                                                                      
+  - when /new game or /new-game is received                                                                                            
+ - normalize both commands to new_game                                                                                                
+ - stop normal roleplay                                                                                                               
+ - stop pending background operations                                                                                                 
+ - check whether an active campaign exists                                                                                            
+ - if an active campaign exists                                                                                                       
+     - show the player what will be deleted                                                                                           
+     - require /approve-reset                                                                                                         
+     - do not delete anything yet                                                                                                     
+ - when /approve-reset is received                                                                                                    
+     - verify that a reset is pending                                                                                                 
+     - verify the reset confirmation                                                                                                  
+     - lock the campaign                                                                                                              
+     - create a temporary recovery snapshot                                                                                           
+     - load the original campaign baseline                                                                                            
+     - restore every mutable campaign file to its baseline state                                                                      
+     - delete campaign-added character knowledge                                                                                      
+     - delete campaign-added relationship knowledge                                                                                   
+     - delete campaign-added ledger entries                                                                                           
+     - delete campaign-added experiments                                                                                              
+     - delete campaign-added branches                                                                                                 
+     - delete campaign-added modifiers, skills, spells, and equipment                                                                 
+     - delete campaign-added temporary memory                                                                                         
+     - delete campaign-added current position                                                                                         
+     - delete campaign-added event and game history                                                                                   
+     - delete campaign-added world knowledge from 🌍 CORE WORLD FRAME (REFINED).md                                                    
+     - delete campaign-added rule changes from game rules (1).md, if those rules are campaign-specific                                
+     - reset private backend state                                                                                                    
+     - reset background directives and pending surprises                                                                              
+     - remove installed campaign-specific specialists                                                                                 
+     - remove pending setup drafts and campaign proposals                                                                             
+     - rebuild the evidence index from the baseline files                                                                             
+     - preserve source code, templates, and administrative audit history                                                              
+     - write a reset audit record                                                                                                     
+     - delete the temporary recovery snapshot after reset verification                                                                
+     - set runtime state to setup_required                                                                                            
+ - begin new-game setup                                                                                                               
+ - gather:                                                                                                                            
+     - player name                                                                                                                    
+     - main character name                                                                                                            
+     - age                                                                                                                            
+     - class                                                                                                                          
+     - description                                                                                                                    
+ - if information is missing                                                                                                          
+     - create an OOC clarification                                                                                                    
+     - set state to awaiting_clarification                                                                                            
+     - resume setup when the player responds                                                                                          
+ - for every new character                                                                                                            
+     - run character creation                                                                                                         
+ - for every starting relationship                                                                                                    
+     - run relationship creation                                                                                                      
+ - for every starting ledger section                                                                                                  
+     - run ledger creation                                                                                                            
+ - set initial day and phase                                                                                                          
+ - set initial event state to none                                                                                                    
+ - create the new setup proposal                                                                                                      
+ - show the proposal to the player                                                                                                    
+ - wait for /approve                                                                                                                  
+ - after approval                                                                                                                     
+     - apply the approved setup                                                                                                       
+     - set state to new_game_pending                                                                                                  
+     - require {resume}                                                                                                               
+ - after {resume}                                                                                                                     
+     - set state to open                                                                                                              
+     - start the new campaign                                                                                                                                      
+ ────────────────────────────────────────────────────────────────────────────────                                                     
+                                                                                                                                      
+ 4. /review                                                                                                                           
+                                                                                                                                      
+ - when /review is received                                                                                                           
+ - check for an active setup draft, creation draft, or administrative draft                                                           
+ - if no draft exists                                                                                                                 
+     - show that there is nothing to review                                                                                           
+     - stop                                                                                                                           
+ - build or reload the Evidence Bundle                                                                                                
+ - run required specialists                                                                                                           
+ - Admin Agent checks:                                                                                                                
+     - required fields                                                                                                                
+     - game-rule legality                                                                                                             
+     - conflicting evidence                                                                                                           
+     - missing evidence                                                                                                               
+     - affected files                                                                                                                 
+     - template compatibility                                                                                                         
+ - if information is missing                                                                                                          
+     - create an OOC clarification                                                                                                    
+     - pause the review                                                                                                               
+ - else                                                                                                                               
+     - generate the exact proposal                                                                                                    
+     - calculate proposal hash                                                                                                        
+     - store the proposal                                                                                                             
+     - set state to setup_review                                                                                                      
+     - show the proposal to the player                                                                                                
+ - wait for approval, correction, or cancellation                                                                                     
+                                                                                                                                      
+ ────────────────────────────────────────────────────────────────────────────────                                                     
+                                                                                                                                      
+ 5. /approve                                                                                                                          
+                                                                                                                                      
+ - when /approve is received                                                                                                          
+ - check that a proposal is waiting for approval                                                                                      
+ - if no proposal exists                                                                                                              
+     - show that no proposal is awaiting approval                                                                                     
+     - stop                                                                                                                           
+ - load the proposal                                                                                                                  
+ - verify:                                                                                                                            
+     - proposal ID                                                                                                                    
+     - proposal hash                                                                                                                  
+     - source-file versions                                                                                                           
+     - approval state                                                                                                                 
+     - current runtime state                                                                                                          
+ - if verification fails                                                                                                              
+     - reject approval                                                                                                                
+     - require a new review                                                                                                           
+ - else                                                                                                                               
+     - record player approval                                                                                                         
+     - send the approved proposal to Admin Editor                                                                                     
+ - Admin Editor:                                                                                                                      
+     - re-check exact old text                                                                                                        
+     - validate target files                                                                                                          
+     - render templates                                                                                                               
+     - apply atomic changes                                                                                                           
+     - write audit receipt                                                                                                            
+ - if this was ordinary administration                                                                                                
+     - return to the previous runtime state                                                                                           
+ - if this was new-game setup                                                                                                         
+     - set state to new_game_pending                                                                                                  
+     - require {resume}                                                                                                               
+ - if this was day-end setup                                                                                                          
+     - set state to new_day_pending                                                                                                   
+     - require {resume}                                                                                                               
+                                                                                                                                      
+ ────────────────────────────────────────────────────────────────────────────────                                                     
+                                                                                                                                      
+ 6. /approve-reset                                                                                                                    
+                                                                                                                                      
+ - when /approve-reset is received                                                                                                    
+ - check that a replacement campaign proposal exists                                                                                  
+ - show the campaign replacement warning                                                                                              
+ - verify the player explicitly approves replacement                                                                                  
+ - validate proposal hash                                                                                                             
+ - archive or preserve the old campaign                                                                                               
+ - Admin Editor applies the replacement atomically                                                                                    
+ - write audit record                                                                                                                 
+ - set state to new_game_pending                                                                                                      
+ - require {resume}                                                                                                                   
+                                                                                                                                      
+ ────────────────────────────────────────────────────────────────────────────────                                                     
+                                                                                                                                      
+ 7. /main NAME                                                                                                                        
+                                                                                                                                      
+ - when /main NAME is received                                                                                                        
+ - check that setup is in setup_draft                                                                                                 
+ - check that the named character exists in the draft                                                                                 
+ - set that character as the main player character                                                                                    
+ - do not modify persistent campaign files                                                                                            
+ - update the setup draft                                                                                                             
+ - show the updated party and main-character selection                                                                                
+ - keep state as setup_draft                                                                                                          
+                                                                                                                                      
+ ────────────────────────────────────────────────────────────────────────────────                                                     
+                                                                                                                                      
+ 8. /cancel-setup                                                                                                                     
+                                                                                                                                      
+ - when /cancel-setup is received                                                                                                     
+ - check whether a setup draft exists                                                                                                 
+ - discard only the draft                                                                                                             
+ - preserve the active campaign                                                                                                       
+ - remove pending setup proposals                                                                                                     
+ - clear setup-only temporary state                                                                                                   
+ - return to the previous campaign state                                                                                              
+ - show that no campaign files were changed                                                                                           
+                                                                                                                                      
+ ────────────────────────────────────────────────────────────────────────────────                                                     
+                                                                                                                                      
+ 9. /end-day                                                                                                                          
+                                                                                                                                      
+ - when /end-day is received                                                                                                          
+ - check that the game is in open                                                                                                     
+ - check that no unresolved clarification, dice request, or failed operation exists                                                   
+ - close the current player-facing day                                                                                                
+ - read:                                                                                                                              
+     - completed turn records                                                                                                         
+     - TEMP_MEMORY.md                                                                                                                 
+     - branch candidates                                                                                                              
+     - active commitments                                                                                                             
+     - background results                                                                                                             
+ - flag required day-end processes                                                                                                    
+ - run each required process:                                                                                                         
+     - resource updates                                                                                                               
+     - autonomous actions                                                                                                             
+     - branch discovery                                                                                                               
+     - modifier review                                                                                                                
+     - game-event update                                                                                                              
+     - world-event pool update                                                                                                        
+ - if any process lacks required evidence                                                                                             
+     - create an OOC clarification                                                                                                    
+     - set state to awaiting_clarification                                                                                            
+ - otherwise                                                                                                                          
+     - Admin Agent creates the day-end proposal                                                                                       
+     - show the proposal to the player                                                                                                
+     - set state to day_end_review                                                                                                    
+ - wait for /approve                                                                                                                  
+                                                                                                                                      
+ After approval:                                                                                                                      
+                                                                                                                                      
+ - Admin Editor applies approved Markdown changes                                                                                     
+ - save the d100 roll exactly once                                                                                                    
+ - create the pending world event                                                                                                     
+ - store event deadline and conditions                                                                                                
+ - set state to new_day_pending                                                                                                       
+ - require {resume}                                                                                                                   
+                                                                                                                                      
+ ────────────────────────────────────────────────────────────────────────────────                                                     
+                                                                                                                                      
+ 10. {resume}                                                                                                                         
+                                                                                                                                      
+ - when {resume} is received                                                                                                          
+ - check whether the runtime is:                                                                                                      
+     - paused                                                                                                                         
+     - new_game_pending                                                                                                               
+     - new_day_pending                                                                                                                
+ - if unresolved work remains                                                                                                         
+     - do not resume                                                                                                                  
+     - show the blocking operation                                                                                                    
+ - otherwise                                                                                                                          
+     - set state to open                                                                                                              
+     - begin the next roleplay section                                                                                                
+ - do not rerun the previous setup or day-end process                                                                                 
+                                                                                                                                      
+ ────────────────────────────────────────────────────────────────────────────────                                                     
+                                                                                                                                      
+ 11. /retry                                                                                                                           
+                                                                                                                                      
+ - when /retry is received                                                                                                            
+ - find the most recent failed operation                                                                                              
+ - check whether it has already committed state changes                                                                               
+ - if committed                                                                                                                       
+     - resume from the last safe checkpoint                                                                                           
+ - if not committed                                                                                                                   
+     - reset temporary failure state                                                                                                  
+     - restart from the operation entry point                                                                                         
+ - reuse the same operation_id                                                                                                        
+ - use idempotent writes                                                                                                              
+ - do not duplicate:                                                                                                                  
+     - resources                                                                                                                      
+     - relationships                                                                                                                  
+     - event rolls                                                                                                                    
+     - characters                                                                                                                     
+     - specialist installations                                                                                                       
+ - if the same failure occurs again                                                                                                   
+     - stop                                                                                                                           
+     - show the failure reason                                                                                                        
+     - create an OOC diagnostic report                                                                                                
+                                                                                                                                      
+ ────────────────────────────────────────────────────────────────────────────────                                                     
+                                                                                                                                      
+ 12. /specialists                                                                                                                     
+                                                                                                                                      
+ - when /specialists is received                                                                                                      
+ - read the specialist registry                                                                                                       
+ - list specialists by status:                                                                                                        
+     - proposed                                                                                                                       
+     - approved                                                                                                                       
+     - installed                                                                                                                      
+     - active                                                                                                                         
+     - disabled                                                                                                                       
+ - show:                                                                                                                              
+     - specialist name                                                                                                                
+     - domain                                                                                                                         
+     - activation conditions                                                                                                          
+     - evidence requirements                                                                                                          
+     - current status                                                                                                                 
+ - do not change any specialist                                                                                                       
+                                                                                                                                      
+ ────────────────────────────────────────────────────────────────────────────────                                                     
+                                                                                                                                      
+ 13. /install NAME                                                                                                                    
+                                                                                                                                      
+ - when /install NAME is received                                                                                                     
+ - find the named specialist proposal                                                                                                 
+ - if no specialist exists                                                                                                            
+     - show an error                                                                                                                  
+     - stop                                                                                                                           
+ - if the proposal is not approved                                                                                                    
+     - show that approval is required                                                                                                 
+     - stop                                                                                                                           
+ - check that the specialist is not already installed                                                                                 
+ - validate its:                                                                                                                      
+     - scope                                                                                                                          
+     - input contract                                                                                                                 
+     - output contract                                                                                                                
+     - activation tags                                                                                                                
+     - evidence requirements                                                                                                          
+ - install the specialist                                                                                                             
+ - record installation in the specialist registry                                                                                     
+ - write an audit record                                                                                                              
+ - show the installed specialist status                                                                                               
+                                                                                                                                      
+ The important distinction is:                                                                                                        
+                                                                                                                                      
+ ```text                                                                                                                              
+   command                                                                                                                            
+   → command-specific process                                                                                                         
+   → draft or proposal                                                                                                                
+   → player decision                                                                                                                  
+   → Admin Editor                                                                                                                     
+   → state transition                                                                                                                 
+ ```                                                                                                                                  
+                                                                                                                                      
+ Commands should never directly skip the creation, evidence, approval, or persistence steps. 
+
+
+
+# 13. Backend Phase Processing
+
+- when the Phase Clock detects that time has advanced
+- identify every phase that was entered
+- create one unique `tick_id` for each phase
+  - example: `day-2-afternoon`
+- check whether the `tick_id` was already completed
+  - if completed
+    - skip it
+  - else
+    - continue
+- load:
+  - backend directives
+  - NPC state
+  - resource processes
+  - world progress state
+  - current character state
+  - current ledger state
+  - unlocked branches
+  - active assumptions
+- create a private backend snapshot
+- identify all processes that must run during the phase
+  - autonomous tasks
+  - resource production
+  - resource consumption
+  - plant growth
+  - construction
+  - faction activity
+  - settlement growth
+  - world progress
+- run each required backend process
+- collect all proposed state changes
+- send the complete phase result to the Backend Lead Resolver
+- if the Backend Lead Resolver cannot resolve a required process
+  - mark that process as pending
+  - do not mark the tick as complete
+  - store the reason
+  - make the tick retryable
+- else
+  - commit all resolved backend changes
+  - mark the `tick_id` as completed
+  - create visibility records
+  - expose only approved information to the player
+- continue to the next phase
+
+---
+
+# 14. Autonomous Actor Task
+
+This process applies when an NPC, party member, faction, or other actor has been assigned an off-screen task.
+
+- when an actor has an active background directive
+- read the directive
+- identify:
+  - actor
+  - task
+  - goal
+  - location
+  - time available
+  - allowed resources
+  - restrictions
+  - success conditions
+  - failure conditions
+- read the actor’s current state
+- read the actor’s capabilities
+- read relevant relationships and commitments
+- read relevant environmental conditions
+- create an Evidence Bundle for the task
+- run the required specialists
+  - character capability
+  - situation
+  - resources
+  - difficulty
+  - time
+  - experimentation, if relevant
+  - consequences
+  - branch, if relevant
+- specialist proposes an attempted action
+- do not assume that the actor succeeds
+- send the attempted action and specialist findings to the Backend Lead Resolver
+- Backend Lead Resolver checks whether the evidence is sufficient
+- if evidence is missing
+  - check for an already authorized provisional assumption
+  - if an authorized assumption exists
+    - apply it within its declared scope
+  - else
+    - mark the task as unresolved
+    - store the missing requirement
+    - do not invent a result
+- if the evidence is sufficient
+  - resolve success, failure, or partial success
+  - calculate costs
+  - calculate resource changes
+  - calculate time spent
+  - calculate consequences
+  - calculate relationship changes
+  - calculate branch discoveries
+- create a private autonomy result
+- store the result in backend state
+- if the result is OOC-visible
+  - create an OOC-safe mirror
+- if the result is not visible
+  - keep it private
+- do not call the Narrator during the backend task
+- do not reveal private surprises during normal play
+
+---
+
+# 15. Recurring Resource Process
+
+This process handles resources that change over time, such as money, crops, plants, construction, supplies, or maintenance.
+
+- when a phase or day begins
+- find all active recurring resource processes
+- for each process
+  - identify the resource
+  - identify the owner
+  - identify the source
+  - identify the process type:
+    - production
+    - consumption
+    - growth
+    - decay
+    - maintenance
+    - interest
+    - payment
+    - replenishment
+- read the process rule
+- read the starting quantity
+- read the elapsed time
+- read required conditions
+- read applicable modifiers
+- check whether the process was interrupted
+- check whether the required location, facility, worker, material, or condition exists
+- create an Evidence Bundle
+- run relevant specialists
+  - resources
+  - time
+  - situation
+  - character capability
+  - difficulty
+  - modifier
+  - consequences
+- if the resource rate is missing
+  - check for an established rule
+  - check for an authorized provisional assumption
+  - if neither exists
+    - create an unresolved resource process
+    - do not guess the quantity
+- if the resource process can be resolved
+  - calculate the amount produced or consumed
+  - apply bonuses and penalties
+  - apply caps and limits
+  - calculate the new quantity
+  - calculate overflow, shortage, waste, or failure
+- send the result to the Backend Lead Resolver
+- Backend Lead Resolver approves the final amount
+- create a `Resource Change` containing:
+  - tick ID
+  - resource
+  - owner
+  - amount before
+  - amount changed
+  - amount after
+  - reason
+  - source process
+  - applied modifiers
+  - visibility
+- commit the change to backend state
+- if the resource belongs to the player or party
+  - create a ledger update record
+- if the resource is private
+  - keep the result in backend state
+- at day-end
+  - promote approved visible resource changes to `Ledger Resources.md`
+- never apply the same resource change twice for the same `tick_id` and process ID
+
+### Plant Growth Example
+
+- plant has an active growth process
+- read plant type
+- read growth stage
+- read elapsed phases
+- read water, light, soil, and location
+- read interruptions or damage
+- calculate growth progress
+- if the growth threshold is reached
+  - advance the plant to the next stage
+- if the plant reaches harvest stage
+  - create a harvest-ready state
+- commit the growth result
+- do not create harvest resources until harvesting actually occurs
+
+---
+
+# 16. World Progress
+
+World Progress represents gradual changes in the world. It is different from a sudden World Event.
+
+Examples include:
+
+- settlement population growth
+- faction expansion
+- technology development
+- economic growth
+- ecological change
+- construction
+- political influence
+- military preparation
+- branch development
+- knowledge spreading
+- dungeon or threat advancement
+
+- when the configured world-progress interval is reached
+  - usually at day-end or after a defined number of phases
+- read the current world-progress state
+- read active factions, settlements, branches, and world systems
+- read previous world-progress results
+- read player actions that may affect the world
+- read autonomous actor results
+- read completed experiments and discoveries
+- read active world conditions
+- create an Evidence Bundle
+- run relevant specialists
+  - world
+  - faction
+  - settlement
+  - economy
+  - technology
+  - ecology
+  - branch
+  - consequences
+- identify every progress process that is eligible to advance
+- calculate progress for each process
+- apply:
+  - available resources
+  - time elapsed
+  - faction capability
+  - environmental conditions
+  - player interference
+  - previous progress
+  - setbacks
+  - active modifiers
+- if required progress evidence is missing
+  - use only an authorized assumption
+  - otherwise mark the process as unresolved
+- send the progress findings to the Backend Lead Resolver
+- Backend Lead Resolver determines:
+  - whether progress occurs
+  - how much progress occurs
+  - whether progress is visible
+  - whether progress creates a consequence
+  - whether progress creates a branch candidate
+  - whether progress triggers a World Event
+- create `World State Change` records
+- update private backend world state
+- create branch candidates where appropriate
+- create a world-event candidate only when the event condition is satisfied
+- do not automatically unlock a branch
+- do not automatically reveal private world progress
+- at day-end
+  - collect world state changes
+  - create an Admin Agent proposal for persistent Markdown promotion
+  - after approval, update `🌍 CORE WORLD FRAME (REFINED).md`
+- preserve the progress records for replay and audit
+
+## Difference Between World Progress and World Events
+
+```text
+World Progress
+→ gradual change over time
+
+World Event
+→ discrete event triggered by a roll, condition, or completed progress threshold
+```
+
+For example:
+
+```text
+faction influence increases from 20 to 25
+→ World Progress
+
+faction sends an expedition into the player’s region
+→ World Event
+```
+
+All backend processes must use the same rule:
+
+```text
+plan
+→ gather evidence
+→ run specialists
+→ Backend Lead Resolver
+→ create typed state changes
+→ commit once per tick
+→ apply visibility rules
+→ retry safely if unresolved
+```

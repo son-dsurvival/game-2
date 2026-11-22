@@ -14,13 +14,9 @@ from pathlib import Path
 from typing import Any
 
 
-try:
-    from brain.specialists.registry import CORE_SPECIALISTS
-except ModuleNotFoundError:  # Direct execution: python brain/specialists/coverage_check.py
-    from registry import CORE_SPECIALISTS
-
-# One shared policy for foreground, background, and coverage gates.
-MANDATORY_SPECIALISTS = set(CORE_SPECIALISTS)
+# Coverage follows the caller's explicit specialist list. There is no implicit
+# mandatory core; this keeps the gate aligned with scoped orchestration.
+MANDATORY_SPECIALISTS: set[str] = set()
 REQUIRED_RESULT_FIELDS = {
     "specialist",
     "status",

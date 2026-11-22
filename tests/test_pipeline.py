@@ -144,6 +144,55 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(target.read_text(encoding='utf-8'), 'after')
             self.assertEqual(applied['position']['phase'], 'Early Morning')
 
+    def test_back_setup_reopens_previous_approved_batch(self):
+        class SequentialSetupGame(ScriptedGame):
+            def __init__(self):
+                self.seen_indices = []
+
+            def prepare_setup(self, context):
+                self.seen_indices.append(context['setup_batch_index'])
+                return {
+                    'proposal': {
+                        'status': 'proposal_ready',
+                        'answer': 'Review the revised batch.',
+                        'changes': [{
+                            'target_file': 'markdown_files/notes.md',
+                            'action': 'update',
+                            'old_text': 'before',
+                            'new_text': 'revised',
+                        }],
+                        'setup_batches': [{'batch_id': 'ledger_resources'}],
+                    },
+                    'batch_progress': [],
+                    'setup_batch_total': 4,
+                }
+
+        with tempfile.TemporaryDirectory() as root:
+            target = Path(root) / 'markdown_files/notes.md'
+            target.parent.mkdir()
+            target.write_text('before', encoding='utf-8')
+            operation = {
+                'id': 'setup-sequential', 'kind': 'setup', 'stage': 'prepare_setup',
+                'operation_type': 'out_of_game', 'before': {'day': 1, 'phase': 'Early Morning', 'progress': 0.0},
+                'message': 'Review setup.', 'answers': [], 'revision': 3, 'results': {}, 'dice': {},
+                'setup_sequential': True, 'setup_batch_index': 2, 'setup_batch_total': 4,
+                'setup_batch_id': 'relationships', 'setup_batch_final': False,
+            }
+            RuntimeStateStore(root).save({
+                'play_gate': 'setup_review', 'campaign_id': 'test',
+                'operation': operation,
+                'proposal': {'status': 'proposal_ready', 'changes': [{
+                    'target_file': 'markdown_files/notes.md', 'action': 'update',
+                    'old_text': 'before', 'new_text': 'current',
+                }]},
+            })
+            game = SequentialSetupGame()
+            pipeline = CampaignPipeline(root, modules=game)
+            result = pipeline.back_setup_batch()
+            self.assertEqual(result['status'], 'setup_review')
+            self.assertEqual(game.seen_indices, [1])
+            self.assertEqual(RuntimeStateStore(root).load()['operation']['setup_batch_index'], 1)
+
     def test_day_end_requires_application_then_schedules_a_private_event(self):
         with tempfile.TemporaryDirectory() as root:
             target = Path(root) / 'markdown_files/notes.md'
@@ -358,6 +407,11 @@ class PipelineTests(unittest.TestCase):
             state = RuntimeStateStore(root).load()
             self.assertEqual([m['identity']['name'] for m in state['party']], ['Kael', 'Mira'])
             self.assertEqual(state['main_character'], 'Kael')
+            groups = state['character_specialist_groups']['Mira']
+            self.assertEqual(len(groups), 5)
+            self.assertIn('Core Stats', groups[1]['sections'])
+            self.assertIn('Derived Stats', groups[1]['sections'])
+            self.assertEqual(groups[3]['name'], 'character_mira_class')
 
     def test_new_party_member_keeps_main_character(self):
         with tempfile.TemporaryDirectory() as root:
@@ -387,6 +441,30 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(pipeline.approve()['status'], 'paused')
             self.assertEqual(pipeline.resume_play()['status'], 'open')
 
+    def test_resume_preserves_pending_setup_modifier_choice(self):
+        with tempfile.TemporaryDirectory() as root:
+            RuntimeStateStore(root).save({
+                'play_gate': 'awaiting_clarification',
+                'pending_clarification': {
+                    'question': 'Which three starting Effect Modifiers should Femi select?',
+                    'source': 'admin_agent',
+                },
+                'draft': {
+                    'mode': 'new_game',
+                    'characters': [{'identity': {'name': 'Femi'}}],
+                    'main_character': 'Femi',
+                    'party_done': True,
+                },
+                'operation': {
+                    'id': 'setup-test', 'kind': 'setup', 'stage': 'prepare_setup',
+                    'operation_type': 'out_of_game', 'answers': [], 'revision': 0,
+                    'results': {},
+                },
+            })
+            result = CampaignPipeline(root, modules=ScriptedGame()).resume()
+            self.assertEqual(result['status'], 'awaiting_clarification')
+            self.assertIn('Effect Modifiers', result['question']['question'])
+
     def test_new_game_waits_for_explicit_resume_after_approval(self):
         with tempfile.TemporaryDirectory() as root:
             target = Path(root) / 'markdown_files/TEMP_MEMORY.md'
@@ -414,6 +492,28 @@ class PipelineTests(unittest.TestCase):
             review = pipeline.propose_specialist('beast_taming')
             self.assertEqual(review['status'], 'admin_review')
             self.assertEqual(pipeline.approve()['status'], 'open')
+    def test_setup_choice_proposal_creates_a_link_for_player_selection(self):
+        operation = {
+            'id': 'setup-choice-test',
+            'setup_sequential': True,
+            'setup_batch_id': 'status_stat_modifiers',
+            'revision': 0,
+        }
+        proposal = {
+            'proposal_id': 'proposal-1',
+            'changes': [{
+                'target_file': 'markdown_files/status sheet.md',
+                'new_text': '#### AGI:\n- **Choice one** — Basis: high | Magnitude: +2',
+            }],
+        }
+        link = CampaignPipeline._ensure_setup_choice_link(operation, proposal)
+        self.assertEqual(link['status'], 'awaiting_answer')
+        self.assertEqual(link['result']['clarification_result']['batch_id'], 'status_stat_modifiers')
+        link['answer'] = 'Choose Choice one.'
+        link['status'] = 'answered'
+        self.assertEqual(operation['active_clarification_link_id'], link['id'])
+        self.assertEqual(link['answer'], 'Choose Choice one.')
+
     def test_setup_chat_links_ai_question_to_followup_answer(self):
         with tempfile.TemporaryDirectory() as root:
             store = RuntimeStateStore(root)

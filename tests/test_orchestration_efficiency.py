@@ -13,8 +13,7 @@ class OrchestrationEfficiencyTests(unittest.TestCase):
             modules = GameModules(Path(directory))
             fake_result = {
                 'specialist_results': [],
-                'coverage': {'required': ['rules', 'character']},
-                'mandatory_specialists': [],
+                'coverage': {'required': []},
             }
             with patch('brain.game_modules.SpecialistRunner') as runner_type:
                 runner_type.return_value.run.return_value = fake_result
@@ -24,8 +23,8 @@ class OrchestrationEfficiencyTests(unittest.TestCase):
                     ('character',),
                 )
                 call = runner_type.return_value.run.call_args
-                self.assertEqual(call.args[1], ['rules', 'character'])
-                self.assertEqual(call.kwargs['mandatory_specialists'], ())
+                self.assertEqual(call.args[1], [])
+                self.assertNotIn('mandatory_specialists', call.kwargs)
 
     def test_coverage_honors_an_explicit_empty_mandatory_policy(self):
         result = CoverageCheck().check({

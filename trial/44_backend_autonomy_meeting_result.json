@@ -1,0 +1,351 @@
+{
+  "scenario": {
+    "task_a": {
+      "directive_id": "directive-renn-herbs",
+      "actor": "Renn",
+      "task": "Collect medicinal herbs in the north grove.",
+      "location": "north grove",
+      "constraints": [
+        "Do not leave the grove until the collection is complete."
+      ],
+      "started": null,
+      "expires": null,
+      "status": "active",
+      "last_processed_tick": null,
+      "assigned_by": "Nia",
+      "metadata": {
+        "visibility": "hidden",
+        "ooc_visibility": "private",
+        "requires_resolution": false
+      }
+    },
+    "player_task_b_turns": [
+      {
+        "turn": 1,
+        "action": "Search the market for a map.",
+        "location": "market"
+      },
+      {
+        "turn": 2,
+        "action": "Travel along the north road.",
+        "location": "north road"
+      },
+      {
+        "turn": 3,
+        "action": "Enter the north grove and look for Renn.",
+        "location": "north grove"
+      }
+    ],
+    "starting_position": {
+      "day": 1,
+      "phase": "Early Morning",
+      "progress": 0.0
+    }
+  },
+  "turn_records": [
+    {
+      "player_turn": {
+        "turn": 1,
+        "action": "Search the market for a map.",
+        "location": "market"
+      },
+      "backend_tick": {
+        "tick_id": "day-1-morning",
+        "position": {
+          "day": 1,
+          "phase": "Morning",
+          "progress": 0.0
+        },
+        "actions": [
+          {
+            "directive_id": "directive-renn-herbs",
+            "actor": "Renn",
+            "assigned_task": "Collect medicinal herbs in the north grove.",
+            "chosen_action": "Collect medicinal herbs in the north grove.",
+            "location": "north grove",
+            "constraints": [
+              "Do not leave the grove until the collection is complete."
+            ],
+            "requires_resolution": false,
+            "visibility": "hidden",
+            "ooc_visibility": "private",
+            "rationale": "Assigned task is compatible with the actor's current state; resolve capability, cost, risk, and outcome separately.",
+            "status": "successful",
+            "player_visibility": "hidden"
+          }
+        ],
+        "automatic_updates": [],
+        "resource_changes": [
+          {
+            "resource": "medicinal herbs",
+            "before": 0,
+            "delta": 2,
+            "after": 2,
+            "reason": "temporary test assumption: 2 herbs collected per phase"
+          }
+        ],
+        "world_updates": [],
+        "visibility_events": [],
+        "completed_directives": [],
+        "notes": [
+          "Autonomy continued while the player pursued a separate action."
+        ],
+        "next_context": null,
+        "interrupt": null
+      }
+    },
+    {
+      "player_turn": {
+        "turn": 2,
+        "action": "Travel along the north road.",
+        "location": "north road"
+      },
+      "backend_tick": {
+        "tick_id": "day-1-late-morning",
+        "position": {
+          "day": 1,
+          "phase": "Late Morning",
+          "progress": 0.0
+        },
+        "actions": [
+          {
+            "directive_id": "directive-renn-herbs",
+            "actor": "Renn",
+            "assigned_task": "Collect medicinal herbs in the north grove.",
+            "chosen_action": "Collect medicinal herbs in the north grove.",
+            "location": "north grove",
+            "constraints": [
+              "Do not leave the grove until the collection is complete."
+            ],
+            "requires_resolution": false,
+            "visibility": "hidden",
+            "ooc_visibility": "private",
+            "rationale": "Assigned task is compatible with the actor's current state; resolve capability, cost, risk, and outcome separately.",
+            "status": "successful",
+            "player_visibility": "hidden"
+          }
+        ],
+        "automatic_updates": [],
+        "resource_changes": [
+          {
+            "resource": "medicinal herbs",
+            "before": 2,
+            "delta": 2,
+            "after": 4,
+            "reason": "temporary test assumption: 2 herbs collected per phase"
+          }
+        ],
+        "world_updates": [],
+        "visibility_events": [],
+        "completed_directives": [],
+        "notes": [
+          "Autonomy continued while the player pursued a separate action."
+        ],
+        "next_context": null,
+        "interrupt": null
+      }
+    },
+    {
+      "player_turn": {
+        "turn": 3,
+        "action": "Enter the north grove and look for Renn.",
+        "location": "north grove"
+      },
+      "backend_tick": {
+        "tick_id": "day-1-midday",
+        "position": {
+          "day": 1,
+          "phase": "Midday",
+          "progress": 0.0
+        },
+        "actions": [
+          {
+            "directive_id": "directive-renn-herbs",
+            "actor": "Renn",
+            "assigned_task": "Collect medicinal herbs in the north grove.",
+            "chosen_action": "Collect medicinal herbs in the north grove.",
+            "location": "north grove",
+            "constraints": [
+              "Do not leave the grove until the collection is complete."
+            ],
+            "requires_resolution": false,
+            "visibility": "hidden",
+            "ooc_visibility": "private",
+            "rationale": "Assigned task is compatible with the actor's current state; resolve capability, cost, risk, and outcome separately.",
+            "status": "successful",
+            "player_visibility": "hidden"
+          }
+        ],
+        "automatic_updates": [],
+        "resource_changes": [
+          {
+            "resource": "medicinal herbs",
+            "before": 4,
+            "delta": 2,
+            "after": 6,
+            "reason": "temporary test assumption: 2 herbs collected per phase"
+          }
+        ],
+        "world_updates": [],
+        "visibility_events": [],
+        "completed_directives": [
+          "directive-renn-herbs"
+        ],
+        "notes": [
+          "Autonomy continued while the player pursued a separate action."
+        ],
+        "next_context": null,
+        "interrupt": null
+      }
+    }
+  ],
+  "private_backend_ticks": [
+    {
+      "tick_id": "day-1-morning",
+      "position": {
+        "day": 1,
+        "phase": "Morning",
+        "progress": 0.0
+      },
+      "actions": [
+        {
+          "directive_id": "directive-renn-herbs",
+          "actor": "Renn",
+          "assigned_task": "Collect medicinal herbs in the north grove.",
+          "chosen_action": "Collect medicinal herbs in the north grove.",
+          "location": "north grove",
+          "constraints": [
+            "Do not leave the grove until the collection is complete."
+          ],
+          "requires_resolution": false,
+          "visibility": "hidden",
+          "ooc_visibility": "private",
+          "rationale": "Assigned task is compatible with the actor's current state; resolve capability, cost, risk, and outcome separately.",
+          "status": "successful",
+          "player_visibility": "hidden"
+        }
+      ],
+      "automatic_updates": [],
+      "resource_changes": [
+        {
+          "resource": "medicinal herbs",
+          "before": 0,
+          "delta": 2,
+          "after": 2,
+          "reason": "temporary test assumption: 2 herbs collected per phase"
+        }
+      ],
+      "world_updates": [],
+      "visibility_events": [],
+      "completed_directives": [],
+      "notes": [
+        "Autonomy continued while the player pursued a separate action."
+      ],
+      "next_context": null,
+      "interrupt": null
+    },
+    {
+      "tick_id": "day-1-late-morning",
+      "position": {
+        "day": 1,
+        "phase": "Late Morning",
+        "progress": 0.0
+      },
+      "actions": [
+        {
+          "directive_id": "directive-renn-herbs",
+          "actor": "Renn",
+          "assigned_task": "Collect medicinal herbs in the north grove.",
+          "chosen_action": "Collect medicinal herbs in the north grove.",
+          "location": "north grove",
+          "constraints": [
+            "Do not leave the grove until the collection is complete."
+          ],
+          "requires_resolution": false,
+          "visibility": "hidden",
+          "ooc_visibility": "private",
+          "rationale": "Assigned task is compatible with the actor's current state; resolve capability, cost, risk, and outcome separately.",
+          "status": "successful",
+          "player_visibility": "hidden"
+        }
+      ],
+      "automatic_updates": [],
+      "resource_changes": [
+        {
+          "resource": "medicinal herbs",
+          "before": 2,
+          "delta": 2,
+          "after": 4,
+          "reason": "temporary test assumption: 2 herbs collected per phase"
+        }
+      ],
+      "world_updates": [],
+      "visibility_events": [],
+      "completed_directives": [],
+      "notes": [
+        "Autonomy continued while the player pursued a separate action."
+      ],
+      "next_context": null,
+      "interrupt": null
+    },
+    {
+      "tick_id": "day-1-midday",
+      "position": {
+        "day": 1,
+        "phase": "Midday",
+        "progress": 0.0
+      },
+      "actions": [
+        {
+          "directive_id": "directive-renn-herbs",
+          "actor": "Renn",
+          "assigned_task": "Collect medicinal herbs in the north grove.",
+          "chosen_action": "Collect medicinal herbs in the north grove.",
+          "location": "north grove",
+          "constraints": [
+            "Do not leave the grove until the collection is complete."
+          ],
+          "requires_resolution": false,
+          "visibility": "hidden",
+          "ooc_visibility": "private",
+          "rationale": "Assigned task is compatible with the actor's current state; resolve capability, cost, risk, and outcome separately.",
+          "status": "successful",
+          "player_visibility": "hidden"
+        }
+      ],
+      "automatic_updates": [],
+      "resource_changes": [
+        {
+          "resource": "medicinal herbs",
+          "before": 4,
+          "delta": 2,
+          "after": 6,
+          "reason": "temporary test assumption: 2 herbs collected per phase"
+        }
+      ],
+      "world_updates": [],
+      "visibility_events": [],
+      "completed_directives": [
+        "directive-renn-herbs"
+      ],
+      "notes": [
+        "Autonomy continued while the player pursued a separate action."
+      ],
+      "next_context": null,
+      "interrupt": null
+    }
+  ],
+  "public_register": "# Experimentation Register\n",
+  "checks": {
+    "three_player_turns_completed": true,
+    "three_backend_ticks_committed": true,
+    "renn_kept_doing_task_a": true,
+    "player_actions_remained_separate": true,
+    "meeting_after_third_turn": true,
+    "directive_completed_at_meeting_tick": true,
+    "resource_calculated_each_phase": true,
+    "total_returned_after_three_phases": true,
+    "private_background_not_publicly_mirrored": true
+  },
+  "status": "passed"
+}

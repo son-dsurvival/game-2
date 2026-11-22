@@ -30,22 +30,62 @@ from pathlib import Path
 from typing import Any, Iterable
 
 try:
-    from brain.branch_registry import BranchRegistry
-    from brain.model_gateway import ModelGateway
+    from brain.specialists.branch_registry import BranchRegistry
+    from brain.state.model_gateway import ModelGateway
 except ModuleNotFoundError:  # Direct execution: python brain/turn_router.py
-    from branch_registry import BranchRegistry
-    from model_gateway import ModelGateway
+    from brain.specialists.branch_registry import BranchRegistry
+    from brain.state.model_gateway import ModelGateway
 
 
-# Core analysis categories always exist. Evidence Bundle construction and the
-# Recorder handle context/memory; Create and leaf domains are routed as needed.
-MANDATORY_SPECIALISTS = ["rules", "character", "special"]
+# Evidence Bundle construction and the Recorder handle context and memory.
+# Create and leaf domains are routed only when needed. No specialist lane is mandatory. Specialists are selected only when the
+# action, participating character, or unlocked branch requires one.
+MANDATORY_SPECIALISTS: list[str] = []
+CHARACTER_GROUP_OWNED_SPECIALISTS = {
+    "current_state", "modifier", "create_stat_modifier",
+    "create_effect_modifier", "experimentation", "class", "relationship",
+    "npc_autonomy",
+}
 TAXONOMY_PATH = (
     Path(__file__).resolve().parent
     / "info"
     / "router_taxonomy"
     / "tags.json"
 )
+
+# A tag can imply a baseline analysis bundle without implying every possible
+# mechanic. Conditional specialists are activated by their own additional tags.
+# This keeps, for example, combat from requiring spell or resource analysis
+# unless the action actually contains those mechanics.
+ROUTING_PROFILES: dict[str, tuple[str, ...]] = {
+    "mode.combat": ("combat", "difficulty", "time", "modifier"),
+    "activity.combat": ("combat", "difficulty", "time", "modifier"),
+    "activity.experiment": ("experimentation", "difficulty", "time"),
+    "activity.training": ("experimentation", "xp", "time"),
+    "mechanic.difficulty": ("difficulty",),
+    "mechanic.resource_cost": ("resources", "consumables_rewards"),
+    "mechanic.consumable": ("consumables_rewards",),
+    "mechanic.reward": ("consumables_rewards",),
+    "mechanic.time_cost": ("time",),
+    "mechanic.xp": ("xp", "tier_level_up"),
+    "mechanic.modifier_creation": ("create_stat_modifier", "create_effect_modifier"),
+    "mechanic.spell_creation": ("spell", "difficulty", "time"),
+    "mechanic.world_event": ("world",),
+    "mechanic.cognitive_assistance": ("cognitive_assistance",),
+    "context.emotional": ("relationship", "npc_autonomy"),
+    "context.relationship": ("relationship", "npc_autonomy"),
+    "context.character_behavior": ("current_state",),
+    "context.stats": ("modifier",),
+    "context.actions": ("modifier",),
+    "context.skills_spells": ("spell",),
+    "context.class_system": ("class",),
+    "context.tier_progression": ("tier_level_up",),
+    "context.situation": ("situation",),
+    "mechanic.consent": ("relationship", "npc_autonomy"),
+    "participant.companion": ("current_state", "npc_autonomy"),
+    "stakes.irreversible": ("consequences",),
+    "stakes.contested": ("consequences",),
+}
 
 
 def _fallback_taxonomy() -> dict[str, Any]:
@@ -55,36 +95,58 @@ def _fallback_taxonomy() -> dict[str, Any]:
     fallback here means specialist routing still works in a fresh checkout (or
     while indexes are being rebuilt); it is intentionally conservative.
     """
-    def tag(category: str, description: str, indicators: tuple[str, ...], specialists: tuple[str, ...]) -> dict[str, Any]:
+    def tag(category: str, description: str, indicators: tuple[str, ...]) -> dict[str, Any]:
         return {
             "category": category,
             "description": description,
             "positive_indicators": list(indicators),
-            "specialists": list(specialists),
+            # Kept for compatibility with the generated taxonomy schema. Route
+            # ownership comes from specialist registry activation_tags.
+            "specialists": [],
         }
 
     return {"tags": {
-        "mode.combat": tag("mode", "The action is combat", ("attack", "fight", "combat", "duel"), ()),
-        "mode.noncombat": tag("mode", "The action is not combat", (), ()),
-        "activity.combat": tag("activity", "A hostile combat action", ("attack", "fight", "strike"), ("combat", "rules", "character")),
-        "activity.exploration": tag("activity", "Exploration or investigation", ("explore", "search", "investigate", "ruin"), ("world", "special")),
-        "activity.experiment": tag("activity", "An experiment or practice action", ("experiment", "test", "practice", "refine"), ("experimentation", "rules")),
-        "activity.business": tag("activity", "Business or trade activity", ("business", "trade", "market", "contract"), ("business", "special")),
-        "activity.alchemy": tag("activity", "Alchemy or potion activity", ("alchemy", "potion", "reagent", "transmute"), ("alchemy", "special")),
-        "activity.politics": tag("activity", "Politics or faction activity", ("politics", "faction", "influence", "office"), ("politics", "special")),
-        "mechanic.difficulty": tag("mechanic", "A task difficulty or roll target", ("difficulty", "target", "roll"), ("difficulty", "rules")),
-        "mechanic.resource_cost": tag("mechanic", "Resources, materials, or mana", ("resource", "mana", "cost", "spend", "material"), ("resources", "rules")),
-        "mechanic.time_cost": tag("mechanic", "Time, phase, or duration", ("time", "phase", "wait", "day"), ("time", "rules")),
-        "mechanic.cognitive_assistance": tag("mechanic", "Cognitive assistance", ("assist", "advice", "memory", "telepathy"), ("cognitive_assistance", "character")),
-        "mechanic.modifier_creation": tag("mechanic", "Creating or refining a stat or effect modifier", ("new modifier", "gain a modifier", "develop a technique", "refine a modifier", "breakthrough", "repeated success", "training breakthrough"), ("create_stat_modifier", "create_effect_modifier")),
-        "mechanic.spell_creation": tag("mechanic", "Spell creation or magic", ("spell", "magic", "cast"), ("spell", "rules", "special")),
-        "context.emotional": tag("context", "Emotional or relationship context", ("relationship", "trust", "love", "consent"), ("relationship", "character")),
-        "context.class_system": tag("context", "Class or class progression", ("class", "skill", "level"), ("class", "special")),
-        "context.relay_system": tag("context", "Relay or network system", ("relay", "network", "linked"), ("relay", "special")),
-        "participant.companion": tag("participant", "A companion or NPC participates", ("companion", "ally", "npc"), ("npc_autonomy", "character")),
-        "stakes.irreversible": tag("stakes", "An irreversible or permanent stake", ("permanent", "irreversible", "dangerous"), ("consequences", "special")),
-        "stakes.contested": tag("stakes", "The action is contested", ("opposed", "contest", "enemy"), ("consequences", "rules")),
-        "stakes.low": tag("stakes", "No high-risk marker was found", (), ()),
+        "mode.combat": tag("mode", "The action is combat", ("attack", "fight", "combat", "duel")),
+        "mode.noncombat": tag("mode", "The action is not combat", ()),
+        "activity.combat": tag("activity", "A hostile combat action", ("attack", "fight", "strike")),
+        "activity.exploration": tag("activity", "Exploration or investigation", ("explore", "search", "investigate", "ruin")),
+        "activity.experiment": tag("activity", "An experiment or practice action", ("experiment", "test", "practice", "refine")),
+        "activity.training": tag("activity", "Training, study, and deliberate practice", ("train", "training", "practice", "study", "drill")),
+        "activity.business": tag("activity", "Business or trade activity", ("business", "trade", "market", "contract")),
+        "activity.alchemy": tag("activity", "Alchemy or potion activity", ("alchemy", "potion", "reagent", "transmute")),
+        "activity.politics": tag("activity", "Politics or faction activity", ("politics", "faction", "influence", "office")),
+        "mechanic.difficulty": tag("mechanic", "A task difficulty or roll target", ("difficulty", "target", "roll")),
+        "mechanic.dice": tag("mechanic", "A dice request or roll procedure", ("dice", "d20", "roll")),
+        "mechanic.resource_cost": tag("mechanic", "Resources, materials, or mana", ("resource", "mana", "cost", "spend", "material")),
+        "mechanic.time_cost": tag("mechanic", "Time, phase, or duration", ("time", "phase", "wait", "day")),
+        "mechanic.xp": tag("mechanic", "Experience, level, and progression", ("xp", "experience", "level up", "advance", "tier up")),
+        "mechanic.consent": tag("mechanic", "Consent, boundaries, and participation", ("consent", "boundary", "refuse", "refusal", "permission")),
+        "mechanic.consumable": tag("mechanic", "Using or tracking consumables", ("consumable", "potion", "food", "use up")),
+        "mechanic.world_event": tag("mechanic", "Scheduled world-event mechanics", ("world event", "event trigger", "d100")),
+        "mechanic.cognitive_assistance": tag("mechanic", "Cognitive assistance", ("assist", "advice", "memory", "telepathy")),
+        "mechanic.modifier_creation": tag("mechanic", "Creating or refining a stat or effect modifier", ("new modifier", "gain a modifier", "develop a technique", "refine a modifier", "breakthrough", "repeated success", "training breakthrough")),
+        "mechanic.spell_creation": tag("mechanic", "Spell creation or magic", ("spell", "magic", "cast")),
+        "context.emotional": tag("context", "Emotional or relationship context", ("relationship", "trust", "love", "consent")),
+        "context.factional": tag("context", "Factional and political context", ("faction", "politics", "office", "diplomacy")),
+        "context.environmental": tag("context", "Established environmental conditions", ("environment", "terrain", "weather", "surface")),
+        "context.unknown_area": tag("context", "Unmapped or unknown area context", ("unknown area", "unmapped", "uncharted")),
+        "context.relationship": tag("context", "Relationship scores and dynamics", ("relationship score", "relationship dynamics", "bond", "trust")),
+        "context.character_behavior": tag("context", "Character identity and behavior", ("personality", "behavior", "voice", "motive")),
+        "context.stats": tag("context", "Character stats and derived values", ("stat", "attribute", "derived")),
+        "context.actions": tag("context", "Character actions and techniques", ("technique", "maneuver", "action pattern")),
+        "context.skills_spells": tag("context", "Active skills and spells", ("active skill", "spell", "ability", "cast")),
+        "context.tier_progression": tag("context", "Level and tier progression", ("level", "level-up", "tier", "advance")),
+        "context.situation": tag("context", "Environmental or situational action conditions", ("terrain", "weather", "light", "dark", "visibility", "noise", "cover", "crowd", "hazard", "surface", "condition")),
+        "context.class_system": tag("context", "Class or class progression", ("class", "skill", "level")),
+        "context.tier6": tag("context", "Tier 6 interactions, deals, and specialist entities", ("tier 6", "tier-6", "sixth tier")),
+        "mechanic.reward": tag("mechanic", "Rewards, loot, grants, and consumables", ("reward", "loot", "grant", "consumable", "potion", "use up")),
+        "context.relay_system": tag("context", "Relay or network system", ("relay", "network", "linked")),
+        "participant.companion": tag("participant", "A companion or NPC participates", ("companion", "ally", "npc")),
+        "stakes.irreversible": tag("stakes", "An irreversible or permanent stake", ("permanent", "irreversible", "dangerous")),
+        "stakes.breakthrough": tag("stakes", "A breakthrough or meaningful advancement stake", ("breakthrough", "breakthrough result", "major advance")),
+        "stakes.field_risk": tag("stakes", "Field risk or practical danger", ("field risk", "injury", "hazardous")),
+        "stakes.contested": tag("stakes", "The action is contested", ("opposed", "contest", "enemy")),
+        "stakes.low": tag("stakes", "No high-risk marker was found", ()),
     }}
 
 
@@ -113,32 +175,40 @@ ALLOWED_MODES = {
     for tag, definition in TAG_DEFINITIONS.items()
     if definition.get("category") == "mode"
 }
-SPECIALISTS_BY_TAG = {
-    tag: list(definition.get("specialists", []))
-    for tag, definition in TAG_DEFINITIONS.items()
-}
+def _registered_specialists_for_tags(tags: set[str]) -> set[str]:
+    """Route specialist ownership from registry activation tags only."""
+    from brain.specialists.registry import SPECIALIST_DEFINITIONS
 
-# These former one-topic roles are now responsibilities of the always-on core
-# lanes. They remain valid registry names for replay and explicit CLI runs, but
-# normal routing must not create a second serial-looking specialist chain.
-CORE_OWNED_SPECIALISTS = {
-    "canon": "character",
-    "current_state": "character",
-    "combat": "rules",
-    "difficulty": "rules",
-    "experimentation": "rules",
-    "resources": "rules",
-    "time": "rules",
-    "xp": "rules",
-    "spell": "rules",
-    "relationship": "character",
-    "npc_autonomy": "character",
-    "modifier": "character",
-    "cognitive_assistance": "character",
-    "modifier_creation": "create_effect_modifier",
-    "create_stat_modifier": "create_stat_modifier",
-    "create_effect_modifier": "create_effect_modifier",
-}
+    return {
+        definition.name
+        for definition in SPECIALIST_DEFINITIONS.values()
+        if set(definition.activation_tags) & tags
+    }
+
+
+def _register_and_list_character_specialists(current_state: dict[str, Any] | None) -> list[str]:
+    """Rehydrate character-scoped specialists and return their route names."""
+    if not isinstance(current_state, dict):
+        return []
+    groups = current_state.get("character_specialist_groups")
+    if not isinstance(groups, dict) or not groups:
+        return []
+    try:
+        from brain.specialists.character_group import register_character_specialists
+        register_character_specialists(groups)
+    except (ImportError, TypeError, ValueError):
+        return []
+    names: list[str] = []
+    for entries in groups.values():
+        if not isinstance(entries, list):
+            continue
+        for entry in entries:
+            if not isinstance(entry, dict):
+                continue
+            name = str(entry.get("registry_name") or entry.get("name") or "")
+            if name and name not in names:
+                names.append(name)
+    return names
 
 
 def _taxonomy_prompt_text() -> str:
@@ -299,7 +369,8 @@ class TurnRouter:
             turn_active=turn_active,
         )
 
-        request_type = self._request_type(player_message, preflight)
+        backend_autonomy = bool((current_state or {}).get("backend_autonomy"))
+        request_type = "backend_autonomy" if backend_autonomy else self._request_type(player_message, preflight)
         admin_request = self._admin_request(player_message) if request_type == "admin" else None
 
         # Commands, out-of-game requests, and blocked turns never reach an LLM.
@@ -338,23 +409,18 @@ class TurnRouter:
         preflight["classifier"] = classification_source
         tags.extend(self._unlocked_branch_tags(player_message))
         tags = list({item.tag: item for item in tags}.values())
-        process_type = self._process_type(player_message, preflight, tags)
+        process_type = "backend_autonomy" if backend_autonomy else self._process_type(player_message, preflight, tags)
 
+        character_specialists = _register_and_list_character_specialists(current_state)
         specialists = set(MANDATORY_SPECIALISTS)
+        if character_specialists:
+            specialists.update(character_specialists)
         tag_names = {tag.tag for tag in tags}
-        for tag in tag_names:
-            for specialist in SPECIALISTS_BY_TAG.get(tag, []):
-                # The broad core lane owns these responsibilities now. A
-                # branch-specific specialist is routed only after its branch is
-                # explicitly unlocked in Branch Registry.md or pending session
-                # updates. A tag alone is not an unlock.
-                owner = CORE_OWNED_SPECIALISTS.get(specialist)
-                if owner:
-                    specialists.add(owner)
-                elif self.branch_registry.is_unlocked(specialist):
-                    specialists.add(specialist)
-        # Custom branches may not exist in the static taxonomy yet. Their
-        # registry activation tags still route their unlocked specialist.
+        for tag_name in tag_names:
+            specialists.update(ROUTING_PROFILES.get(tag_name, ()))
+        specialists.update(_registered_specialists_for_tags(tag_names))
+        # Unlocked branch definitions are still discovered from the persistent
+        # Branch Registry; static tag-to-specialist ownership is not duplicated.
         specialists.update(self.branch_registry.specialists_for_tags(tag_names))
 
         if process_type == "in_world_discussion":
@@ -364,7 +430,16 @@ class TurnRouter:
             specialists = self._discussion_specialists(
                 player_message, tag_names, active_npcs, specialists
             )
+        if character_specialists:
+            # Legacy taxonomy tags may still emit broad character-owned lanes.
+            # Route the registered character lenses instead; the dynamic
+            # definitions are already in the registry.
+            specialists.difference_update(CHARACTER_GROUP_OWNED_SPECIALISTS)
+            specialists.update(character_specialists)
 
+        # These legacy broad lanes are retired. Character-scoped specialists
+        # and leaf domains remain valid, but the two generic core lanes do not.
+        specialists.difference_update({"rules", "character"})
         evidence_requests = self._build_evidence_requests(tags)
         clarification_questions = self._clarification_questions(tags, mode, segments)
         # DeepSeek may identify ambiguity more accurately than the heuristic
@@ -377,8 +452,22 @@ class TurnRouter:
             ))
             clarification_required = True
 
+        if backend_autonomy:
+            # Backend ticks have their own Lead Resolver boundary. Keep the
+            # specialist set explicit and never let player-message heuristics
+            # route an unrelated branch into the hidden phase.
+            backend_specialists = (current_state or {}).get("backend_required_specialists", ())
+            if isinstance(backend_specialists, (list, tuple, set)):
+                specialists = {str(name) for name in backend_specialists if str(name)}
+            else:
+                specialists = set()
+            specialists.difference_update({"rules", "character"})
+            if character_specialists:
+                specialists.difference_update(CHARACTER_GROUP_OWNED_SPECIALISTS)
+                specialists.update(character_specialists)
+
         # A failed preflight must not accidentally look like a resolvable turn.
-        if preflight["errors"]:
+        if preflight["errors"] and not backend_autonomy:
             evidence_status = "blocked_by_preflight"
         elif clarification_required:
             evidence_status = "clarification_required"

@@ -1,0 +1,1249 @@
+{
+  "input": {
+    "plan": {
+      "tick_id": "day-1-midday",
+      "previous": {
+        "day": 1,
+        "phase": "Late Morning",
+        "progress": 0.0
+      },
+      "position": {
+        "day": 1,
+        "phase": "Midday",
+        "progress": 0.0
+      },
+      "actions": [
+        {
+          "directive_id": "directive-renn-herbs",
+          "actor": "Renn",
+          "assigned_task": "Collect medicinal herbs in the north grove.",
+          "chosen_action": "Collect medicinal herbs in the north grove.",
+          "location": "north grove",
+          "constraints": [
+            "Return after three phases."
+          ],
+          "requires_resolution": true
+        }
+      ],
+      "instructions": "Resolve the autonomous action and calculate the gathered quantity."
+    },
+    "clarification_link": {
+      "id": "backend-herb-test:clarification:1",
+      "status": "answered",
+      "question": "How many medicinal herbs should Renn collect per phase?",
+      "answer": "You decide",
+      "result": {
+        "gap": "No explicit herb collection rate is established."
+      }
+    },
+    "player_authorization": "You decide"
+  },
+  "backend_result": {
+    "turn_id": "day-1-midday",
+    "mode": "backend_autonomy",
+    "request_type": "backend_autonomy",
+    "status": "resolved",
+    "result_reason": {
+      "issue": "Resolve Renn's private, autonomous Midday herb-gathering action and establish a defensible per-phase yield.",
+      "why": "Both specialists completed without contradiction. The only gap is an explicit herb collection rate; the player's clarification answer 'You decide' authorizes a bounded provisional assumption. Routine low-risk gathering does not require a d20 roll.",
+      "evidence_basis": [
+        "active_clarification.answer: 'You decide'",
+        "rules specialist: no explicit herb collection rate is established; an authorized assumption may be needed",
+        "character specialist: Renn is capable of following the herb-gathering directive",
+        "backend_plan constraint: return after three phases"
+      ],
+      "specialist_basis": [
+        "rules: complete; resolve gathering validity, time, risk, and quantity from applicable rules",
+        "character: complete; Renn can perform the gathering directive"
+      ]
+    },
+    "coverage_check": {
+      "ready_for_lead_resolver": true,
+      "missing_specialists": [],
+      "incomplete_specialists": [],
+      "malformed_handoffs": [],
+      "hard_evidence_gaps": [],
+      "unresolved_evidence_gaps": []
+    },
+    "input_sources": {
+      "chat_context": "provided",
+      "event_log": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md::Event log",
+      "temporary_memory": "markdown_files/TEMP_MEMORY.md",
+      "terms_nomenclature": "markdown_files/TERMS_AND_NOMENCLATURE.md",
+      "campaign_context": "provided",
+      "specialists": "provided"
+    },
+    "resolution_record": {
+      "turn_id": "day-1-midday",
+      "status": "resolved",
+      "result_reason": {
+        "issue": "Resolve Renn's private, autonomous Midday herb-gathering action and establish a defensible per-phase yield.",
+        "why": "Both specialists completed without contradiction. The only gap is an explicit herb collection rate; the player's clarification answer 'You decide' authorizes a bounded provisional assumption. Routine low-risk gathering does not require a d20 roll.",
+        "evidence_basis": [
+          "active_clarification.answer: 'You decide'",
+          "rules specialist: no explicit herb collection rate is established; an authorized assumption may be needed",
+          "character specialist: Renn is capable of following the herb-gathering directive",
+          "backend_plan constraint: return after three phases"
+        ],
+        "specialist_basis": [
+          "rules: complete; resolve gathering validity, time, risk, and quantity from applicable rules",
+          "character: complete; Renn can perform the gathering directive"
+        ]
+      },
+      "clarification_request": null,
+      "validity": "valid",
+      "locked_calculation": {
+        "action": "routine medicinal herb gathering",
+        "roll_required": false,
+        "dice": null,
+        "collection_rate": {
+          "value": 3,
+          "unit": "medicinal herb units per phase",
+          "basis": "Provisional player-authorized assumption under the answer 'You decide'; a capable field gatherer in an ordinary north grove harvest yields a modest sustainable amount.",
+          "scope": "one phase, ordinary conditions, north grove, no over-harvesting"
+        },
+        "time": {
+          "phases_elapsed": 1
+        },
+        "risk": "no material risk; safe reversible gathering attempt"
+      },
+      "dice_request": null,
+      "outcome": {
+        "summary": "Renn safely gathers a modest sustainable harvest of medicinal herbs.",
+        "quantity": {
+          "resource": "medicinal herbs",
+          "amount": 3,
+          "unit": "units"
+        },
+        "risk_result": "No encounter, injury, or complication occurred.",
+        "time_result": "One phase elapsed.",
+        "return_constraint": "The standing three-phase return constraint remains active."
+      },
+      "consequences": [
+        {
+          "type": "resource",
+          "description": "Renn gathered 3 medicinal herb units during the Midday gathering phase."
+        },
+        {
+          "type": "status",
+          "description": "No injury, encounter, or material complication occurred."
+        },
+        {
+          "type": "obligation",
+          "description": "Renn continues to operate under the directive to return after three phases."
+        }
+      ],
+      "resource_changes": [
+        {
+          "resource": "medicinal herbs",
+          "before": null,
+          "delta": 3,
+          "after": null,
+          "unit": "units",
+          "reason": "Current medicinal herb total was not supplied; reconcile this +3 delta against the Ledger Resources current value."
+        }
+      ],
+      "time_changes": [
+        {
+          "phases_elapsed": 1,
+          "day": null,
+          "phase": null
+        }
+      ],
+      "relationship_changes": [],
+      "xp_changes": [],
+      "modifier_changes": [],
+      "branch_changes": [],
+      "cache_delta": null,
+      "assumption_record": {
+        "id": "assumption-herb-rate-1",
+        "status": "provisional",
+        "scope": "Renn gathering medicinal herbs in the north grove for one phase under ordinary conditions.",
+        "assumption": "A capable field gatherer obtains 3 medicinal herb units per phase as a modest sustainable harvest.",
+        "basis": "Player answered 'You decide' for the missing herb collection rate; the rules specialist identified no explicit rate and allowed an authorized assumption; the character specialist confirmed Renn's gathering capability.",
+        "limitations": "Does not establish permanent collection rates, market value, rarity, or availability under unusual conditions; does not include over-harvesting or special finds.",
+        "confidence": "low-to-moderate",
+        "review_trigger": "Repeated use, changed location or conditions, or a player request to formalize herb economy."
+      },
+      "visibility": {
+        "public": false,
+        "player_visible": false,
+        "private_background": true,
+        "narrator_visible": true
+      },
+      "mutation_requirements": [
+        "Record the provisional herb-rate assumption in TEMP_MEMORY.md.",
+        "Reconcile the +3 medicinal herb delta against the current Ledger Resources total."
+      ],
+      "narrative_packet": {
+        "action_summary": "Renn spends the Midday phase gathering medicinal herbs in the north grove under the standing three-phase return constraint.",
+        "scene_context": "Private autonomous background phase in the north grove; no player character or other named NPC is established as present.",
+        "required_beats": [
+          "Renn works methodically and collects a modest sustainable harvest.",
+          "No encounter, injury, or material complication occurs.",
+          "Renn remains within the standing three-phase return constraint."
+        ],
+        "npc_guidance": [
+          {
+            "npc": "Renn",
+            "stance": "Dutiful, focused, and practical about the assigned gathering task.",
+            "must_communicate": "No spoken dialogue is required in this private phase; convey methodical work if narrated.",
+            "voice_constraints": "Brief and workmanlike; do not invent new information, discoveries, or dialogue."
+          }
+        ],
+        "must_not_add": [
+          "Do not reveal hidden causes, secret world events, or unestablished branch unlocks.",
+          "Do not add NPCs, combat, or special finds not present in the resolution.",
+          "Do not treat the provisional herb rate as permanent canon."
+        ]
+      },
+      "background_packet": {
+        "actions": [
+          {
+            "actor": "Renn",
+            "action": "Gather medicinal herbs in the north grove",
+            "outcome": "Collected 3 medicinal herb units.",
+            "phases_elapsed": 1
+          }
+        ],
+        "next_context": {
+          "position": {
+            "day": 1,
+            "phase": null
+          },
+          "private_character_state": {
+            "Renn": {
+              "location": "north grove",
+              "activity": "continues medicinal-herb gathering under the three-phase return constraint",
+              "condition": "unharmed",
+              "carryover": {
+                "medicinal_herbs_collected_this_phase": 3
+              }
+            }
+          }
+        },
+        "interrupt": null
+      },
+      "conflict_trace": [
+        {
+          "issue": "Herb collection rate was not established.",
+          "status": "resolved_by_provisional_assumption",
+          "detail": "The player answered 'You decide'; a bounded provisional rate of 3 medicinal herb units per phase was applied for this ordinary gathering phase and is not permanent canon."
+        }
+      ],
+      "notes": [
+        "No d20 roll was required for this routine, low-risk gathering action.",
+        "No XP was awarded because the supplied rules do not establish an XP award for routine herb gathering.",
+        "No branch is unlocked by this private gathering turn; branch-discovery candidates remain candidates.",
+        "The medicinal herb total must be reconciled against the Ledger Resources current value."
+      ],
+      "branch_candidates": [
+        {
+          "branch": "business",
+          "specialist": "business",
+          "activation_tags": [
+            "activity.business"
+          ],
+          "description": "trade, markets, contracts, and enterprise",
+          "signals": [
+            {
+              "source": "markdown_files/game rules (1).md",
+              "kind": "lore",
+              "signals": [
+                "business",
+                "trade",
+                "market",
+                "shop",
+                "contract"
+              ]
+            },
+            {
+              "source": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+              "kind": "lore",
+              "signals": [
+                "trade",
+                "market",
+                "contract"
+              ]
+            },
+            {
+              "source": "brain/state/session_runtime.json",
+              "kind": "runtime_state",
+              "signals": [
+                "business",
+                "trade"
+              ]
+            }
+          ],
+          "lore_only": false,
+          "source_groups": [
+            "lore",
+            "runtime_state"
+          ],
+          "recurring": false,
+          "established_evidence": false,
+          "status": "lore_candidate",
+          "requires_lead_confirmation": true,
+          "unlockable": true
+        },
+        {
+          "branch": "alchemy",
+          "specialist": "alchemy",
+          "activation_tags": [
+            "activity.alchemy"
+          ],
+          "description": "alchemy processes, recipes, and reagents",
+          "signals": [
+            {
+              "source": "markdown_files/game rules (1).md",
+              "kind": "lore",
+              "signals": [
+                "alchemy",
+                "potion",
+                "formula"
+              ]
+            },
+            {
+              "source": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+              "kind": "lore",
+              "signals": [
+                "alchemy"
+              ]
+            },
+            {
+              "source": "brain/state/session_runtime.json",
+              "kind": "runtime_state",
+              "signals": [
+                "potion",
+                "formula"
+              ]
+            }
+          ],
+          "lore_only": false,
+          "source_groups": [
+            "lore",
+            "runtime_state"
+          ],
+          "recurring": false,
+          "established_evidence": false,
+          "status": "lore_candidate",
+          "requires_lead_confirmation": true,
+          "unlockable": true
+        },
+        {
+          "branch": "politics",
+          "specialist": "politics",
+          "activation_tags": [
+            "activity.politics",
+            "context.factional"
+          ],
+          "description": "factions, offices, diplomacy, and political power",
+          "signals": [
+            {
+              "source": "markdown_files/game rules (1).md",
+              "kind": "lore",
+              "signals": [
+                "faction",
+                "influence"
+              ]
+            },
+            {
+              "source": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+              "kind": "lore",
+              "signals": [
+                "influence",
+                "diplomacy",
+                "treaty"
+              ]
+            }
+          ],
+          "lore_only": true,
+          "source_groups": [
+            "lore"
+          ],
+          "recurring": false,
+          "established_evidence": false,
+          "status": "lore_candidate",
+          "requires_lead_confirmation": true,
+          "unlockable": true
+        },
+        {
+          "branch": "class",
+          "specialist": "class",
+          "activation_tags": [
+            "context.class_system"
+          ],
+          "description": "class choice and class progression",
+          "signals": [
+            {
+              "source": "markdown_files/game rules (1).md",
+              "kind": "lore",
+              "signals": [
+                "class",
+                "class xp",
+                "class progression"
+              ]
+            },
+            {
+              "source": "markdown_files/TERMS_AND_NOMENCLATURE.md",
+              "kind": "active_record",
+              "signals": [
+                "class"
+              ]
+            },
+            {
+              "source": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+              "kind": "lore",
+              "signals": [
+                "class",
+                "classless",
+                "class xp"
+              ]
+            },
+            {
+              "source": "brain/state/session_runtime.json",
+              "kind": "runtime_state",
+              "signals": [
+                "class",
+                "classless",
+                "class xp"
+              ]
+            }
+          ],
+          "lore_only": false,
+          "source_groups": [
+            "active_record",
+            "lore",
+            "runtime_state"
+          ],
+          "recurring": true,
+          "established_evidence": true,
+          "status": "candidate",
+          "requires_lead_confirmation": true,
+          "unlockable": true
+        },
+        {
+          "branch": "relay",
+          "specialist": "relay",
+          "activation_tags": [
+            "context.relay_system"
+          ],
+          "description": "relay and linked-network mechanics",
+          "signals": [
+            {
+              "source": "markdown_files/game rules (1).md",
+              "kind": "lore",
+              "signals": [
+                "relay"
+              ]
+            },
+            {
+              "source": "markdown_files/TERMS_AND_NOMENCLATURE.md",
+              "kind": "active_record",
+              "signals": [
+                "relay"
+              ]
+            },
+            {
+              "source": "brain/state/session_runtime.json",
+              "kind": "runtime_state",
+              "signals": [
+                "relay"
+              ]
+            }
+          ],
+          "lore_only": false,
+          "source_groups": [
+            "active_record",
+            "lore",
+            "runtime_state"
+          ],
+          "recurring": true,
+          "established_evidence": true,
+          "status": "candidate",
+          "requires_lead_confirmation": true,
+          "unlockable": true
+        },
+        {
+          "branch": "world",
+          "specialist": "world",
+          "activation_tags": [
+            "activity.exploration",
+            "mechanic.world_event"
+          ],
+          "description": "scheduled world events and world-state changes",
+          "signals": [
+            {
+              "source": "markdown_files/game rules (1).md",
+              "kind": "lore",
+              "signals": [
+                "world event",
+                "event trigger",
+                "number pool",
+                "d100"
+              ]
+            },
+            {
+              "source": "markdown_files/TERMS_AND_NOMENCLATURE.md",
+              "kind": "active_record",
+              "signals": [
+                "d100"
+              ]
+            },
+            {
+              "source": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+              "kind": "lore",
+              "signals": [
+                "world event",
+                "monster tide",
+                "dungeon"
+              ]
+            },
+            {
+              "source": "brain/state/session_runtime.json",
+              "kind": "runtime_state",
+              "signals": [
+                "dungeon"
+              ]
+            }
+          ],
+          "lore_only": false,
+          "source_groups": [
+            "active_record",
+            "lore",
+            "runtime_state"
+          ],
+          "recurring": true,
+          "established_evidence": true,
+          "status": "candidate",
+          "requires_lead_confirmation": true,
+          "unlockable": true
+        },
+        {
+          "branch": "consequences",
+          "specialist": "consequences",
+          "activation_tags": [
+            "stakes.irreversible",
+            "stakes.contested"
+          ],
+          "description": "persistent and irreversible consequences",
+          "signals": [
+            {
+              "source": "markdown_files/game rules (1).md",
+              "kind": "lore",
+              "signals": [
+                "irreversible",
+                "contested"
+              ]
+            }
+          ],
+          "lore_only": true,
+          "source_groups": [
+            "lore"
+          ],
+          "recurring": false,
+          "established_evidence": false,
+          "status": "lore_candidate",
+          "requires_lead_confirmation": true,
+          "unlockable": true
+        },
+        {
+          "branch": "dungeon_ecology",
+          "specialist": "dungeon_ecology",
+          "activation_tags": [
+            "activity.exploration",
+            "context.environmental"
+          ],
+          "description": "dungeons, production pressure, monster populations, and tides",
+          "signals": [
+            {
+              "source": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+              "kind": "lore",
+              "signals": [
+                "monster dungeon",
+                "monster tide",
+                "dungeon pressure",
+                "dungeon production"
+              ]
+            }
+          ],
+          "lore_only": true,
+          "source_groups": [
+            "lore"
+          ],
+          "recurring": false,
+          "established_evidence": false,
+          "status": "lore_candidate",
+          "requires_lead_confirmation": true,
+          "unlockable": true
+        },
+        {
+          "branch": "peoples",
+          "specialist": "peoples",
+          "activation_tags": [
+            "context.factional",
+            "context.social"
+          ],
+          "description": "peoples, species recognition, and inter-peoples relations",
+          "signals": [
+            {
+              "source": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+              "kind": "lore",
+              "signals": [
+                "dungeonborn",
+                "awakened earthborn",
+                "anomalous life"
+              ]
+            }
+          ],
+          "lore_only": true,
+          "source_groups": [
+            "lore"
+          ],
+          "recurring": false,
+          "established_evidence": false,
+          "status": "lore_candidate",
+          "requires_lead_confirmation": true,
+          "unlockable": true
+        },
+        {
+          "branch": "civilization",
+          "specialist": "civilization",
+          "activation_tags": [
+            "context.civilization",
+            "activity.base_development"
+          ],
+          "description": "Bases and civilization hierarchy",
+          "signals": [
+            {
+              "source": "markdown_files/game rules (1).md",
+              "kind": "lore",
+              "signals": [
+                "village"
+              ]
+            },
+            {
+              "source": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+              "kind": "lore",
+              "signals": [
+                "civilization",
+                "base core",
+                "village",
+                "town",
+                "kingdom",
+                "empire",
+                "five-branch pyramid"
+              ]
+            }
+          ],
+          "lore_only": true,
+          "source_groups": [
+            "lore"
+          ],
+          "recurring": false,
+          "established_evidence": false,
+          "status": "lore_candidate",
+          "requires_lead_confirmation": true,
+          "unlockable": true
+        },
+        {
+          "branch": "religion",
+          "specialist": "religion",
+          "activation_tags": [
+            "context.religious",
+            "context.tier6"
+          ],
+          "description": "Tier-6 entities, religions, blessings, and champions",
+          "signals": [
+            {
+              "source": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+              "kind": "lore",
+              "signals": [
+                "champion",
+                "blessing",
+                "followers",
+                "communion"
+              ]
+            }
+          ],
+          "lore_only": true,
+          "source_groups": [
+            "lore"
+          ],
+          "recurring": false,
+          "established_evidence": false,
+          "status": "lore_candidate",
+          "requires_lead_confirmation": true,
+          "unlockable": true
+        },
+        {
+          "branch": "technology",
+          "specialist": "technology",
+          "activation_tags": [
+            "activity.engineering",
+            "context.technology"
+          ],
+          "description": "technology, engineering, and mana integration",
+          "signals": [
+            {
+              "source": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+              "kind": "lore",
+              "signals": [
+                "mana-integrated",
+                "engineering path"
+              ]
+            }
+          ],
+          "lore_only": true,
+          "source_groups": [
+            "lore"
+          ],
+          "recurring": false,
+          "established_evidence": false,
+          "status": "lore_candidate",
+          "requires_lead_confirmation": true,
+          "unlockable": true
+        },
+        {
+          "branch": "knowledge",
+          "specialist": "knowledge",
+          "activation_tags": [
+            "activity.study",
+            "context.knowledge"
+          ],
+          "description": "knowledge markets, study, and instructional institutions",
+          "signals": [
+            {
+              "source": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+              "kind": "lore",
+              "signals": [
+                "skill manual",
+                "license",
+                "library",
+                "training hall"
+              ]
+            }
+          ],
+          "lore_only": true,
+          "source_groups": [
+            "lore"
+          ],
+          "recurring": false,
+          "established_evidence": false,
+          "status": "lore_candidate",
+          "requires_lead_confirmation": true,
+          "unlockable": true
+        }
+      ]
+    },
+    "branch_candidates": [
+      {
+        "branch": "business",
+        "specialist": "business",
+        "activation_tags": [
+          "activity.business"
+        ],
+        "description": "trade, markets, contracts, and enterprise",
+        "signals": [
+          {
+            "source": "markdown_files/game rules (1).md",
+            "kind": "lore",
+            "signals": [
+              "business",
+              "trade",
+              "market",
+              "shop",
+              "contract"
+            ]
+          },
+          {
+            "source": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+            "kind": "lore",
+            "signals": [
+              "trade",
+              "market",
+              "contract"
+            ]
+          },
+          {
+            "source": "brain/state/session_runtime.json",
+            "kind": "runtime_state",
+            "signals": [
+              "business",
+              "trade"
+            ]
+          }
+        ],
+        "lore_only": false,
+        "source_groups": [
+          "lore",
+          "runtime_state"
+        ],
+        "recurring": false,
+        "established_evidence": false,
+        "status": "lore_candidate",
+        "requires_lead_confirmation": true,
+        "unlockable": true
+      },
+      {
+        "branch": "alchemy",
+        "specialist": "alchemy",
+        "activation_tags": [
+          "activity.alchemy"
+        ],
+        "description": "alchemy processes, recipes, and reagents",
+        "signals": [
+          {
+            "source": "markdown_files/game rules (1).md",
+            "kind": "lore",
+            "signals": [
+              "alchemy",
+              "potion",
+              "formula"
+            ]
+          },
+          {
+            "source": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+            "kind": "lore",
+            "signals": [
+              "alchemy"
+            ]
+          },
+          {
+            "source": "brain/state/session_runtime.json",
+            "kind": "runtime_state",
+            "signals": [
+              "potion",
+              "formula"
+            ]
+          }
+        ],
+        "lore_only": false,
+        "source_groups": [
+          "lore",
+          "runtime_state"
+        ],
+        "recurring": false,
+        "established_evidence": false,
+        "status": "lore_candidate",
+        "requires_lead_confirmation": true,
+        "unlockable": true
+      },
+      {
+        "branch": "politics",
+        "specialist": "politics",
+        "activation_tags": [
+          "activity.politics",
+          "context.factional"
+        ],
+        "description": "factions, offices, diplomacy, and political power",
+        "signals": [
+          {
+            "source": "markdown_files/game rules (1).md",
+            "kind": "lore",
+            "signals": [
+              "faction",
+              "influence"
+            ]
+          },
+          {
+            "source": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+            "kind": "lore",
+            "signals": [
+              "influence",
+              "diplomacy",
+              "treaty"
+            ]
+          }
+        ],
+        "lore_only": true,
+        "source_groups": [
+          "lore"
+        ],
+        "recurring": false,
+        "established_evidence": false,
+        "status": "lore_candidate",
+        "requires_lead_confirmation": true,
+        "unlockable": true
+      },
+      {
+        "branch": "class",
+        "specialist": "class",
+        "activation_tags": [
+          "context.class_system"
+        ],
+        "description": "class choice and class progression",
+        "signals": [
+          {
+            "source": "markdown_files/game rules (1).md",
+            "kind": "lore",
+            "signals": [
+              "class",
+              "class xp",
+              "class progression"
+            ]
+          },
+          {
+            "source": "markdown_files/TERMS_AND_NOMENCLATURE.md",
+            "kind": "active_record",
+            "signals": [
+              "class"
+            ]
+          },
+          {
+            "source": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+            "kind": "lore",
+            "signals": [
+              "class",
+              "classless",
+              "class xp"
+            ]
+          },
+          {
+            "source": "brain/state/session_runtime.json",
+            "kind": "runtime_state",
+            "signals": [
+              "class",
+              "classless",
+              "class xp"
+            ]
+          }
+        ],
+        "lore_only": false,
+        "source_groups": [
+          "active_record",
+          "lore",
+          "runtime_state"
+        ],
+        "recurring": true,
+        "established_evidence": true,
+        "status": "candidate",
+        "requires_lead_confirmation": true,
+        "unlockable": true
+      },
+      {
+        "branch": "relay",
+        "specialist": "relay",
+        "activation_tags": [
+          "context.relay_system"
+        ],
+        "description": "relay and linked-network mechanics",
+        "signals": [
+          {
+            "source": "markdown_files/game rules (1).md",
+            "kind": "lore",
+            "signals": [
+              "relay"
+            ]
+          },
+          {
+            "source": "markdown_files/TERMS_AND_NOMENCLATURE.md",
+            "kind": "active_record",
+            "signals": [
+              "relay"
+            ]
+          },
+          {
+            "source": "brain/state/session_runtime.json",
+            "kind": "runtime_state",
+            "signals": [
+              "relay"
+            ]
+          }
+        ],
+        "lore_only": false,
+        "source_groups": [
+          "active_record",
+          "lore",
+          "runtime_state"
+        ],
+        "recurring": true,
+        "established_evidence": true,
+        "status": "candidate",
+        "requires_lead_confirmation": true,
+        "unlockable": true
+      },
+      {
+        "branch": "world",
+        "specialist": "world",
+        "activation_tags": [
+          "activity.exploration",
+          "mechanic.world_event"
+        ],
+        "description": "scheduled world events and world-state changes",
+        "signals": [
+          {
+            "source": "markdown_files/game rules (1).md",
+            "kind": "lore",
+            "signals": [
+              "world event",
+              "event trigger",
+              "number pool",
+              "d100"
+            ]
+          },
+          {
+            "source": "markdown_files/TERMS_AND_NOMENCLATURE.md",
+            "kind": "active_record",
+            "signals": [
+              "d100"
+            ]
+          },
+          {
+            "source": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+            "kind": "lore",
+            "signals": [
+              "world event",
+              "monster tide",
+              "dungeon"
+            ]
+          },
+          {
+            "source": "brain/state/session_runtime.json",
+            "kind": "runtime_state",
+            "signals": [
+              "dungeon"
+            ]
+          }
+        ],
+        "lore_only": false,
+        "source_groups": [
+          "active_record",
+          "lore",
+          "runtime_state"
+        ],
+        "recurring": true,
+        "established_evidence": true,
+        "status": "candidate",
+        "requires_lead_confirmation": true,
+        "unlockable": true
+      },
+      {
+        "branch": "consequences",
+        "specialist": "consequences",
+        "activation_tags": [
+          "stakes.irreversible",
+          "stakes.contested"
+        ],
+        "description": "persistent and irreversible consequences",
+        "signals": [
+          {
+            "source": "markdown_files/game rules (1).md",
+            "kind": "lore",
+            "signals": [
+              "irreversible",
+              "contested"
+            ]
+          }
+        ],
+        "lore_only": true,
+        "source_groups": [
+          "lore"
+        ],
+        "recurring": false,
+        "established_evidence": false,
+        "status": "lore_candidate",
+        "requires_lead_confirmation": true,
+        "unlockable": true
+      },
+      {
+        "branch": "dungeon_ecology",
+        "specialist": "dungeon_ecology",
+        "activation_tags": [
+          "activity.exploration",
+          "context.environmental"
+        ],
+        "description": "dungeons, production pressure, monster populations, and tides",
+        "signals": [
+          {
+            "source": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+            "kind": "lore",
+            "signals": [
+              "monster dungeon",
+              "monster tide",
+              "dungeon pressure",
+              "dungeon production"
+            ]
+          }
+        ],
+        "lore_only": true,
+        "source_groups": [
+          "lore"
+        ],
+        "recurring": false,
+        "established_evidence": false,
+        "status": "lore_candidate",
+        "requires_lead_confirmation": true,
+        "unlockable": true
+      },
+      {
+        "branch": "peoples",
+        "specialist": "peoples",
+        "activation_tags": [
+          "context.factional",
+          "context.social"
+        ],
+        "description": "peoples, species recognition, and inter-peoples relations",
+        "signals": [
+          {
+            "source": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+            "kind": "lore",
+            "signals": [
+              "dungeonborn",
+              "awakened earthborn",
+              "anomalous life"
+            ]
+          }
+        ],
+        "lore_only": true,
+        "source_groups": [
+          "lore"
+        ],
+        "recurring": false,
+        "established_evidence": false,
+        "status": "lore_candidate",
+        "requires_lead_confirmation": true,
+        "unlockable": true
+      },
+      {
+        "branch": "civilization",
+        "specialist": "civilization",
+        "activation_tags": [
+          "context.civilization",
+          "activity.base_development"
+        ],
+        "description": "Bases and civilization hierarchy",
+        "signals": [
+          {
+            "source": "markdown_files/game rules (1).md",
+            "kind": "lore",
+            "signals": [
+              "village"
+            ]
+          },
+          {
+            "source": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+            "kind": "lore",
+            "signals": [
+              "civilization",
+              "base core",
+              "village",
+              "town",
+              "kingdom",
+              "empire",
+              "five-branch pyramid"
+            ]
+          }
+        ],
+        "lore_only": true,
+        "source_groups": [
+          "lore"
+        ],
+        "recurring": false,
+        "established_evidence": false,
+        "status": "lore_candidate",
+        "requires_lead_confirmation": true,
+        "unlockable": true
+      },
+      {
+        "branch": "religion",
+        "specialist": "religion",
+        "activation_tags": [
+          "context.religious",
+          "context.tier6"
+        ],
+        "description": "Tier-6 entities, religions, blessings, and champions",
+        "signals": [
+          {
+            "source": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+            "kind": "lore",
+            "signals": [
+              "champion",
+              "blessing",
+              "followers",
+              "communion"
+            ]
+          }
+        ],
+        "lore_only": true,
+        "source_groups": [
+          "lore"
+        ],
+        "recurring": false,
+        "established_evidence": false,
+        "status": "lore_candidate",
+        "requires_lead_confirmation": true,
+        "unlockable": true
+      },
+      {
+        "branch": "technology",
+        "specialist": "technology",
+        "activation_tags": [
+          "activity.engineering",
+          "context.technology"
+        ],
+        "description": "technology, engineering, and mana integration",
+        "signals": [
+          {
+            "source": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+            "kind": "lore",
+            "signals": [
+              "mana-integrated",
+              "engineering path"
+            ]
+          }
+        ],
+        "lore_only": true,
+        "source_groups": [
+          "lore"
+        ],
+        "recurring": false,
+        "established_evidence": false,
+        "status": "lore_candidate",
+        "requires_lead_confirmation": true,
+        "unlockable": true
+      },
+      {
+        "branch": "knowledge",
+        "specialist": "knowledge",
+        "activation_tags": [
+          "activity.study",
+          "context.knowledge"
+        ],
+        "description": "knowledge markets, study, and instructional institutions",
+        "signals": [
+          {
+            "source": "markdown_files/🌍 CORE WORLD FRAME (REFINED).md",
+            "kind": "lore",
+            "signals": [
+              "skill manual",
+              "license",
+              "library",
+              "training hall"
+            ]
+          }
+        ],
+        "lore_only": true,
+        "source_groups": [
+          "lore"
+        ],
+        "recurring": false,
+        "established_evidence": false,
+        "status": "lore_candidate",
+        "requires_lead_confirmation": true,
+        "unlockable": true
+      }
+    ]
+  },
+  "quantity_decision": [
+    {
+      "resource": "medicinal herbs",
+      "before": null,
+      "delta": 3,
+      "after": null,
+      "unit": "units",
+      "reason": "Current medicinal herb total was not supplied; reconcile this +3 delta against the Ledger Resources current value."
+    }
+  ],
+  "resolver_decided_quantity": true
+}

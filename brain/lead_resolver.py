@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import re
 import sys
@@ -18,13 +19,15 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from brain.model_gateway import ModelGateway
-    from brain.branch_discovery import BranchDiscovery
+    from brain.state.model_gateway import ModelGateway
+    from brain.specialists.branch_discovery import BranchDiscovery
     from brain.specialists.coverage_check import CoverageCheck
+    from brain.runtime_commands import LEAD_RESOLVER_COMMANDS, normalize_agent_command
 except ModuleNotFoundError:  # Direct execution: python brain/lead_resolver.py
-    from model_gateway import ModelGateway
-    from branch_discovery import BranchDiscovery
+    from brain.state.model_gateway import ModelGateway
+    from brain.specialists.branch_discovery import BranchDiscovery
     from specialists.coverage_check import CoverageCheck
+    from runtime_commands import LEAD_RESOLVER_COMMANDS, normalize_agent_command
 
 
 LEAD_PROMPT = """You are the Lead Resolver for an evidence-backed tabletop campaign.
@@ -46,12 +49,11 @@ XP eligibility, Practice Carryover, Derived Refinement, NPC reaction, or any
 other non-random resolution to another system. Those are your jobs using the
 specialist findings and supplied state.
 
-The rules and character specialists are the designated numeric analysts
-(the legacy difficulty and modifier specialists may provide the same contracts
-when replaying an older route). Only use their validated `calculation`
-contracts for numeric resolution; do not reconstruct numbers from prose
-recommendations. If a required contract for this action is missing or marked
-invalid, do not roll or resolve the outcome. If `campaign_context.assumption_record`
+The Difficulty and Modifier specialists are the designated numeric analysts.
+Only use their validated `calculation` contracts for numeric resolution; do not
+reconstruct numbers from prose recommendations. If a required contract for this
+action is missing or marked invalid, do not roll or resolve the outcome. If
+`campaign_context.assumption_record`
 is present with status `provisional`, it is a player-authorized temporary
 assumption. Apply it only within its stated scope and limitations, copy it into
 `assumption_record`, and never turn it into permanent canon or a new ability. If
@@ -146,11 +148,15 @@ Return JSON only:
   "outcome": null,
   "consequences": [],
   "resource_changes": [],
+  "process_results": [],
+  "world_entity_changes": [],
   "time_changes": [],
   "relationship_changes": [],
   "xp_changes": [],
   "modifier_changes": [],
   "branch_changes": [],
+  "world_event": null,
+  "runtime_command": null,
   "cache_delta": null,
   "assumption_record": null,
   "visibility": {},
@@ -188,6 +194,35 @@ When a special branch is actually established by the resolved turn, emit it in
 player request alone is not an unlock. Use the supplied `branch_discovery`
 report: lore-only mentions are candidates, not unlocks; active recurring or
 resolved-turn evidence must support the change.
+
+When `backend_plan.world_director.event_design_requested` is true, return a
+private `world_event` with `event_key`, `generated_event`,
+`encounter_condition`, `latest_phase`, and `observable_signs`. This designs the
+hidden event only; it must not be narrated to the player during the background
+tick.
+
+When `backend_plan.recurring_processes.processes` is non-empty, the Resources
+specialist handoff is authoritative evidence for each due process. Validate the
+process type, requirements, formula candidate, and available resources before
+emitting `resource_changes`. A calculated candidate is not permission to grant
+resources: unresolved or unsatisfied requirements must remain blocked or fail,
+and every accepted change must be recorded through the normal backend tick.
+Return `process_results` with one `{process_id, status, reason}` entry for each
+candidate, using `applied` only when its requirements and resource change are
+actually accepted; otherwise use `blocked` or `failed`.
+
+Return `world_entity_changes` only when the resolved action actually changes a
+known mutable world entity. Each entry must contain `change_id`, `entity_id`,
+`field`, numeric `delta`, and evidence-backed `reason`. The delta must be the
+supported resolved amount, not the player's claimed amount: if the player
+claims 30 kills but the resolved action supports 8, emit `delta: -8`. Do not
+emit a world change for a claim, intention, failed action, or unsupported
+entity."
+
+When the resolved player intent explicitly requests ending the day, you may
+return `runtime_command` as `{\"name\": \"/end-day\"}`. This is only a command
+request; the runtime validates it and performs the resumable sleep/day-end
+workflow. Never request any other runtime command.
 
 For a hidden phase request (campaign_context.private_background is supplied),
 return background_packet with actions, next_context, and optional interrupt.
@@ -521,6 +556,33 @@ class LeadResolver:
                 raise RuntimeError("Lead Resolver clarification specialists must be a list")
         if result["validity"] not in {"valid", "invalid", "undetermined"}:
             raise RuntimeError("Lead Resolver returned an invalid validity")
+        if "process_results" not in result:
+            result["process_results"] = []
+        elif not isinstance(result["process_results"], list):
+            raise RuntimeError("Lead Resolver field must be a list: process_results")
+        if "world_entity_changes" not in result:
+            result["world_entity_changes"] = []
+        elif not isinstance(result["world_entity_changes"], list):
+            raise RuntimeError("Lead Resolver field must be a list: world_entity_changes")
+        validated_entity_changes = []
+        for change in result["world_entity_changes"]:
+            if not isinstance(change, dict):
+                raise RuntimeError("Each world_entity_changes entry must be an object")
+            required_change_fields = ("change_id", "entity_id", "field", "delta", "reason")
+            if any(not str(change.get(field, "")).strip() for field in required_change_fields if field != "delta"):
+                raise RuntimeError("World entity changes require change_id, entity_id, field, and reason")
+            delta = change.get("delta")
+            if isinstance(delta, bool) or not isinstance(delta, (int, float)) or not math.isfinite(float(delta)):
+                raise RuntimeError("World entity change delta must be finite numeric")
+            validated_entity_changes.append({
+                "change_id": str(change["change_id"]).strip(),
+                "entity_id": str(change["entity_id"]).strip(),
+                "field": str(change["field"]).strip(),
+                "delta": delta,
+                "reason": str(change["reason"]).strip(),
+                "visibility": str(change.get("visibility") or "hidden"),
+            })
+        result["world_entity_changes"] = validated_entity_changes
         for field in (
             "consequences", "resource_changes", "time_changes", "relationship_changes",
             "xp_changes", "mutation_requirements", "conflict_trace", "notes",
@@ -535,6 +597,16 @@ class LeadResolver:
             result["branch_changes"] = []
         elif not isinstance(result["branch_changes"], list):
             raise RuntimeError("Lead Resolver field must be a list: branch_changes")
+        if "world_event" not in result:
+            result["world_event"] = None
+        elif result["world_event"] is not None and not isinstance(result["world_event"], dict):
+            raise RuntimeError("Lead Resolver world_event must be an object or null")
+        try:
+            result["runtime_command"] = normalize_agent_command(
+                result.get("runtime_command"), allowed=LEAD_RESOLVER_COMMANDS,
+            )
+        except ValueError as exc:
+            raise RuntimeError(str(exc)) from exc
         if result["status"] == "resolved" and result["outcome"] is None:
             raise RuntimeError("Lead Resolver must provide an outcome when status is resolved")
         packet = result.get("narrative_packet")

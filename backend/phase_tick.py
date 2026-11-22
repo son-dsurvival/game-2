@@ -10,14 +10,9 @@ from .autonomy_resolver import AutonomyResolver
 from .background_state import BackgroundStateStore
 from .contracts import BackgroundTickRecord, PhasePosition
 from .phase_clock import PhaseAdvance, PhaseClock
-try:
-    from brain.specialists.registry import CORE_SPECIALISTS
-except ModuleNotFoundError:
-    CORE_SPECIALISTS = ("cache", "rules", "character", "special", "create")
-
+from .world_director import WorldDirector
 Resolver = Callable[[dict[str, Any]], dict[str, Any]]
 SpecialistAnalyzer = Callable[[str, dict[str, Any], dict[str, Any]], dict[str, Any]]
-CORE_LANES = CORE_SPECIALISTS
 
 
 class PhaseTickEngine:
@@ -33,10 +28,12 @@ class PhaseTickEngine:
         *,
         clock: PhaseClock | None = None,
         autonomy: AutonomyResolver | None = None,
+        world_director: WorldDirector | None = None,
     ):
         self.store = state_store
         self.clock = clock or PhaseClock()
         self.autonomy = autonomy or AutonomyResolver()
+        self.world_director = world_director
 
     def run(
         self,
@@ -46,7 +43,7 @@ class PhaseTickEngine:
         context: dict[str, Any] | None = None,
         resolve_tick: Resolver | None = None,
         analyze: SpecialistAnalyzer | None = None,
-        specialist_names: Iterable[str] = CORE_LANES,
+        specialist_names: Iterable[str] = (),
     ) -> dict[str, Any]:
         context = context or {}
         transitions = self.clock.advance(start, phases_elapsed)
@@ -69,6 +66,12 @@ class PhaseTickEngine:
                 tick_id=transition.tick_id,
             )
             plan = self._build_plan(transition, actions, context, analyze, specialist_names)
+            if self.world_director is not None:
+                plan["recurring_processes"] = self.world_director.plan_processes(
+                    transition.previous, transition.current, context=context,
+                )
+            else:
+                plan["recurring_processes"] = {"status": "no_processes_due", "processes": []}
             if plan.get("cache_gate") == "blocked":
                 result["status"] = "needs_resolution"
                 result["plans_requiring_resolution"].append(plan)
@@ -82,9 +85,15 @@ class PhaseTickEngine:
                 result["status"] = "needs_resolution"
                 result["plans_requiring_resolution"].append(plan)
                 break
+            if not self._recurring_processes_resolved(plan, resolution):
+                result["status"] = "needs_resolution"
+                result["plans_requiring_resolution"].append(plan)
+                break
             record = self._record(transition, plan, resolution)
             saved = {**record.to_dict(), 'next_context': resolution.get('next_context'), 'interrupt': resolution.get('interrupt')}
             commit = self.store.commit_tick(saved)
+            if self.world_director is not None and plan.get("recurring_processes", {}).get("processes"):
+                self.world_director.commit_processes(plan["recurring_processes"], resolution)
             result["ticks"].append({
                 "tick_id": transition.tick_id,
                 "status": commit["status"],
@@ -115,7 +124,8 @@ class PhaseTickEngine:
             "position": transition.current.to_dict(),
             "actions": action_data,
             "automatic_updates": context.get("automatic_updates", []),
-            "instructions": "Resolve each action using normal validity, time, cost, risk, and outcome rules.",
+            "world_director": context.get("world_director_plan", {}),
+            "instructions": "Resolve each action using normal validity, time, cost, risk, and outcome rules. Apply the private world-director plan without revealing hidden world state."
         }
         if analyze is None:
             plan["specialist_analysis"] = []
@@ -135,6 +145,21 @@ class PhaseTickEngine:
             analysis = [future.result() for future in futures]
         plan["specialist_analysis"] = ([cache_result] if cache_result else []) + analysis
         return plan
+
+    @staticmethod
+    def _recurring_processes_resolved(plan: dict[str, Any], resolution: dict[str, Any]) -> bool:
+        recurring = plan.get("recurring_processes", {})
+        candidates = recurring.get("processes", []) if isinstance(recurring, dict) else []
+        if not candidates:
+            return True
+        values = resolution.get("process_results", [])
+        if not isinstance(values, list):
+            return False
+        statuses = {
+            str(item.get("process_id")): str(item.get("status", "")).casefold()
+            for item in values if isinstance(item, dict) and item.get("process_id")
+        }
+        return all(statuses.get(str(item.get("id"))) in {"applied", "complete", "resolved"} for item in candidates if isinstance(item, dict))
 
     @staticmethod
     def _record(
@@ -160,7 +185,10 @@ class PhaseTickEngine:
             actions=tuple(item for item in actions if isinstance(item, dict)),
             automatic_updates=list_value("automatic_updates"),
             resource_changes=list_value("resource_changes"),
+            process_results=list_value("process_results"),
+            world_entity_changes=list_value("world_entity_changes"),
             world_updates=list_value("world_updates"),
+            world_event=resolution.get("world_event") if isinstance(resolution.get("world_event"), dict) else None,
             visibility_events=list_value("visibility_events"),
             completed_directives=tuple(str(item) for item in completed),
             notes=tuple(str(item) for item in notes),

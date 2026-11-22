@@ -1,6 +1,8 @@
 # 🌍 EARTH UPGRADE WORLD FRAME
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame -->
 
 ## Canon Scope
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.canon_scope -->
 
 This document establishes:
 
@@ -19,6 +21,7 @@ Exact resolution formulas, XP calculations, combat rules, and noncombat rules re
 ---
 
 ## The World Before
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.the_world_before -->
 
 Earth begins as ordinary modern Earth.
 
@@ -38,6 +41,7 @@ Humanity is given no preparation period.
 ---
 
 ## The Decree
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.the_decree -->
 
 At the same instant, every human receives and understands the following message regardless of language:
 
@@ -59,6 +63,7 @@ No discoverable moral justification is provided.
 ---
 
 ## The Opening
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.the_opening -->
 
 The Upgrade begins immediately after the notice.
 
@@ -80,8 +85,10 @@ Modern civilization enters the crisis with its existing knowledge, equipment, in
 ---
 
 ## The Evolution System
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.the_evolution_system -->
 
 ### Core Nature
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.the_evolution_system.core_nature -->
 
 The System is an **evolution engine**.
 
@@ -109,6 +116,7 @@ The System itself seeks no known outcome beyond continued growth and escalation.
 Tier-6 beings may observe, favor, exploit, or enjoy the process, but entertainment is not the System's governing law.
 
 ### Meaningful Action
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.the_evolution_system.meaningful_action -->
 
 Growth cannot be farmed through empty repetition.
 
@@ -121,6 +129,7 @@ This applies to combat and noncombat growth.
 A fighter, healer, engineer, explorer, craftsperson, organizer, researcher, or builder may all evolve through genuinely consequential action.
 
 ### Universal Integration
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.the_evolution_system.universal_integration -->
 
 The System applies to all compatible Earth life.
 
@@ -140,12 +149,15 @@ Humans receive conscious interfaces. Other life may initially experience the Sys
 ---
 
 ## Growth and Classes
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.growth_and_classes -->
 
 ### Dual XP System
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.growth_and_classes.dual_xp_system -->
 
 Growth follows the two paths established in `game rules (1).md`.
 
 #### Normal XP
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.growth_and_classes.dual_xp_system.normal_xp -->
 
 Normal XP represents broad evolution through:
 
@@ -162,6 +174,7 @@ Normal XP represents broad evolution through:
 Normal Levels grant general statistical growth.
 
 #### Class XP
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.growth_and_classes.dual_xp_system.class_xp -->
 
 Class XP represents mastery of an established role.
 
@@ -180,6 +193,7 @@ Class Levels grant:
 Normal XP and Class XP are separate and cannot be exchanged.
 
 ### Classless Beginning
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.growth_and_classes.classless_beginning -->
 
 Every human begins the Upgrade **classless**.
 
@@ -197,6 +211,7 @@ Examples:
 Past experience may affect capability, but demonstrated action determines System recognition.
 
 ### One Evolving Class
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.growth_and_classes.one_evolving_class -->
 
 Each being may possess only **one active class**.
 
@@ -214,6 +229,7 @@ Unrelated classes cannot be collected casually.
 An individual's class becomes a record of what that being repeatedly proves itself capable of becoming.
 
 ### Optional Quests
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.growth_and_classes.optional_quests -->
 
 The System may offer optional quests when it recognizes meaningful opportunities.
 
@@ -234,6 +250,7 @@ The unresolved situation may still produce natural consequences.
 ---
 
 ## Canonical Tier Structure
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.canonical_tier_structure -->
 
 Tiers are qualitative power brackets, not merely level ranges.
 
@@ -242,6 +259,7 @@ Levels increase capacity within a bracket. A Tier breakthrough changes the kind 
 The social titles below coexist with the mechanical definitions in `game rules (1).md`.
 
 ### Tier 0 — Common Rank
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.canonical_tier_structure.tier_0_common_rank -->
 
 The starting bracket for ordinary humans and newly integrated life.
 
@@ -250,6 +268,7 @@ It includes civilians, trained professionals, soldiers, apprentices, basic hunte
 Tier-0 capability remains within broadly human-scale limits.
 
 ### Tier 1 — Skilled Rank
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.canonical_tier_structure.tier_1_skilled_rank -->
 
 The beginning of sustained superhuman capability.
 
@@ -258,30 +277,35 @@ Veterans, established specialists, evolved predators, trained System users, and 
 They can dominate ordinary local encounters.
 
 ### Tier 2 — Elite Rank
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.canonical_tier_structure.tier_2_elite_rank -->
 
 A bracket capable of controlling settlements, small battlefields, and significant territory.
 
 At this tier, environmental impact and civilization-level evolutionary possibilities begin to emerge.
 
 ### Tier 3 — High Power Rank
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.canonical_tier_structure.tier_3_high_power_rank -->
 
 A city-level strategic bracket.
 
 Tier-3 beings become political and military assets whose actions can reshape major population centers and regional conflicts.
 
 ### Tier 4 — Imperial Rank
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.canonical_tier_structure.tier_4_imperial_rank -->
 
 A country-level strategic bracket.
 
 Tier-4 beings can influence nations, ecosystems, and large military theaters.
 
 ### Tier 5 — Sovereign Rank
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.canonical_tier_structure.tier_5_sovereign_rank -->
 
 The highest world-bound bracket.
 
 Tier-5 beings can alter continental balances and become powers comparable to states or civilization-scale threats.
 
 ### Tier-6 — Ascension
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.canonical_tier_structure.tier_6_ascension -->
 
 Tier 6 is not a sustainable mortal bracket inside the world.
 
@@ -298,6 +322,7 @@ The being:
 There are no resident, world-bound Tier-6 mortals.
 
 ### Breakthrough Law
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.canonical_tier_structure.breakthrough_law -->
 
 Levels alone cannot advance a being into a higher tier.
 
@@ -317,6 +342,7 @@ Grinding increases capacity. Innovation changes tiers.
 ---
 
 ## Mana and Technology
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.mana_and_technology -->
 
 The Upgrade does not automatically disable modern technology.
 
@@ -360,8 +386,10 @@ Both become evolutionary paths, and their integration may create entirely new on
 ---
 
 ## Monster Dungeons
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.monster_dungeons -->
 
 ### Core Definition
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.monster_dungeons.core_definition -->
 
 A Monster Dungeon is a persistent origin region that introduces, produces, transforms, or sustains hostile life and elevated mana conditions.
 
@@ -382,6 +410,7 @@ On upgraded Earth, a dungeon may appear as:
 - another persistent anomaly
 
 ### Mixed Manifestation
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.monster_dungeons.mixed_manifestation -->
 
 Some dungeons exist inside altered Earth locations.
 
@@ -390,6 +419,7 @@ Others are portals or breaches leading into spaces that do not obey ordinary geo
 No universal dungeon shape exists.
 
 ### Unknown Origin
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.monster_dungeons.unknown_origin -->
 
 The true origin of dungeon creatures is unresolved.
 
@@ -406,6 +436,7 @@ No theory is confirmed canon.
 The System does not explain the contradiction.
 
 ### Progressive Activation
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.monster_dungeons.progressive_activation -->
 
 Earth's dungeon network does not activate at full global strength on Day Zero.
 
@@ -416,6 +447,7 @@ The exact triggers governing World Stage advancement remain unresolved.
 Once a dungeon manifests, its tier ceiling is fixed.
 
 ### Fixed Tier Ceiling
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.monster_dungeons.fixed_tier_ceiling -->
 
 A dungeon cannot initially produce an entity or substance above its assigned tier.
 
@@ -430,6 +462,7 @@ The ceiling governs dungeon production, not the permanent potential of what is p
 Higher-tier dungeons are rarer and generally produce fewer but far more dangerous ceiling-tier entities.
 
 ### Production Budget
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.monster_dungeons.production_budget -->
 
 Every active dungeon generates a renewable production budget.
 
@@ -446,6 +479,7 @@ A dungeon's nature influences how it allocates its budget. Two dungeons of the s
 Unused production may be stored as dungeon pressure. Suppression can reduce active output or destroy creatures as they emerge, but unresolved stored pressure may contribute to a later breach or Monster Tide.
 
 ### Baseline Spawn Rates
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.monster_dungeons.baseline_spawn_rates -->
 
 The following bands describe approximate maximum normal **ceiling-tier output** when a dungeon spends most of its available budget at its own tier:
 
@@ -474,6 +508,7 @@ Actual output is modified by:
 Output states range from **Suppressed** through **Stable**, **Strained**, and **Critical**. A Monster Tide represents a breach in which accumulated output and independent populations exceed local control.
 
 ### Individual Creature Growth
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.monster_dungeons.individual_creature_growth -->
 
 Dungeon creatures follow the same universal growth laws as other System participants.
 
@@ -502,6 +537,7 @@ A creature may grow faster because of an explicit factor such as:
 Growth has no guaranteed calendar rate. A creature surrounded by trivial prey may stagnate, while one surviving repeated meaningful threats may advance rapidly.
 
 ### Independent Population Growth
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.monster_dungeons.independent_population_growth -->
 
 Dungeon spawning and natural reproduction are separate sources of population.
 
@@ -528,6 +564,7 @@ Escaped populations may develop through the following stages:
 Destroying an independent nest or colony does not reduce the dungeon's permanent production capability. Suppressing the dungeon does not automatically destroy populations that have already become self-sustaining.
 
 ### Closure Law
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.monster_dungeons.closure_law -->
 
 No known world-bound being can permanently close a Monster Dungeon.
 
@@ -546,6 +583,7 @@ It cannot be permanently erased under known laws.
 This remains true even for System-purchased safe-zone effects.
 
 ### Renewable Resources
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.monster_dungeons.renewable_resources -->
 
 Dungeons produce monsters and elevated concentrations of useful substances.
 
@@ -567,6 +605,7 @@ Output recovers over time, making dungeons renewable strategic assets rather tha
 The most valuable resources generally exist closest to the dungeon origin, where danger is greatest.
 
 ### Monster Tides
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.monster_dungeons.monster_tides -->
 
 A Monster Tide occurs when dungeon output and surrounding hostile populations exceed local suppression capacity.
 
@@ -586,6 +625,7 @@ A Tide is pressure overflow, not merely a random horde.
 ---
 
 ## Monster Classification
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.monster_classification -->
 
 "Monster" is not a permanent species label.
 
@@ -611,16 +651,19 @@ This rule allows No-Monster Zones to function without becoming racial barriers.
 ---
 
 ## The Five Great Peoples
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.the_five_great_peoples -->
 
 The Five Great Peoples are broad origin categories rather than unified political blocs.
 
 ### 1. Baseline Humanity
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.the_five_great_peoples.1_baseline_humanity -->
 
 Humans who retain their original species identity despite System growth.
 
 They remain culturally and politically divided.
 
 ### 2. Divergent Humanity
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.the_five_great_peoples.2_divergent_humanity -->
 
 Humans transformed through:
 
@@ -636,6 +679,7 @@ Humans transformed through:
 Divergent humans may remain socially human even when no longer biologically baseline.
 
 ### 3. Awakened Earthborn
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.the_five_great_peoples.3_awakened_earthborn -->
 
 Earth-native nonhuman life recognized as civilization-capable by the System.
 
@@ -648,6 +692,7 @@ The System judges each candidate according to its development, adaptation, exper
 Some Tier-2 creatures remain powerful beasts. Rare individuals may become founders of new peoples.
 
 ### 4. Dungeonborn
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.the_five_great_peoples.4_dungeonborn -->
 
 Sapient beings first encountered within or through Monster Dungeons.
 
@@ -656,6 +701,7 @@ The label describes where Earth encountered them, not their true origin or moral
 Dungeonborn peoples may be invaders, refugees, traders, explorers, prisoners, or survivors of histories unknown to Earth.
 
 ### 5. Constructed and Anomalous Life
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.the_five_great_peoples.5_constructed_and_anomalous_life -->
 
 Beings that fit no stable biological lineage, including possible:
 
@@ -672,6 +718,7 @@ Recognition as a person depends on System judgment and demonstrated autonomy, no
 ---
 
 ## Political Order
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.political_order -->
 
 The Upgrade does not guarantee either the survival or destruction of existing governments.
 
@@ -715,8 +762,10 @@ The game's Dynamic World Event Engine determines how these powers develop and re
 ---
 
 ## System Currency
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_currency -->
 
 ### Nature
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_currency.nature -->
 
 The System introduces a universal digital currency recorded through System status.
 
@@ -741,6 +790,7 @@ The System has two narrow exceptions:
 The currency derives value from access to trusted trade infrastructure, Base development, learnable knowledge, and other System services.
 
 ### Currency Issuance
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_currency.currency_issuance -->
 
 New currency may enter circulation through all of the following:
 
@@ -758,6 +808,7 @@ Anti-farming rules still apply.
 Trivial or repetitive activity eventually produces no reward. Resources surrendered for exchange are permanently consumed.
 
 ### System Services
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_currency.system_services -->
 
 Currency may purchase services such as:
 
@@ -780,8 +831,10 @@ These payments remove currency from circulation and act as economic sinks.
 ---
 
 ## System Knowledge and Skill Market
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_knowledge_and_skill_market -->
 
 ### Core Law
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_knowledge_and_skill_market.core_law -->
 
 The System sells **instruction, not mastery**.
 
@@ -790,12 +843,56 @@ Purchasing knowledge does not place information directly into a buyer's mind. It
 Buying a skill manual does not grant the skill. Buying a spellbook does not teach the spell. Buying an engineering design does not create the machine.
 
 ### Complete Catalog
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_knowledge_and_skill_market.complete_catalog -->
 
 The full catalog of System-approved, non-Tier-6 learning material is visible from Day Zero.
 
-Any person may view catalog entries and purchase any listed material they can afford, regardless of their current tier or class.
+Anyone may inspect a catalog entry, including its subject, price, license type,
+purchase criteria, learning difficulty, and unmet requirements. Visibility does
+not mean that the viewer is eligible to purchase the knowledge.
 
-Visibility does not provide comprehension. A Tier-0 learner may purchase Tier-5 material, but may lack the language, foundational theory, stats, facilities, materials, safety, and lower-tier skills needed to understand or apply it.
+A knowledge license may be purchased only when the purchaser or authorized
+license holder satisfies the entry's stated purchase criteria and can pay its
+cost. Criteria may apply to any System Knowledge, including academic material,
+recipes, blueprints, skills, spells, class theory, and training manuals.
+
+Purchase criteria may use:
+
+- one or more minimum stat values;
+- a required acquired class; or
+- alternative criteria expressed with OR.
+
+Multiple listed criteria joined by AND must all be satisfied. Stronger or more
+complex knowledge generally requires more demanding stat and class criteria and
+has a higher price. No separate race, mana-capacity, or independent tier
+requirement is implied by this rule unless a future rule explicitly establishes
+one.
+
+An entry that cannot currently be purchased remains visible and must identify
+which criteria are unmet. A locked entry is not hidden from the world or the
+player.
+
+Purchase eligibility is not learning mastery. Once a valid license exists, any
+authorized learner may study the licensed material, even if that learner did
+not meet the original purchase criteria. A class that is naturally aligned with
+the subject may understand, practice, and master the material more easily, but
+class alignment is an advantage in learning rather than an automatic grant of
+the skill or spell.
+
+For example:
+
+- Magic Missile may require INT ≥ 5 to purchase, but the licensed material must
+  still be studied and practiced before the spell can be used.
+- Dragon Tongue may require the Dragon Mage class to purchase, while an
+  authorized non-Dragon-Mage learner may still study the licensed material with
+  greater difficulty.
+- A Party or Institutional license may permit its authorized members or users
+  to learn the purchased material without each learner separately satisfying
+the purchaser's criteria.
+
+A learner may still lack the language, foundational theory, facilities,
+materials, safety, and lower-tier skills needed to understand or apply a
+licensed work.
 
 "Complete catalog" means every purchasable System curriculum is listed. It does not mean the catalog is omniscient. It does not automatically reveal:
 
@@ -809,6 +906,7 @@ Visibility does not provide comprehension. A Tier-0 learner may purchase Tier-5 
 Tier-6 knowledge is not sold through the ordinary catalog.
 
 ### Types of Purchasable Instruction
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_knowledge_and_skill_market.types_of_purchasable_instruction -->
 
 The catalog may contain:
 
@@ -839,6 +937,7 @@ A catalog purchase supplies structured instruction appropriate to its subject, p
 - evaluation standards
 
 ### Complexity and Power
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_knowledge_and_skill_market.complexity_and_power -->
 
 Learning complexity rises with the tier and potential impact of the material.
 
@@ -857,6 +956,7 @@ More complex learning can support more powerful results, but ownership alone gra
 A high-tier book may be readable at a basic linguistic level while remaining functionally unusable without years of prerequisite study.
 
 ### Learning Procedure
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_knowledge_and_skill_market.learning_procedure -->
 
 Learning from purchased material follows the normal time and noncombat rules in `game rules (1).md`.
 
@@ -874,6 +974,7 @@ Reading alone does not automatically create a modifier, skill, spell, class leve
 Normal XP may be awarded when the study presents meaningful growth. Class XP applies only when the learning genuinely deepens the learner's active class.
 
 ### License Types
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_knowledge_and_skill_market.license_types -->
 
 Knowledge is sold under several access licenses:
 
@@ -892,6 +993,7 @@ A learner may naturally remember, explain, and teach what they genuinely underst
 However, notes or secondhand lessons do not reproduce the original System curriculum's organized interface, validation, exercises, diagrams, updates, or progress tracking. Copying the displayed material does not create another licensed System copy.
 
 ### Relationship to Bases
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_knowledge_and_skill_market.relationship_to_bases -->
 
 A Library, Archive, Training Hall, Laboratory, or similar Base room can host compatible licenses and improve their use.
 
@@ -913,8 +1015,10 @@ This makes knowledge-focused Bases, universities, guilds, and governments strate
 ---
 
 ## Bases and Temporary Safe Zones
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.bases_and_temporary_safe_zones -->
 
 ### Core Definition
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.bases_and_temporary_safe_zones.core_definition -->
 
 A Base is a high-cost System gift purchased with System currency and anchored to a building or controlled site.
 
@@ -933,6 +1037,7 @@ It does not automatically provide:
 - permanent safety
 
 ### Conversion
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.bases_and_temporary_safe_zones.conversion -->
 
 A person or recognized group must control a suitable building or site and pay the conversion price.
 
@@ -949,6 +1054,7 @@ The System then:
 Base fixtures created by the System are integrated into the facility. They cannot be removed and sold as ordinary equipment.
 
 ### Inherent Base Trait
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.bases_and_temporary_safe_zones.inherent_base_trait -->
 
 Every Base receives a trait derived from the original purpose, structure, and history of the converted building.
 
@@ -972,6 +1078,7 @@ The trait does not perform work by itself. It improves relevant rooms, actions, 
 The Base Trait rises when the Base advances in tier.
 
 ### Room System
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.bases_and_temporary_safe_zones.room_system -->
 
 Rooms are specialized System modules purchased and constructed inside the Base.
 
@@ -1005,6 +1112,7 @@ It does not create materials, workers, mastery, or automatic products. For examp
 Room bonuses follow the facility and resolution rules in `game rules (1).md`.
 
 ### Construction and Expediting
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.bases_and_temporary_safe_zones.construction_and_expediting -->
 
 Purchased rooms and upgrades require construction time.
 
@@ -1024,6 +1132,7 @@ Expediting purchases System labor and accelerated integration. It does not waive
 This allows wealthy Bases to exchange large amounts of currency for time and convenience without receiving free finished goods.
 
 ### Room and Base Tiers
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.bases_and_temporary_safe_zones.room_and_base_tiers -->
 
 Every Base and specialized room has a tier.
 
@@ -1049,6 +1158,7 @@ Advancing the Base may improve:
 A Base must therefore develop as a functioning system rather than upgrading one favored room while neglecting everything else.
 
 ### Tiered Expansion
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.bases_and_temporary_safe_zones.tiered_expansion -->
 
 Base expansion changes with tier.
 
@@ -1059,6 +1169,7 @@ Base expansion changes with tier.
 Spatial expansion increases usable interior space. It does not automatically increase claimed exterior territory or remove the need to defend the Base's physical anchor.
 
 ### Why Bases Are Valuable
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.bases_and_temporary_safe_zones.why_bases_are_valuable -->
 
 Bases provide concentrated advantages that ordinary buildings cannot match:
 
@@ -1081,6 +1192,7 @@ A Base does not replace the surrounding settlement. It acts as the settlement's 
 The Base's main advantage is not free power. It is the ability to spend very large quantities of currency to replace years of construction and coordination with reliable System infrastructure.
 
 ### No-Monster Zones
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.bases_and_temporary_safe_zones.no_monster_zones -->
 
 A No-Monster Zone is a temporary hostility-suppression service centered on a recognized Base or other qualified location.
 
@@ -1093,6 +1205,7 @@ Because Monster is a hostility classification, the field is not restricted by sp
 A No-Monster Zone is a paid temporary perk, not an automatic permanent feature of every Base.
 
 ### Tier-6 Contact
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.bases_and_temporary_safe_zones.tier_6_contact -->
 
 A qualified Base with the required room or System function may spend currency to open a mediated channel toward Tier-6 entities.
 
@@ -1109,8 +1222,10 @@ It does not:
 ---
 
 ## System Civilization Hierarchy
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_civilization_hierarchy -->
 
 ### Civilization Law
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_civilization_hierarchy.civilization_law -->
 
 Bases are the structural seeds from which System-recognized civilizations grow.
 
@@ -1121,6 +1236,7 @@ This hierarchy is available to all recognized peoples. It is the primary System 
 Political names do not control System rank. A Tier-4 civilization is classified as a Kingdom even if it is governed as a republic, council, hive, corporate state, or machine collective.
 
 ### Civilization Ranks
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_civilization_hierarchy.civilization_ranks -->
 
 | Tier | System Civilization Form | Required Core Base | Minimum Leader Tier |
 | --- | --- | --- | --- |
@@ -1136,6 +1252,7 @@ Tier 6 has no world-bound civilization form. Tier-6 advancement is Ascension out
 The minimum leader may be an individual ruler or a System-recognized governing authority containing a qualifying leader. Possessing a high-tier leader alone is not enough; the entire infrastructure pyramid must also exist.
 
 ### Five-Branch Pyramid
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_civilization_hierarchy.five_branch_pyramid -->
 
 Every civilization above Tier 0 requires five direct subordinate cores from the tier immediately below it.
 
@@ -1154,6 +1271,7 @@ The central Core Base is additional to the subordinate network shown in the tabl
 Ordinary homes, farms, workshops, shelters, and unregistered settlements may surround each Base, but they do not count as subordinate Bases until converted and recognized by the System.
 
 ### Upgrade Requirements
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_civilization_hierarchy.upgrade_requirements -->
 
 A civilization upgrade requires all of the following:
 
@@ -1169,6 +1287,7 @@ A civilization upgrade requires all of the following:
 Currency can expedite eligible construction and integration time. It cannot waive the tier, infrastructure, leadership, or subordinate-network requirements.
 
 ### Counting and Allegiance
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_civilization_hierarchy.counting_and_allegiance -->
 
 A subordinate Core can count toward only one superior civilization hierarchy at a time.
 
@@ -1177,14 +1296,17 @@ Alliances, trade agreements, defensive pacts, proximity, and claimed borders do 
 System-recognized subservience may be established through:
 
 #### Voluntary Treaty
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_civilization_hierarchy.counting_and_allegiance.voluntary_treaty -->
 
 The subordinate controller accepts an allegiance contract and joins the superior hierarchy under negotiated terms.
 
 #### Accepted Surrender
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_civilization_hierarchy.counting_and_allegiance.accepted_surrender -->
 
 The losing controller accepts transfer or vassal terms after conflict.
 
 #### Completed Conquest
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_civilization_hierarchy.counting_and_allegiance.completed_conquest -->
 
 A conqueror may force integration by:
 
@@ -1199,6 +1321,7 @@ A declaration or temporary raid is not enough.
 Conquest grants recognized control, not loyalty or mind control. Residents and former controllers may resist, sabotage, escape, or organize rebellion.
 
 ### Network Benefits
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_civilization_hierarchy.network_benefits -->
 
 Civilization rank unlocks coordination that isolated Bases cannot reproduce efficiently.
 
@@ -1220,6 +1343,7 @@ Possible benefits include:
 These functions create the infrastructure needed for a people to survive repeated Monster Tides and preserve knowledge across generations.
 
 ### Cohesion Crisis and Rank Loss
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_civilization_hierarchy.cohesion_crisis_and_rank_loss -->
 
 If a civilization loses enough qualifying subordinate Bases, leadership, infrastructure, or stability to fall below its rank requirement, it enters a **Cohesion Crisis**.
 
@@ -1235,6 +1359,7 @@ If they are not restored, the civilization permanently downgrades to the highest
 A rebellion therefore threatens more than territory. The loss of one Core can destabilize every higher layer of the hierarchy.
 
 ### Civilizational Function
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.system_civilization_hierarchy.civilizational_function -->
 
 The hierarchy does not make civilization peaceful, fair, or permanent.
 
@@ -1247,8 +1372,10 @@ This is how the peoples of an upgraded world survive long enough to become civil
 ---
 
 ## Cosmology
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.cosmology -->
 
 ### Tier-7 — Unknown Absolute
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.cosmology.tier_7_unknown_absolute -->
 
 The Tier-7 existence is singular.
 
@@ -1270,6 +1397,7 @@ Unknown facts:
 The System notice proves authority, not intent.
 
 ### Tier-6 Entities
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.cosmology.tier_6_entities -->
 
 Multiple Tier-6 entities exist outside the world.
 
@@ -1294,6 +1422,7 @@ Possible methods include:
 - indirect events
 
 ### Followers and Champions
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.cosmology.followers_and_champions -->
 
 A Tier-6 entity may maintain many followers.
 
@@ -1312,6 +1441,7 @@ A champion is its singular world-bound representative, not an incarnation throug
 All granted power remains subject to System constraints.
 
 ### Ascended Beings
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.cosmology.ascended_beings -->
 
 A mortal that completes Tier-6 Ascension joins the external layer.
 
@@ -1322,6 +1452,7 @@ Ascension therefore grants transcendence at the cost of permanent physical separ
 ---
 
 ## Dynamic Future
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.dynamic_future -->
 
 The following are possible but not guaranteed:
 
@@ -1347,6 +1478,7 @@ The future is gameplay.
 ---
 
 ## Intentionally Unresolved Questions
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.intentionally_unresolved_questions -->
 
 The following remain open until established through play or later design:
 
@@ -1371,9 +1503,11 @@ Unless later canon establishes an answer, experimentation and play may resolve t
 
 
 ## Event log
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.event_log -->
 
 No resolved world events recorded.
 
 ## Game log
+<!-- evidence-id: core_world_frame_refined.earth_upgrade_world_frame.game_log -->
 
 No player-facing game turns recorded.

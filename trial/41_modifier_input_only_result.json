@@ -1,0 +1,81 @@
+{
+  "input_only": {
+    "name": "Mara",
+    "stats": {
+      "AGI": 6,
+      "INT": 8,
+      "STR": 4,
+      "END": 4,
+      "WIS": 5,
+      "PRE": 3
+    },
+    "description": "A careful repairer who studies mechanisms, coordinates delicate work, and improves devices through patient experimentation.",
+    "class_slot_notification": "A Class Modifier slot has opened for the Artificer path."
+  },
+  "derived_stat_modifier_slots": [
+    {
+      "character": "Mara",
+      "stat": "AGI",
+      "slot": 1,
+      "stat_value": 6
+    },
+    {
+      "character": "Mara",
+      "stat": "INT",
+      "slot": 1,
+      "stat_value": 8
+    },
+    {
+      "character": "Mara",
+      "stat": "WIS",
+      "slot": 1,
+      "stat_value": 5
+    }
+  ],
+  "generated_stat_modifier_choices": [
+    {
+      "stat": "AGI",
+      "slot": 1,
+      "basis_level": "low",
+      "choices": [
+        "Coordinated Movement",
+        "Fine Motor Control",
+        "Responsive Positioning"
+      ]
+    },
+    {
+      "stat": "INT",
+      "slot": 1,
+      "basis_level": "low",
+      "choices": [
+        "Mechanism Analysis",
+        "Pattern Recognition",
+        "Flaw Detection"
+            ]      
+    },
+    {
+      "stat": "WIS",
+      "slot": 1,
+      "basis_level": "assumed_low",
+      "choices": [
+        "Basic Mana Awareness",
+        "Steady Mana Control",
+        "Careful Mana Flow"
+      ]
+    }
+  ],
+  "class_slot": {
+    "class": "Artificer",
+    "choices": [
+      "Artificer: Precision Assembly",
+      "Artificer: Mechanism Diagnosis",
+      "Artificer: Tool Integration",
+      "Artificer: Prototype Iteration",
+      "Artificer: Device Programming"
+    ],
+    "selection_required": 1,
+    "auto_selected": false
+  },
+  "player_facing_notification": "A new Artificer Class Modifier slot has opened. Choose 1 of 5 class-specific options when ready.",
+  "status": "passed"
+}

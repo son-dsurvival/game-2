@@ -13,9 +13,9 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from brain.model_gateway import ModelGateway
+    from brain.state.model_gateway import ModelGateway
 except ModuleNotFoundError:  # Direct execution
-    from model_gateway import ModelGateway
+    from brain.state.model_gateway import ModelGateway
 
 
 ASSUMPTION_PROMPT = """You are the Assumption Wizard for a tabletop campaign.
@@ -27,7 +27,9 @@ ability, override a rule, or invent unsupported character history.
 
 Use the supplied specialist findings and player context. Prefer established
 rules, real-world baselines, existing tier bands, and the nearest comparable
-mechanic. State uncertainty instead of hiding it.
+mechanic. State uncertainty instead of hiding it. If a clarification_continuation
+is supplied, preserve its exact original question, option/result set, and player
+answer; do not regenerate the options or treat the answer as unrelated.
 
 Return JSON only:
 {
@@ -64,7 +66,7 @@ _GAP_TERMS = (
     "no rule", "no mechanism", "not defined", "undefined", "not specified",
     "missing mechanism", "missing rule", "unknown starting", "starting value",
     "initial value", "cannot determine", "can't determine", "not established",
-    "how much", "how many", "what damage",
+    "no explicit", "not supplied", "unknown rate", "how much", "how many", "what damage",
 )
 
 
@@ -87,6 +89,9 @@ class AssumptionWizard:
         values: list[str] = []
         if isinstance(pending, dict):
             values.extend(str(pending.get(key, "")) for key in ("question", "player_question", "issue", "why"))
+        linked = context.get("clarification_continuation") or context.get("active_clarification") or context.get("previous_clarification")
+        if isinstance(linked, dict):
+            values.extend(str(linked.get(key, "")) for key in ("question", "player_question", "issue", "why", "answer", "result"))
         for result in specialist_output.get("specialist_results", []) if isinstance(specialist_output, dict) else []:
             if not isinstance(result, dict):
                 continue
@@ -113,6 +118,7 @@ class AssumptionWizard:
             "gap": gap,
             "player_input": str(context.get("message", ""))[:2000],
             "answers": [str(item) for item in context.get("answers", [])[-3:] if isinstance(item, str)],
+            "clarification_continuation": context.get("clarification_continuation") or context.get("active_clarification"),
             "position": context.get("position", {}),
             "main_character": context.get("main_character"),
             "action_frames": specialist_output.get("action_frames", []),

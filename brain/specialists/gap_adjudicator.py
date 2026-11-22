@@ -10,10 +10,10 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from brain.model_gateway import ModelGateway
+    from brain.state.model_gateway import ModelGateway
 except ModuleNotFoundError:  # Direct execution from brain/specialists.
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-    from brain.model_gateway import ModelGateway
+    from brain.state.model_gateway import ModelGateway
 
 
 HARD_GAP_TYPES = {

@@ -6,6 +6,7 @@ Prestige Tier:
 
 
 #### Background
+{party member background}
 #### Behavior
 {check relationship behavior template}
 #### Relationship

@@ -20,11 +20,11 @@ from typing import Any
 from brain.persistence import atomic_text
 
 try:
-    from brain.build_canon_section_index import build_index
-    from brain.model_gateway import ModelGateway
+    from brain.state.build_canon_section_index import build_index
+    from brain.state.model_gateway import ModelGateway
 except ModuleNotFoundError:  # Direct execution: python brain/recorder.py
-    from build_canon_section_index import build_index
-    from model_gateway import ModelGateway
+    from brain.state.build_canon_section_index import build_index
+    from brain.state.model_gateway import ModelGateway
 
 START_MARKER = "<!-- recorder:"
 END_MARKER = "<!-- /recorder:"
