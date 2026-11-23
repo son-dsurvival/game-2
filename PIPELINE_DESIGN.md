@@ -251,7 +251,284 @@ Admin Editor operations must be all-or-nothing across their full document set:
 
 A filesystem rename is atomic for one file, not an entire multi-document proposal. Recovery must handle a crash during application, including successful document writes followed by a failed audit/checkpoint write. Stale proposals require revalidation and, if content changes, renewed approval.
 
-## 10. Proposed implementation seams (not yet implemented)
+## 10. Formal state model
+
+Every request is represented by a durable operation envelope:
+
+```text
+operation_id
+operation_kind       setup | gameplay | query | administration | day_end | command
+stage                current internal stage
+play_gate             player-visible gate
+revision              proposal/clarification revision
+state_version        source runtime version
+source_versions      hashes of Markdown files read by a proposal
+snapshot             recoverable pre-stage state
+saved_dice           rolls already consumed by this operation
+clarification_links  questions and their answers
+receipt              committed side-effect receipt, when applicable
+```
+
+The operation journal is authoritative for recovery. A model response, prompt cache entry, or Markdown proposal is never sufficient by itself to resume or commit an operation.
+
+### Player-visible gates
+
+| Gate | Meaning | Allowed continuation |
+| --- | --- | --- |
+| `setup_draft` | New characters and derived records are still being drafted | Draft input, `/main`, `/review`, `/cancel-setup`, `/quit` |
+| `setup_review` | One setup batch is proposed and has not been applied | Query, revise, `/approve`, `/approve-reset`, `/back-setup`, `/quit` |
+| `action_running` | A gameplay operation is executing | Wait; no competing resolution |
+| `awaiting_clarification` | The same operation needs a player answer | Answer the question; the operation resumes |
+| `awaiting_dice` | Code must generate or receive a required roll | Roll once and resume the same operation |
+| `admin_review` | A non-reset permanent edit is proposed | Query, revise, `/approve`, `/quit` |
+| `day_end_pending` | Chronological end-of-day work is incomplete | `/review`, `/quit` |
+| `day_end_review` | Combined day-end changes await approval | Query, revise, `/approve`, `/quit` |
+| `applying` | An approved transaction is being committed | Wait; recovery handles interruption |
+| `world_event_pending` | The next-day event is prepared but play cannot start yet | Complete event preparation or `/retry` |
+| `paused` | Play is intentionally suspended | `/resume`, read-only commands, `/quit` |
+| `retry` | A stage failed and has a saved pre-stage snapshot | `/retry`, `/status`, `/quit` |
+| `open` | The campaign can accept normal gameplay input | Gameplay action, query, command |
+
+### State transitions
+
+```text
+setup_draft
+  -- /review ----------------------> setup_review
+  -- /cancel-setup ----------------> prior active campaign gate
+  -- /quit ------------------------> setup_draft (persisted)
+
+setup_review
+  -- player revision --------------> setup_review (new revision)
+  -- /back-setup ------------------> setup_review (previous approved batch)
+  -- /approve ---------------------> applying (normal batch)
+  -- /approve-reset ---------------> applying (final replacement)
+  -- /cancel-setup ----------------> prior active campaign gate
+
+open
+  -- gameplay action --------------> action_running
+  -- player query -----------------> query_running
+  -- administrative request -------> admin_review or awaiting_clarification
+  -- end-of-day trigger -----------> day_end_pending
+  -- /pause -----------------------> paused
+
+action_running
+  -- missing information ----------> awaiting_clarification
+  -- required roll ----------------> awaiting_dice
+  -- unresolved evidence ----------> action_running (gap expansion)
+  -- resolved ---------------------> narration
+
+narration
+  -- safe narration emitted -------> recording
+recording
+  -- working record committed ----> open or day_end_pending
+  -- required background work -----> background_pending
+
+admin_review / day_end_review
+  -- player revision --------------> same gate (new revision)
+  -- approval ---------------------> applying
+  -- stale source -----------------> same gate with regenerated proposal
+
+applying
+  -- transaction committed --------> reconcile
+reconcile
+  -- derived state refreshed ------> open, world_event_pending, or next setup batch
+  -- failure ----------------------> retry (with pre-stage snapshot and receipt)
+
+retry
+  -- /retry -----------------------> failed stage from its saved pre-stage snapshot
+```
+
+No transition may silently skip a gate, consume time, consume a die, or apply a permanent file change. A failed transition leaves the last committed state usable.
+
+## 11. Action and query pipelines
+
+All in-game actions use one orchestration contract. The action-specific specialists vary, but the state and safety rules do not.
+
+### Gameplay actions
+
+The supported action kinds are:
+
+- dialogue, persuasion, negotiation, and social interaction;
+- movement, exploration, investigation, and travel;
+- experiments, research, study, and analysis;
+- combat, pursuit, defense, and hazards;
+- crafting, construction, repair, and resource use;
+- training, active-skill use, spell use, and effect application;
+- rest, sleep, waiting, and day-ending actions;
+- relationship decisions and party instructions.
+
+Each follows:
+
+```text
+player action
+  -> classify action and intent
+  -> gather rules, lore, character, world, and current-state evidence
+  -> Game Cache Specialist (mandatory first specialist)
+  -> required/routed specialists
+  -> coverage and contradiction check
+  -> Lead Resolver
+       -> clarification: await answer, then resume this operation
+       -> dice: save one roll, then resume this operation
+       -> insufficient evidence: expand evidence and rerun affected stages
+       -> resolved outcome
+  -> safe Narrator projection
+  -> Recorder working-state commit
+  -> phase/background advancement when warranted
+  -> open or day-end gate
+```
+
+A player action may update private working state and `TEMP_MEMORY.md` through the Recorder, but it does not directly edit permanent canon. A permanent consequence becomes a reviewed proposal through the administrative or day-end flow.
+
+### Questions, queries, and corrections
+
+A query is read-only unless the player explicitly requests a change:
+
+```text
+query
+  -> classify requested fact
+  -> gather relevant rules/lore/current state
+  -> fact-check and identify conflicts
+  -> show answer with source locations and uncertainty
+  -> return to the prior gate without advancing time
+```
+
+If the player and agent identify a needed correction, the query creates a proposal; it does not apply the correction. The proposal must identify the affected file/section, old value, new value, reason, dependencies, and required approval. Questions about a pending proposal are read-only. A clarification is different: it blocks an unfinished operation and, once answered, resumes that same operation.
+
+### Status, modifier, skill, and spell creation
+
+Creation is a staged proposal, not an immediate grant:
+
+```text
+request creation
+  -> gather character history, rules, evidence, and existing records
+  -> generate rule-valid options
+  -> show options and trade-offs
+  -> player selects an option
+  -> player confirms the exact option
+  -> recalculate dependent values
+  -> propose the affected status/ledger/relationship records
+  -> approval boundary for permanent records
+  -> apply and refresh derived indexes
+```
+
+For a new campaign, active skills, spells, effect modifiers, stat modifiers, and class modifiers may be generated as starting options. During an active campaign, existing records are shown first and any new or changed capability requires an explicit proposal. Selection alone is not approval, and a query must not be interpreted as consent.
+
+### Character and relationship creation
+
+Character creation orchestrates, but does not duplicate, the status and relationship workflows:
+
+```text
+character input/evidence
+  -> identity, history, stats, and class proposal
+  -> status creation
+  -> relationship creation
+  -> relevant modifier/skill/spell creation
+  -> specialist group proposal
+  -> complete character review
+  -> approval and storage
+```
+
+Player-character relationships use the player's supplied background and explicit choices. Non-player relationships may include voice, mannerisms, personality, decision thresholds, autonomy, relationship scores, and bond behavior, but generated assumptions must be labelled as assumptions and reviewed before becoming established facts.
+
+### Ledger and branch administration
+
+Ledger updates and specialist/branch unlocks use the same proposal contract. A branch is first recorded as a candidate, then validated against established evidence, then proposed with its rules, specialist scope, target file, and dependencies. Discovery does not equal unlock. Unlocking a branch requires player approval and a successful write; a failed or declined proposal leaves the branch inactive.
+
+## 12. Approval boundaries
+
+Approval is bound to the exact proposal digest and source-file hashes. Any revision, source change, dependent recalculation, or changed player answer invalidates the previous approval.
+
+| Operation | Automatic writes allowed | Required player boundary |
+| --- | --- | --- |
+| Model calls, journal checkpoints, private cache, saved clarification, saved dice | Private runtime only | None |
+| New-character draft and derived previews | Draft storage only | Player review before promotion |
+| Gameplay narration and `TEMP_MEMORY.md` working records | Recorder-controlled working records | No permanent approval; hidden data remains private |
+| Status, relationship, ledger, skill, spell, modifier, or class changes | Proposal only | Exact selection/confirmation, then proposal approval |
+| Normal administrative edit | Proposal only | `/approve` |
+| Day-end event/game-log and world-state promotion | Proposal only | Combined day-end review and `/approve` |
+| Specialist or branch unlock | Candidate registry only | Explicit proposal review and `/approve` |
+| Replacement of the active campaign | Staged replacement only | `/approve-reset` |
+| Read-only commands and queries | Journal/query history only | None; they do not advance time |
+
+`/approve` must never be accepted as a reset confirmation. `/approve-reset` is required when the operation replaces the current campaign. Approval of one batch does not approve later batches or future revisions.
+
+## 13. Rollback, retry, and recovery
+
+### Before commit
+
+- Do not mutate permanent Markdown while a proposal is being generated or reviewed.
+- Save a pre-stage snapshot before every side-effecting stage.
+- Keep proposal revisions immutable; mark superseded revisions rather than editing them in place.
+- Revalidate source hashes and the proposal digest immediately before applying.
+
+### During commit
+
+The Admin Editor stages every updated file and validates the complete multi-file result before replacing live files. It records the transaction identity, original hashes, updated hashes, proposal digest, and operation identity. A failure restores all files that were replaced and leaves the gate at `retry` or the review gate with the exact proposal still available.
+
+A successful file replacement followed by a checkpoint failure is recovered using the transaction receipt. Recovery must not apply the same document change twice. Dice, resource costs, Recorder entries, background ticks, and other local effects use separate durable receipts and are likewise committed at most once locally.
+
+### After failure or cancellation
+
+- `/retry` resumes from the saved pre-stage snapshot, not from a partially mutated in-memory object.
+- A missing snapshot is a hard recovery error; do not guess or rebuild state from model output.
+- Cancellation of setup discards only the draft and staged transaction. It preserves the active campaign.
+- A failed reset preserves the old campaign and keeps the new staged campaign recoverable or discardable.
+- A failed background phase blocks dependent later phases; it cannot be treated as successful.
+- A failed narrator or output step may reuse the committed resolution, but must not reroll dice or reapply resource effects.
+- A failed permanent write cannot advance the play gate or clear the pending proposal.
+
+## 14. File ownership and write rules
+
+Markdown files are the source of truth for approved player-visible campaign facts. Each workflow may read broadly for context, but may write only through an approved Admin Editor proposal targeting its owned sections.
+
+| File | Owner | Write rule |
+| --- | --- | --- |
+| `markdown_files/game rules (1).md` | Player/rules administration | Read-only to gameplay; changes require explicit rules-edit proposal and approval |
+| `markdown_files/TERMS_AND_NOMENCLATURE.md` | Domain administration | Changes require terminology proposal and approval; dependent references must be checked |
+| `markdown_files/🌍 CORE WORLD FRAME (REFINED).md` | World administration/player | Lore is preserved; Event Log and Game Log updates require reviewed proposals; never replace the whole file blindly |
+| `markdown_files/status sheet.md` | Status/character workflow | Owns approved character identity, stats, class, status, and derived capability sections |
+| `markdown_files/character relationship.md` | Relationship workflow | Owns approved party and non-party relationship records, autonomy, scores, and bond behavior |
+| `markdown_files/Ledger Resources.md` | Ledger workflow | Owns approved inventory, resource, equipment, and ledger sections; quantities require evidence |
+| `markdown_files/Experimentation Register.md` | Experiment/background workflow | Receives only explicitly player-visible or approved teammate/background records; private backend state never belongs here |
+| `markdown_files/TEMP_MEMORY.md` | Recorder/day-end workflow | Working player-known records only; promotion is reviewed; it is not the complete private backend state |
+| `markdown_files/Branch Registry.md` | Branch administration | Candidate and unlocked branch records only; candidates do not activate specialists |
+| Evidence indexes and descriptions | Index builder | Derived artifacts only; scripts regenerate them from Markdown; agents never edit them directly |
+| `brain/state/*.json` and `*.jsonl` | Runtime, journal, cache, and model-call modules | Private operational state; never promoted to player-visible canon without a reviewed projection |
+
+No module may silently rewrite another workflow's owned section. Cross-file changes must be one proposal with explicit dependencies and one transaction. If two workflows need the same section, the Orchestrator creates a combined proposal and identifies the owning workflow as the final validator.
+
+## 15. Command contract
+
+Commands are control-plane operations, not gameplay turns. They do not advance time unless the command explicitly completes a reviewed day/setup transition.
+
+| Command | Valid use | Effect |
+| --- | --- | --- |
+| `/help` | Any gate | Display commands; no state change |
+| `/status` | Any gate | Display current phase, play gate, pending operation, and saved stage |
+| `/retry` | `retry` | Restart the failed stage from its saved pre-stage snapshot |
+| `/review` | Draft/day-end pending | Prepare the current setup or day-end proposal for review |
+| `/approve` | Normal review gates | Approve the exact reviewed proposal; never confirms campaign replacement |
+| `/approve-reset` | Final setup/reset review only | Explicitly approve replacement of the current campaign |
+| `/cancel-setup` | Setup draft/review | Discard setup draft/staged replacement; preserve active campaign |
+| `/quit` | Any gate | Persist resumable state and exit |
+| `/new-game` | Outside active resolution | Begin a draft replacement; preserve the active campaign until `/approve-reset` |
+| `/new-character` | Open campaign | Begin a player-character draft without changing active canon |
+| `/new-party-member` | Open campaign | Begin a party-member draft without changing active canon |
+| `/add` | Setup draft | Add another character to the draft |
+| `/main NAME` | Setup draft | Select the party's main player character |
+| `/undo` | Setup draft | Undo the last setup input without touching campaign files |
+| `/end-day` | Open campaign | Begin chronological day-end processing; it does not skip review |
+| `/specialists` | Outside active resolution | Show stored specialist proposals; no unlock occurs |
+| `/install NAME` | Specialist proposal review | Propose installation; explicit approval is still required |
+| `/back-setup` | Sequential `setup_review` with a prior approved batch | Reopen the prior batch as a new revision without restarting the campaign |
+| Player revision text | Any review gate | Rebuild the proposal; previous approval becomes invalid |
+| `/next-file` | Multi-file review | Advance the current proposal file cursor without changing state |
+| `/cancel-operation` | Unapplied review | Discard the pending proposal without changing campaign files |
+| `/pause` and `/resume` | Open/paused gates | Pause or resume gameplay without discarding state |
+
+The terminal adapter may expose aliases, but aliases must map to the same operation contract and journal events. Unknown commands are not silently interpreted as gameplay actions when a control-plane gate is active.
+
+## 16. Proposed implementation seams (not yet implemented)
 
 Keep a small terminal-facing interface for submitting input, answering pending questions, reviewing/approving proposals, and resuming. Internally compose deep modules around actual responsibilities:
 
@@ -264,7 +541,7 @@ Keep a small terminal-facing interface for submitting input, answering pending q
 
 Physical private-storage layout and the concrete terminal commands are implementation details, not additional game rules. Prefer callable Python interfaces; adapt the spaced `outside game/` folder deliberately rather than scattering path manipulations across the runtime.
 
-## 11. Acceptance checks
+## 17. Acceptance checks
 
 1. Setup can create several characters, choose a main character, revise dependent values, and preserve the old campaign on cancellation.
 2. Confirmed replacement preserves lore/rules, resets only campaign state, deletes the old cache, and retains new setup history.

@@ -93,7 +93,7 @@ A failure stopped the current operation safely. `/retry` restarts that task from
 → opening scene
 ```
 
-The setup review includes class, world, and typed modifier design. Create Stat Modifier and Create Effect Modifier each produce five bounded choices, including no modifier when justified; the player selects before the approved result is persisted.
+The setup review includes class, world, and typed modifier design. Create Stat Modifier produces three bounded choices per available Stat Modifier slot. Create Effect Modifier produces ten bounded choices, from which the player selects three; the player selections are required before the approved result is persisted.
 
 ## Normal Turn Process
 
@@ -112,7 +112,7 @@ player input
 → saved checkpoint
 ```
 
-The category names are organizational boundaries, not automatic model calls. The Turn Router selects only the leaf specialists required by the action and participating characters. Specialists analyze; the Lead Resolver decides; the Narrator reveals only approved visible information; the Recorder persists temporary session state.
+The category names are organizational boundaries, not automatic model calls. No specialist lane is always-on; the Turn Router selects only the leaf specialists required by the action, participating characters, or an unlocked branch. Specialists analyze; the Lead Resolver decides; the Narrator reveals only approved visible information; the Recorder persists temporary session state.
 
 ### In-World Discussion Process
 
@@ -126,13 +126,13 @@ player speaks, asks, explains, argues, or plans in-world
 → Narrator presents the response
 ```
 
-An in-world discussion does not activate combat, resource, modifier-creation, or Create specialists unless the player commits to an actual action or explicitly requests a design. Discussion routes concrete character leaf specialists rather than the generic Rules, Character, or Special category placeholders.
+An in-world discussion does not activate combat, resource, modifier-creation, or Create specialists unless the player commits to an actual action or explicitly requests a design. Discussion routes concrete character leaf specialists rather than retired generic category placeholders.
 
 ## Assumption and Initialization Process
 
 ```text
 missing mechanism or starting value
-→ Rules or Character specialist reports the gap
+→ relevant leaf specialist reports the gap
 → player authorizes delegation, such as “you decide”
 → Assumption & Initialization Wizard creates a bounded provisional record
 → Lead Resolver applies it only within its declared scope
@@ -192,19 +192,27 @@ end of day
 
 Branch discovery records candidates but does not activate specialists. Only a confirmed and approved branch becomes `status: unlocked` in the Branch Registry.
 
+## Modifier Taxonomy
+
+- **Stat Modifier:** broad stat-specific support, not a weapon- or single-action-specific effect. Examples: INT analysis, pattern recognition, and noticing flaws; WIS mana control; AGI movement and coordination; STR forceful swings, strikes, pushes, or lifts; END defense and endurance; and PRE charisma.
+- **Effect Modifier:** action- or technique-specific support. Examples: swordplay, magic, and programming.
+- **Class Modifier:** class-specific support. Examples: Swordsman swordplay and Mage spells.
+
+These types remain distinct but may all apply to the same action when relevant. Their bonuses sum under the normal relevant-bonus rule unless an explicit rule says otherwise.
+
 ## Modifier-Creation Process
 
 ```text
 character history / player design brief / experiments / training
-→ Create Stat Modifier or Create Effect Modifier specialist
-→ exactly five bounded choices, including no modifier when justified
-→ player selects a choice
-→ Rules specialists validate legality and stacking
+→ typed modifier specialist
+→ three Stat Modifier choices per Stat Modifier slot, ten Effect Modifier choices with three selected, or five Class Modifier choices per Class Modifier slot
+→ player selects one option per Stat/Class slot or three Effect options
+→ relevant difficulty, modifier, and class specialists validate legality and stacking
 → Lead Resolver confirms the selection
 → Admin Agent and Admin Editor persist the approved result
 ```
 
-The ordinary Modifier specialist calculates current action-side modifiers. Each character has typed creation specialists: Create Stat Modifier generates five stat choices, while Create Effect Modifier generates five reusable effect choices with evidence, limitations, activation conditions, stacking, and group placement.
+The ordinary Modifier specialist calculates current action-side modifiers. Each character has typed creation specialists: Create Stat Modifier generates three choices per available stat slot, Create Effect Modifier generates ten reusable effect choices from which three are selected, and Class Modifier setup generates five class-specific choices per available class slot, all with evidence, limitations, activation conditions, stacking, and group placement.
 
 ## Specialist and Resolution Responsibilities
 
@@ -212,14 +220,17 @@ The ordinary Modifier specialist calculates current action-side modifiers. Each 
 | --- | --- |
 | Turn Router | Classifies the request and selects lanes. |
 | Evidence Bundle | Freezes relevant source evidence. |
-| Cache Specialist | Extracts bounded durable context. |
-| Rules Specialist | Analyzes mechanics and task-side calculations. |
-| Character Specialist | Analyzes characters and action-side calculations. |
+| Routed Leaf Specialists | Analyze only the mechanics, character, social, world, modifier, and branch domains required by the current task. |
+| Character-scoped Specialists | Analyze relevant named-character contexts without using a generic Character lane. |
 | Special Specialist | Monitors unlocked branches. |
 | Create Specialist | Proposes missing specialist scopes. |
+| Active Skills and Spells Specialist | Tracks established active skills and spells, including activation, costs, limits, and progression. |
+| Tier and Level-up Specialist | Analyzes XP thresholds, level advancement, tier progression, and advancement requirements. |
+| Consumables and Rewards Specialist | Tracks consumables, rewards, loot, grants, replenishment, and bookkeeping consequences. |
 | Modifier Specialist | Calculates current action modifiers. |
-| Create Stat Modifier Specialist | Generates five character-grounded Stat Modifier choices for player selection. |
-| Create Effect Modifier Specialist | Generates five character-grounded Effect Modifier choices with evidence, limitations, activation, stacking, and group placement. |
+| Create Stat Modifier Specialist | Generates three character-grounded Stat Modifier choices per available slot for player selection. |
+| Create Effect Modifier Specialist | Generates ten character-grounded Effect Modifier choices, from which three are selected, with evidence, limitations, activation, stacking, and group placement. |
+| Class Modifier Setup | Generates five class-specific choices per available Class Modifier slot; the player selects one per slot. |
 | Lead Resolver | Makes the final mechanical and fictional decision. |
 | Narrator | Converts visible resolution data into player-facing prose. |
 | Recorder | Stores temporary session facts and promotion records. |
@@ -235,7 +246,7 @@ The ordinary Modifier specialist calculates current action-side modifiers. Each 
 | `Experimentation Register.md` | Player-readable OOC experiments, completed experiments, safe background status, and approved outside-player-perspective updates. Private surprises remain in backend state. |
 | `game rules (1).md` | Core game mechanics: time, phases, travel, world events, combat, noncombat actions, resources, stats, modifiers, skills, XP, tiers, NPC autonomy, relationships, and party rules. |
 | `Ledger Resources.md` | Character and party resources such as money, HP, MP, SP, food, water, materials, equipment, consumables, and other tracked supplies. |
-| `status sheet.md` | Character identity, stats, class, levels, tier, derived values, stat/class/effect modifiers, Modifier Groups, skills, and equipment. |
+| `status sheet.md` | Character identity, stats, class, levels, tier, derived values, stat/class/effect modifiers, skills, and equipment. |
 | `TEMP_MEMORY.md` | Temporary session position, cache, active threads, commitments, unresolved questions, expiring facts, pending canon, and temporary branch records. |
 | `TERMS_AND_NOMENCLATURE.md` | Technical command reference, runtime state gates, pipeline processes, component responsibilities, storage boundaries, and Markdown file descriptions. |
 | `🌍 CORE WORLD FRAME (REFINED).md` | Canon world lore, System laws, Earth Upgrade history, dungeons, peoples, classes, technology, Bases, civilizations, currency, Tier-6 entities, Event log, and Game log. |

@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from brain.model_gateway import ModelGateway
+from brain.state.model_gateway import ModelGateway
 
 
 def main() -> None:

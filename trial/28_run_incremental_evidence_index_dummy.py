@@ -11,7 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from brain.build_evidence_index import build_index
+from brain.state.build_evidence_index import build_index
 
 
 def node_by_name(nodes: list[dict], name: str) -> dict:

@@ -6,6 +6,12 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
+# Rules are evidence for the agents, never an AI-editable campaign record.
+READ_ONLY_CAMPAIGN_FILES = frozenset({
+    'markdown_files/game rules (1).md',
+})
+
+
 @dataclass(frozen=True)
 class AdminRequest:
     request_id: str
@@ -38,6 +44,7 @@ class AdminResponse:
     questions: list[str] = field(default_factory=list)
     conflicts: list[dict[str, Any]] = field(default_factory=list)
     modifier_group_placements: list[dict[str, Any]] = field(default_factory=list)
+    runtime_command: dict[str, Any] | None = None
     approval_required: bool = False
 
     def to_dict(self) -> dict[str, Any]:
@@ -52,5 +59,6 @@ class AdminResponse:
             "questions": self.questions,
             "conflicts": self.conflicts,
             "modifier_group_placements": self.modifier_group_placements,
+            "runtime_command": self.runtime_command,
             "approval_required": self.approval_required,
         }

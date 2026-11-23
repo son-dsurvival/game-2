@@ -16,6 +16,17 @@ DEFAULT_BRANCHES = {
     "relay": {"specialist": "relay", "template": "relay.md", "activation_tags": ["context.relay_system"]},
     "world": {"specialist": "world", "template": None, "activation_tags": ["activity.exploration"]},
     "consequences": {"specialist": "consequences", "template": None, "activation_tags": ["stakes.irreversible", "stakes.contested"]},
+    "tier_6": {
+        "specialist": "tier_6",
+        "template": None,
+        "activation_tags": ["context.tier6"],
+        "purpose": "Tier 6 deals, pacts, contracts, and interactions between characters and Tier 6 specialist entities.",
+        "questions": [
+            "What Tier 6 entity or specialist is involved, and what established scope does it have?",
+            "What deal, pact, contract, exchange, or interaction is being proposed or resolved?",
+            "What obligations, prices, permissions, risks, and consequences apply to each character?",
+        ],
+    },
 }
 
 

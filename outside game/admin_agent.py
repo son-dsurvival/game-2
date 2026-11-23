@@ -19,10 +19,11 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from brain.model_gateway import ModelGateway
+from brain.state.model_gateway import ModelGateway
 from brain.specialists.runner import SpecialistRunner
-from admin_contracts import AdminResponse
+from admin_contracts import AdminResponse, READ_ONLY_CAMPAIGN_FILES
 from approval import bind_source_versions
+from brain.runtime_commands import ADMIN_AGENT_COMMANDS, normalize_agent_command
 
 
 ADMIN_PROMPT = """You are the Administrative AI for an evidence-backed tabletop game.
@@ -60,32 +61,51 @@ Return JSON only:
   "instructions": [{"target": "brain|backend", "instruction": "...", "reason": "..."}],
   "questions": [],
   "conflicts": [],
-  "modifier_group_placements": [{
-    "character": "...",
-    "modifier": "...",
-    "group": "Physical Attack|Magic Attack|Defense|...",
-    "decision": "approved|rejected|needs_review",
-    "use_in_group": "scenario-specific use",
-    "activation_conditions": "when it applies",
-    "limitations": "what it cannot do",
-    "admin_defense": "why this modifier belongs in this group",
-    "evidence": "source and location",
-    "stacking": "how it stacks or does not stack",
-    "admin_rationale": "final administrative justification"
-  }],
+  "runtime_command": null,
   "approval_required": false
 }
+
+The rules file `markdown_files/game rules (1).md` is read-only evidence. Never
+propose, apply, or include a change targeting it; if a request asks to edit it,
+return blocked and explain that rules changes must be made manually by the
+player outside this AI workflow.
 
 Only use proposal_ready when an exact change is supported. Use registered
 Markdown templates for document creation and filling. Store final campaign
 content as readable Markdown, never as JSON blobs. A number change should be an
 exact line update when possible; update an existing description or section
 instead of appending a duplicate section. Code instructions are plans only and
-are never file edits. A write proposal must set approval_required true. When a
-proposal adds or changes a Modifier Group entry, review every placement
-separately and require a character, modifier, group, scenario-specific defense,
-evidence, limitations, and stacking explanation. The defense must appear in
-both `modifier_group_placements` and the proposed readable Markdown change.
+are never file edits. A write proposal must set approval_required true. You may request one safe runtime command in `runtime_command` when the player explicitly asked for an operational action. Use the slash command name and optional argument. Supported requests are `/status`, `/retry`, `/pause`, `/resume`, `/review`, `/next-file`, `/back-setup`, `/undo`, `/undo-setup`, `/cancel-operation`, `/end-day`, `/specialists`, `/new-character`, `/new-party-member`, `/add`, and `/install`. You must never request `/new-game`, `/cancel-setup`, `/approve`, `/approve-reset`, `/main`, or `/quit`; those remain player-controlled or approval-gated. Keep modifier types distinct
+in every proposal: Stat Modifiers are stat-specific
+expressions, Effect Modifiers are action/technique-specific, and Class Modifiers
+are class-specific. Stat Modifiers must stay broad within the stat domain: STR is
+forceful physical action rather than sword-only damage, and INT is analysis, pattern
+recognition, noticing flaws, and problem solving rather than combat-only analysis.
+They may all apply to one action when relevant; preserve their separate evidence,
+activation conditions, and descriptions.
+For Stat Modifier proposals, do not invent a no-stacking, highest-single, or
+same-evidence exclusion. Sum all relevant bonuses unless a specific supplied
+rule explicitly limits that combination; preserve only explicit overlap
+restrictions such as Practice Carryover double-counting or a superseded facility
+version. For Stat Modifier proposals, preserve three choices for every eligible Stat
+Modifier slot; do not collapse several slots into three total choices. Every choice
+must remain a broad stat-domain capability across multiple situations. Do not
+rewrite a broad stat capability as a room-, tool-, profession-, maneuver-,
+combat-exchange-, or single-task-specific technique; those belong to Effect
+Modifiers. Preserve the explicit `breadth: broad_stat_domain` field and the choice's
+evidence, limitations, and growth/conversion rule in readable Markdown. Label each
+choice as high, low, or assumed_low basis. More independent demonstrated bases
+may support a higher magnitude within the applicable tier band; no-base generic
+choices must remain low or assumed_low and must not be presented as established
+history. The universal magnitude bands are: Tier 0 +1 to +2, Tier 1 +2 to +5,
+Tier 2 +5 to +10, Tier 3 +10 to +20, Tier 4 +20 to +50, and Tier 5 +50 to
++100. These are hard per-modifier bounds; evidence chooses within the band,
+and relevant modifiers sum unless an explicit rule restricts stacking. For the starting Effect Modifier setup batch, preserve ten choices and
+make clear that the player selects three. Do not silently reduce the ten choices
+or auto-select effects. Each choice must be grounded in the character description
+and tier, with high, low, or assumed_low basis clearly labeled. For every available
+Class Modifier slot, preserve five class-specific choices and make clear that the
+player selects one per slot; do not auto-select class options.
 Always provide `diagnosis.issue` and `diagnosis.why`, including for answered and
 proposal results. If the result is blocked or needs clarification, first describe
 whether the missing information may be found internally. Set `internal_search`
@@ -276,20 +296,61 @@ class AdminAgent:
                 return True
             return bool(re.search(r'^####\s+\S|^\s*[-*]\s+character\s*:', section, re.IGNORECASE | re.MULTILINE))
 
+        def has_modifier_group_values(values: Any) -> bool:
+            """Return true only for actual placement data, not an empty section."""
+            if not isinstance(values, dict) or "modifier_groups" not in values:
+                return False
+            candidate = values.get("modifier_groups")
+            if isinstance(candidate, list):
+                return any(
+                    isinstance(item, dict)
+                    and all(item.get(field) for field in ("character", "modifier", "group"))
+                    for item in candidate
+                )
+            if isinstance(candidate, dict):
+                return all(candidate.get(field) for field in ("character", "modifier", "group"))
+            text = str(candidate)
+            return bool(re.search(
+                r"(?:^|\\b)(?:character|modifier|group|admin\\s+defense)\\s*:",
+                text,
+                re.IGNORECASE | re.MULTILINE,
+            ))
+
         modifier_group_change = any(
             "status sheet.md" in str(change.get("target_file", "")).casefold()
             and (
                 has_modifier_group_placement(str(change.get("new_text", "")))
-                or "modifier_groups" in str(change.get("values", "")).casefold()
+                or has_modifier_group_values(change.get("values"))
             )
             for change in changes
         )
-        conflicts = [item for item in value.get("conflicts", []) if isinstance(item, dict)]
+        read_only_targets = sorted({
+            str(change.get('target_file')) for change in changes
+            if str(change.get('target_file')) in READ_ONLY_CAMPAIGN_FILES
+        })
+        read_only_conflicts = [
+            {
+                'type': 'read_only_target',
+                'target_file': target,
+                'reason': 'The rules file is read-only and cannot be edited by the AI.',
+            }
+            for target in read_only_targets
+        ]
+        if read_only_targets:
+            changes = []
+            status = 'blocked'
+        conflicts = [item for item in value.get("conflicts", []) if isinstance(item, dict)] + read_only_conflicts
         defense_in_markdown = all(
             "admin defense" in str(change.get("new_text", "")).casefold()
             for change in changes
             if "status sheet.md" in str(change.get("target_file", "")).casefold()
         )
+        try:
+            runtime_command = normalize_agent_command(value.get("runtime_command"), allowed=ADMIN_AGENT_COMMANDS)
+        except ValueError as exc:
+            status = "blocked"
+            conflicts = [*conflicts, {"type": "protected_runtime_command", "reason": str(exc)}]
+            runtime_command = None
         if modifier_group_change and (
             not placements
             or not defense_in_markdown
@@ -313,6 +374,7 @@ class AdminAgent:
             "questions": [item for item in value.get("questions", []) if isinstance(item, str)],
             "conflicts": conflicts,
             "modifier_group_placements": placements,
+            "runtime_command": runtime_command,
             "approval_required": bool(value.get("approval_required", bool(changes))),
         }
 

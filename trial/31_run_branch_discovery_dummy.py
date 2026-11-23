@@ -4,8 +4,8 @@ import json, tempfile, sys
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from brain.branch_discovery import BranchDiscovery
-from brain.branch_registry import BranchRegistry
+from brain.specialists.branch_discovery import BranchDiscovery
+from brain.specialists.branch_registry import BranchRegistry
 
 def main():
     with tempfile.TemporaryDirectory() as raw:

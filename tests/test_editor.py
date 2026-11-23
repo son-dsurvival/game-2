@@ -13,6 +13,38 @@ def proposal(root, changes, identity='edit-one'):
 
 
 class EditorTests(unittest.TestCase):
+    def test_rules_file_is_read_only_to_admin_editor(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / 'markdown_files/game rules (1).md'
+            target.parent.mkdir()
+            target.write_text('original rules', encoding='utf-8')
+            approved = proposal(root, [{
+                'target_file': 'markdown_files/game rules (1).md',
+                'action': 'update',
+                'old_text': 'original rules',
+                'new_text': 'changed rules',
+            }], identity='rules-edit')
+            result = AdminEditor(root).apply(approved)
+            self.assertEqual(result['status'], 'rejected')
+            self.assertEqual(target.read_text(encoding='utf-8'), 'original rules')
+
+    def test_approved_technical_json_catalog_change_applies_atomically(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / 'brain/info/router_taxonomy/tags.json'
+            target.parent.mkdir(parents=True)
+            target.write_text('{"tags": {}}\n', encoding='utf-8')
+            approved = proposal(root, [{
+                'target_file': 'brain/info/router_taxonomy/tags.json',
+                'action': 'update',
+                'old_text': '{"tags": {}}\n',
+                'new_text': '{\n  "tags": {"context.test": {}}\n}\n',
+            }], identity='json-catalog')
+            result = AdminEditor(root).apply(approved)
+            self.assertEqual(result['status'], 'applied')
+            self.assertIn('context.test', target.read_text(encoding='utf-8'))
+
     def test_audit_failure_rolls_back_and_retry_applies_once(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

@@ -1,8 +1,160 @@
 # Game rules
+<!-- evidence-id: game_rules_1.game_rules -->
+
+## New Game
+<!-- evidence-id: game_rules_1.game_rules.new_game -->
+
+A new game begins with a controlled character-creation and system-recognition
+process. No starting Skill, Spell, Stat Modifier, Class Modifier, or Effect
+Modifier is silently granted outside the procedures below.
+
+### Starting Character State
+
+Each character begins with:
+
+- six core stats: STR, AGI, END, INT, WIS, and PRE;
+- approved stat values established during character setup;
+- deterministic Derived Stats calculated from those values;
+- Tier 0;
+- Level 1;
+- Class XP 0 / 200;
+- Normal XP 0 / 500; and
+- no acquired class unless a specific rule explicitly establishes one.
+
+The character's background, profession, equipment, and real-world experience
+may provide evidence for capabilities, but they do not automatically grant a
+System class, Skill, Spell, or modifier.
+
+### Starting Setup Procedure
+
+The setup must be reviewed in this order:
+
+1. record identity, six core stats, and Derived Stats;
+2. calculate available Stat Modifier slots from each stat value;
+3. provide three broad Stat Modifier choices for every available slot, from
+   which the player chooses one;
+4. establish class status and available Class Modifier slots;
+5. provide one combined pool of five eligible starting Skill or Spell options,
+   from which the player chooses one;
+6. provide ten starting Effect Modifier options, from which the player chooses
+   three; and
+7. record evidence-supported equipment, resources, relationships, and starting
+   temporary memory.
+
+Each setup batch is reviewed separately. The player may ask questions, request
+revisions, and approve a batch before the next batch is generated. No option is
+silently selected.
+
+### Starting Skill or Spell Offer
+
+The System communicates five Skill or Spell options derived from the character's
+background, approved stats, class status, and valid knowledge criteria. The pool
+is combined: it may contain any mixture of Skills and Spells.
+
+The player chooses one option. The chosen Skill or Spell becomes immediately
+active and costs no currency as a new-game starting grant. The grant is an
+exception to the ordinary System Knowledge and Skill Market purchase process;
+normal learning, licensing, and mastery rules apply to later knowledge.
+
+The four unchosen options are not granted. They may become available later
+through the System Knowledge and Skill Market, discovery, training, or another
+valid game rule.
+
+### Starting Modifier Choices
+
+Stat Modifier choices are broad stat-domain capabilities. Their number of
+available slots follows Modifier Count Scaling, and each available slot offers
+three choices. The player selects one choice per slot; no Stat Modifier is
+awarded without that selection.
+
+Class Modifiers are unavailable when the character has no acquired class. A
+profession, background, or proposed class name does not create Class Modifier
+slots.
+
+The starting Effect Modifier batch provides ten bounded, evidence-backed
+choices. The player chooses three. These starting choices use the first-day
+character-creation exception; later Effect Modifiers begin at magnitude 0 and
+must be developed through meaningful effort.
+
+### Starting Information and Records
+
+The setup records only information supported by the character draft, approved
+rules, and scoped evidence. It must not invent exact quantities, hidden skills,
+classes, System items, magical history, or unearned mastery. Player approval is
+required before persistent Markdown setup records are applied.
+
+## Branch System
+<!-- evidence-id: game_rules_1.game_rules.branch_system -->
+
+A **Branch** is a distinct, recurring domain of play that develops its own
+relevant knowledge, opportunities, risks, relationships, resources, and
+consequences. Examples include Alchemy, Politics, Class progression, Relay
+systems, Dungeon Ecology, Technology, Religion, and Knowledge markets.
+
+A Branch is not automatically a new class, Skill, Spell, Modifier, faction, or
+parallel timeline. It is a focused area of the world that becomes relevant when
+play establishes it.
+
+### Branch States
+
+A Branch passes through these states:
+
+- **Unrecognized:** No sufficient evidence has established the Branch.
+- **Candidate:** Play has produced evidence that the Branch may be relevant, but
+  it is not yet active and does not provide special rules or routing.
+- **Unlocked:** A resolved turn has established the Branch through meaningful
+  in-world evidence. Its relevant rules, opportunities, and consequences may
+  now be used.
+
+A player request, character question, or specialist proposal may identify a
+candidate, but cannot unlock a Branch by itself.
+
+### Branch Discovery and Unlocking
+
+Branch discovery occurs when a resolved action, event, relationship, discovery,
+or persistent condition provides evidence that a distinct domain has become
+part of the active game.
+
+The discovery record must identify:
+
+- the Branch name and domain;
+- the resolved event or action that established it;
+- the evidence supporting the discovery;
+- the relevant activation conditions; and
+- any immediate consequences or limits.
+
+Only an approved Branch may be recorded as unlocked. Until then, the Branch is
+handled as a candidate and cannot be treated as established fact.
+
+### Branch Operation
+
+Once unlocked, a Branch is active only when the current action or scene is
+relevant to its domain. Branch rules, evidence, specialists, and consequences
+must remain scoped to that Branch and must not leak into unrelated actions.
+
+An unlocked Branch may:
+
+- introduce domain-specific choices and procedures;
+- create new knowledge, Skills, Spells, Modifiers, items, or relationships
+  when their own requirements are satisfied;
+- produce domain-specific rewards, risks, and consequences; and
+- connect to other unlocked Branches when play establishes a supported link.
+
+A Branch does not override the core rules. Any new capability or permanent
+change still requires the normal evidence, review, approval, and persistence
+process.
+
+### Branch Persistence
+
+Unlocked Branches remain part of the established game state unless a specific
+rule closes, transforms, or removes them. A dormant Branch remains unlocked but
+is not routed into unrelated scenes until relevant activity occurs.
 
 ## ⏳ TIME S:YSTEM
+<!-- evidence-id: game_rules_1.game_rules.time_s_ystem -->
 
 ### 1. Phase Structure
+<!-- evidence-id: game_rules_1.game_rules.time_s_ystem.1_phase_structure -->
 
 A full day is divided into **9 Phases**:
 
@@ -21,6 +173,7 @@ Each phase is a **fixed unit of meaningful activity time**.
 
 
 ### 2. Outside Phase Rule (Major Actions)
+<!-- evidence-id: game_rules_1.game_rules.time_s_ystem.2_outside_phase_rule_major_actions -->
 
 Any **major activity consumes Phase Time**.
 
@@ -49,6 +202,7 @@ Any **major activity consumes Phase Time**.
 
 
 ### 3. Within Phase Rule (Minor Actions)
+<!-- evidence-id: game_rules_1.game_rules.time_s_ystem.3_within_phase_rule_minor_actions -->
 
 Minor actions occur **inside a phase** and do not consume additional time.
 
@@ -75,6 +229,7 @@ Minor actions occur **inside a phase** and do not consume additional time.
 
 
 ### 4. Combat Time Rule
+<!-- evidence-id: game_rules_1.game_rules.time_s_ystem.4_combat_time_rule -->
 
 Combat is **time-compressed for pacing**.
 
@@ -100,6 +255,7 @@ Combat is **time-compressed for pacing**.
 
 
 ### 5. Travel Rule
+<!-- evidence-id: game_rules_1.game_rules.time_s_ystem.5_travel_rule -->
 
 Travel cost depends on **distance and difficulty**:
 
@@ -112,6 +268,7 @@ Travel cost depends on **distance and difficulty**:
 
 
 ### 6. Phase Carryover Rule
+<!-- evidence-id: game_rules_1.game_rules.time_s_ystem.6_phase_carryover_rule -->
 
 Related actions are grouped into a **single phase** when logically continuous.
 
@@ -122,6 +279,7 @@ Related actions are grouped into a **single phase** when logically continuous.
 
 
 ### 7. Phase Tracking Rule
+<!-- evidence-id: game_rules_1.game_rules.time_s_ystem.7_phase_tracking_rule -->
 
 After every major scene, always state:
 
@@ -134,6 +292,7 @@ After every major scene, always state:
 **Purpose:<br> **→ Prevent time drift<br> → Maintain system integrity
 
 ### ⚙️ SYSTEM INTENT
+<!-- evidence-id: game_rules_1.game_rules.time_s_ystem.system_intent -->
 
 This structure ensures:
 
@@ -148,8 +307,10 @@ This structure ensures:
 
 
 ## 🌍 Dynamic World Event Engine
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine -->
 
 ### 1. Core Purpose
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.1_core_purpose -->
 
 The Dynamic World Event Engine adds variety, opportunities, complications, and unexpected developments to the game.
 
@@ -160,6 +321,7 @@ Player actions, party actions, NPC activity, environmental changes, and unresolv
 The pool must reflect the current world state.
 
 ### 2. Event Triggers
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.2_event_triggers -->
 
 An **Event Trigger** is an event category.
 
@@ -178,6 +340,7 @@ A trigger determines the **type of event**, not whether it is beneficial or harm
 Additional triggers may be introduced when the setting requires them. Each new trigger must represent a distinct category and receive its numbers from existing pools.
 
 ### 3. The Number Pool
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.3_the_number_pool -->
 
 The engine uses the numbers **1–100**.
 
@@ -188,6 +351,7 @@ Each Event Trigger owns an explicit list of numbers, written like this:
 Each owned number represents a **1% chance** of activating that trigger.
 
 #### Pool Rules
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.3_the_number_pool.pool_rules -->
 
 - Each number belongs to exactly one trigger.
 - All pools together must contain every number from **1–100**.
@@ -197,6 +361,7 @@ Each owned number represents a **1% chance** of activating that trigger.
 - Every pool must be displayed as an explicit list of its owned numbers.
 
 #### Example Starting Pool
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.3_the_number_pool.example_starting_pool -->
 
 | Event Trigger | Number Pool | Chance |
 |---|---|---:|
@@ -210,6 +375,7 @@ Each owned number represents a **1% chance** of activating that trigger.
 This is an example distribution. The actual starting distribution depends on the location and established world conditions.
 
 ### 4. Changing the Pool
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.4_changing_the_pool -->
 
 The pool changes when actions or developments meaningfully affect the likelihood of an event category.
 
@@ -231,6 +397,7 @@ An action only affects categories it can reasonably influence. Ordinary actions 
 A category gaining numbers does not automatically mean increased danger. It may represent increased opportunity, activity, attention, or instability.
 
 ### 5. Number Transfer Rule
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.5_number_transfer_rule -->
 
 The combined pool must always contain exactly **100 numbers**.
 
@@ -245,6 +412,7 @@ Numbers may transfer:
 A trigger cannot give away numbers it does not own.
 
 #### Example: Advertising a Shop
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.5_number_transfer_rule.example_advertising_a_shop -->
 
 Business gains five numbers from Nothing.
 
@@ -271,6 +439,7 @@ Business gains five numbers from Nothing.
 Business increases from **20% to 25%**. Nothing decreases from **25% to 20%**.
 
 ### 6. Adjustment Size and Duration
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.6_adjustment_size_and_duration -->
 
 The size of a pool adjustment depends on:
 
@@ -289,6 +458,7 @@ Temporary adjustments must record when or under what conditions they end. When t
 Persistent adjustments remain until their cause changes.
 
 ### 7. Event Check Timing
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.7_event_check_timing -->
 
 Make **one event check at the start of each game day**.
 
@@ -303,6 +473,7 @@ Minor actions do not automatically cause additional checks.
 Do not make repeated checks for the same unchanged situation merely to force an event.
 
 ### 8. Event Roll Procedure
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.8_event_roll_procedure -->
 
 At each event check:
 
@@ -319,6 +490,7 @@ At each event check:
 **Do not reroll because the result is inconvenient or uneventful.**
 
 ### 9. Event Tier Rule
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.9_event_tier_rule -->
 
 Every event generated by the pool must be either:
 
@@ -346,6 +518,7 @@ The event’s tier represents its overall scale, demands, or consequences. It do
 The **Nothing** result has no event tier.
 
 ### 10. Generating the Specific Event
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.10_generating_the_specific_event -->
 
 The selected trigger determines the category. Current circumstances determine what happens within that category.
 
@@ -365,6 +538,7 @@ Events must give the player something to encounter, respond to, investigate, exp
 An event does not automatically dictate the player’s response or guarantee an outcome. Actions taken during the event follow normal validity, time, resource, and resolution rules.
 
 ### 11. Nothing Result
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.11_nothing_result -->
 
 If the roll selects **Nothing**, no new event is introduced by that check.
 
@@ -379,6 +553,7 @@ Existing conditions continue:
 Nothing allows space for ordinary play, preparation, recovery, and player-directed activity.
 
 ### 12. Events Outside the Pool
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.12_events_outside_the_pool -->
 
 The pool governs uncertain new developments.
 
@@ -389,6 +564,7 @@ Do not use **Nothing** to cancel an established event.
 The event tier restriction applies to **new events generated by this engine**. Existing world facts and ongoing events retain their established properties.
 
 ### 13. Tracking and Transparency
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.13_tracking_and_transparency -->
 
 At every event check, display the current pool:
 
@@ -417,10 +593,12 @@ Also record:
 No hidden pool changes, duplicate numbers, missing numbers, or unrecorded rerolls are allowed.
 
 ### Core Principle
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.core_principle -->
 
 **Actions change the odds. The roll selects the event category. World conditions shape the event within the allowed tier range.**## Resting Rules
 
 ### 1. Rest Recovery by Duration
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.1_rest_recovery_by_duration -->
 
 Restoration of **HP, MP, and SP** depends on the total duration of uninterrupted rest.
 
@@ -439,10 +617,12 @@ All restoration values are calculated from maximum values unless explicitly stat
 
 
 ### 2. Passive Non-Combat Recovery
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.2_passive_non_combat_recovery -->
 
 While outside active combat resolution, characters naturally recover resources over time.
 
 ### Passive Recovery Rate
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.passive_recovery_rate -->
 
 - Restores 10% of maximum HP, MP, and SP
 
@@ -457,6 +637,7 @@ Passive recovery represents low-level stabilization, breathing recovery, mental 
 
 
 ### 3. Daily Minimum Rest Requirement
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.3_daily_minimum_rest_requirement -->
 
 All player characters must obtain at least **2 total phases of rest per day**.
 
@@ -473,6 +654,7 @@ unless a valid skill, item, species trait, condition, or special effect explicit
 
 
 ### 4. Recovery Basis Rule
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.4_recovery_basis_rule -->
 
 Unless explicitly stated otherwise:
 
@@ -494,6 +676,7 @@ recovering 25% HP restores:
 
 
 ### 5. Recovery Stacking Rule
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.5_recovery_stacking_rule -->
 
 If multiple valid recovery effects apply during the same period:
 
@@ -512,6 +695,7 @@ This includes combinations from:
 
 
 ### 6. Full Rest Rule
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.6_full_rest_rule -->
 
 A completed **2-Phase Rest** is classified as a **Full Rest**.
 
@@ -528,6 +712,7 @@ A Full Rest also satisfies the standard daily rest requirement.
 
 
 ### 7. Rest Tracking Rule
+<!-- evidence-id: game_rules_1.game_rules.dynamic_world_event_engine.7_rest_tracking_rule -->
 
 Whenever rest occurs, the system must explicitly record:
 
@@ -544,10 +729,13 @@ This tracking is mandatory for proper resource resolution and long-term conditio
 
 
 ## ⚔️ COMBAT SYSTEM
+<!-- evidence-id: game_rules_1.game_rules.combat_system -->
 
 ### 1. Combat Types
+<!-- evidence-id: game_rules_1.game_rules.combat_system.1_combat_types -->
 
 #### Narrative Combat
+<!-- evidence-id: game_rules_1.game_rules.combat_system.1_combat_types.narrative_combat -->
 
 Triggered when **Difficulty Ratio > 0.5**.
 
@@ -580,6 +768,7 @@ Triggered when **Difficulty Ratio > 0.5**.
 
 
 #### Rules Combat
+<!-- evidence-id: game_rules_1.game_rules.combat_system.1_combat_types.rules_combat -->
 
 Triggered when outcome is **uncertain or contested**.
 
@@ -596,8 +785,10 @@ Triggered when outcome is **uncertain or contested**.
 
 
 ### 2. Core Combat Model
+<!-- evidence-id: game_rules_1.game_rules.combat_system.2_core_combat_model -->
 
 #### Action–Reaction System
+<!-- evidence-id: game_rules_1.game_rules.combat_system.2_core_combat_model.action_reaction_system -->
 
 Combat is resolved through **Action vs Reaction**, not attack vs defense.
 
@@ -616,6 +807,7 @@ Combat is resolved through **Action vs Reaction**, not attack vs defense.
 
 
 #### Exchange System
+<!-- evidence-id: game_rules_1.game_rules.combat_system.2_core_combat_model.exchange_system -->
 
 Combat occurs in **Exchanges**:
 
@@ -630,6 +822,7 @@ Multiple exchanges form a single encounter.
 
 
 ### 3. Initiative System
+<!-- evidence-id: game_rules_1.game_rules.combat_system.3_initiative_system -->
 
 **Formula:**
 
@@ -654,8 +847,10 @@ Initiative = AGI + INT
 
 
 ### 4. Action Economy
+<!-- evidence-id: game_rules_1.game_rules.combat_system.4_action_economy -->
 
 #### Major Action (Limit: 1 per battle exchange)
+<!-- evidence-id: game_rules_1.game_rules.combat_system.4_action_economy.major_action_limit_1_per_battle_exchange -->
 
 Examples:
 
@@ -676,6 +871,7 @@ Examples:
 
 
 #### Minor Actions (Unlimited, within reason)
+<!-- evidence-id: game_rules_1.game_rules.combat_system.4_action_economy.minor_actions_unlimited_within_reason -->
 
 Examples:
 
@@ -698,14 +894,17 @@ Examples:
 
 
 ### 5. Core Resolution Formula
+<!-- evidence-id: game_rules_1.game_rules.combat_system.5_core_resolution_formula -->
 
 #### Action / Reaction Value
+<!-- evidence-id: game_rules_1.game_rules.combat_system.5_core_resolution_formula.action_reaction_value -->
 
 Total Power = Relevant Stat + Modifiers + Skill/Spell + Curved d20 + combat approach
 
 
 
 #### Multi-Stat Actions
+<!-- evidence-id: game_rules_1.game_rules.combat_system.5_core_resolution_formula.multi_stat_actions -->
 
 If multiple stats apply:
 
@@ -726,6 +925,7 @@ Relevant Stat = Average of relevant stats
 
 
 #### combat Approach
+<!-- evidence-id: game_rules_1.game_rules.combat_system.5_core_resolution_formula.combat_approach -->
 
 Represents:
 
@@ -756,6 +956,7 @@ Represents:
 
 
 #### Reaction Reference (NPC Baseline)
+<!-- evidence-id: game_rules_1.game_rules.combat_system.5_core_resolution_formula.reaction_reference_npc_baseline -->
 
 ●      Tier 0 → 20–50
 
@@ -776,6 +977,7 @@ Represents:
 
 
 #### Outcome Resolution
+<!-- evidence-id: game_rules_1.game_rules.combat_system.5_core_resolution_formula.outcome_resolution -->
 
 Outcome = Action Total − Reaction Total
 
@@ -790,6 +992,7 @@ Outcome = Action Total − Reaction Total
 
 
 #### Effects
+<!-- evidence-id: game_rules_1.game_rules.combat_system.5_core_resolution_formula.effects -->
 
 ●      Damage = Outcome
 
@@ -798,6 +1001,7 @@ Outcome = Action Total − Reaction Total
 
 
 ### 6. Combat Loop
+<!-- evidence-id: game_rules_1.game_rules.combat_system.6_combat_loop -->
 
 1. Declare Action
 2. Declare Reaction
@@ -808,6 +1012,7 @@ Outcome = Action Total − Reaction Total
 
 
 ### 7. Modifier Rule (Absolute)
+<!-- evidence-id: game_rules_1.game_rules.combat_system.7_modifier_rule_absolute -->
 
 Total Modifier = Sum of all relevant bonuses
 
@@ -826,22 +1031,27 @@ Only relevance determines inclusion.
 
 
 ### 7A. Combat Modifier-Sweep Transparency
+<!-- evidence-id: game_rules_1.game_rules.combat_system.7a_combat_modifier_sweep_transparency -->
 
 For every meaningful combat Action or Reaction, list each included relevant modifier and why it applies. Also list any material available modifier that is excluded and why it does not apply. Combat uses its own Action-versus-Reaction process, but it may not use hidden bonuses, generic tier shortcuts, or unexplained modifier omissions.
 
 ### 8. Action Validity System (Critical)
+<!-- evidence-id: game_rules_1.game_rules.combat_system.8_action_validity_system_critical -->
 
 #### Layer 1 — Validity Check
+<!-- evidence-id: game_rules_1.game_rules.combat_system.8_action_validity_system_critical.layer_1_validity_check -->
 
 ●      Can the action logically solve the problem?<br> → If NO → action fails immediately
 
 #### Layer 2 — Numerical Resolution
+<!-- evidence-id: game_rules_1.game_rules.combat_system.8_action_validity_system_critical.layer_2_numerical_resolution -->
 
 ●      If YES → apply formula
 
 
 
 #### Domain Examples
+<!-- evidence-id: game_rules_1.game_rules.combat_system.8_action_validity_system_critical.domain_examples -->
 
 **Invalid:**
 
@@ -858,14 +1068,17 @@ For every meaningful combat Action or Reaction, list each included relevant modi
 
 
 #### Core Law
+<!-- evidence-id: game_rules_1.game_rules.combat_system.8_action_validity_system_critical.core_law -->
 
 Capability determines if action works<br> Numbers determine how well it works
 
 ### 9. Combo Action
+<!-- evidence-id: game_rules_1.game_rules.combat_system.9_combo_action -->
 
 This is applicable when actions are combined together in sequence to boost combat action effect. A combo’s value is a **Relationship-Tier Combo**: it has no member cap and no longer uses the former Team Action Value formula.
 
 #### Team Action Value Formula
+<!-- evidence-id: game_rules_1.game_rules.combat_system.9_combo_action.team_action_value_formula -->
 
 <br> **Main** is the final attacker. Every other participant is a **sub**, and each sub contributes:
 
@@ -874,6 +1087,7 @@ This is applicable when actions are combined together in sequence to boost comba
 <br> Boosts **accumulate**: each successive attacker’s Action value includes every bonus before it. Contributions sum with no averaging, and the minimum contribution is +1 wherever the tier grants a nonzero percentage.
 
 #### Boost Table
+<!-- evidence-id: game_rules_1.game_rules.combat_system.9_combo_action.boost_table -->
 
 | Sub’s tier with Main | Tier name | Contribution |
 | --- | --- | --- |
@@ -890,6 +1104,7 @@ This is applicable when actions are combined together in sequence to boost comba
 | +5 | Absolute Bond | +50% |
 
 #### Premises that must be met
+<!-- evidence-id: game_rules_1.game_rules.combat_system.9_combo_action.premises_that_must_be_met -->
 
 Pre-conditions, checked before the combo begins:
 
@@ -901,6 +1116,7 @@ Contact gate, checked per stage during the combo:
 - Every stage’s Action value, including bonus already accumulated, must exceed the opponent’s Action value
 
 #### Worked Example
+<!-- evidence-id: game_rules_1.game_rules.combat_system.9_combo_action.worked_example -->
 
 Four attackers, each at Action value 30, all at Deep Bond (+10%) with Main:
 
@@ -910,6 +1126,7 @@ Four attackers, each at Action value 30, all at Deep Bond (+10%) with Main:
 - 4th (Main): 30 + 3 + 3 + 3 = 39
 
 #### Failure Rule
+<!-- evidence-id: game_rules_1.game_rules.combat_system.9_combo_action.failure_rule -->
 
 - **Pre-condition failure** — different targets or different intents. The combo is **invalid**: it never began, nothing was committed to it, and the participants’ actions resolve separately as normal attacks.
 - **Contact-gate failure** — a valid combo whose stage cannot beat the opponent’s Action value. The **combo collapses**: all accumulated damage and all bonuses are lost, and the participants still spend their phase and the resources they committed.
@@ -919,8 +1136,10 @@ Four attackers, each at Action value 30, all at Deep Bond (+10%) with Main:
 
 
 ### 10. Combat Rules Extensions
+<!-- evidence-id: game_rules_1.game_rules.combat_system.10_combat_rules_extensions -->
 
 #### Multi-Target Attacks
+<!-- evidence-id: game_rules_1.game_rules.combat_system.10_combat_rules_extensions.multi_target_attacks -->
 
 ●      One action
 
@@ -929,6 +1148,7 @@ Four attackers, each at Action value 30, all at Deep Bond (+10%) with Main:
 
 
 #### Counter Mechanic
+<!-- evidence-id: game_rules_1.game_rules.combat_system.10_combat_rules_extensions.counter_mechanic -->
 
 ●      Counts as a **reaction**
 
@@ -937,6 +1157,7 @@ Four attackers, each at Action value 30, all at Deep Bond (+10%) with Main:
 
 
 #### Reinforcement Rule
+<!-- evidence-id: game_rules_1.game_rules.combat_system.10_combat_rules_extensions.reinforcement_rule -->
 
 New enemies = **new encounter**
 
@@ -949,12 +1170,14 @@ New enemies = **new encounter**
 
 
 #### Action Interruption
+<!-- evidence-id: game_rules_1.game_rules.combat_system.10_combat_rules_extensions.action_interruption -->
 
 If a character is eliminated before acting:<br> → Action is lost
 
 
 
 #### Trap System
+<!-- evidence-id: game_rules_1.game_rules.combat_system.10_combat_rules_extensions.trap_system -->
 
 ●      Creation → Outside combat
 
@@ -963,6 +1186,7 @@ If a character is eliminated before acting:<br> → Action is lost
 
 
 #### Environmental Manipulation
+<!-- evidence-id: game_rules_1.game_rules.combat_system.10_combat_rules_extensions.environmental_manipulation -->
 
 Can:
 
@@ -975,6 +1199,7 @@ Can:
 
 
 #### Death Rule
+<!-- evidence-id: game_rules_1.game_rules.combat_system.10_combat_rules_extensions.death_rule -->
 
 HP = 0 → Death
 
@@ -989,6 +1214,7 @@ No default:
 
 
 ### 11. Resource Tracking
+<!-- evidence-id: game_rules_1.game_rules.combat_system.11_resource_tracking -->
 
 Always track:
 
@@ -1003,6 +1229,7 @@ Even in narrative combat.
 
 
 ### 12. Encounter Timing
+<!-- evidence-id: game_rules_1.game_rules.combat_system.12_encounter_timing -->
 
 ●      1 Encounter = 0.5 Phase
 
@@ -1011,12 +1238,14 @@ Even in narrative combat.
 
 
 #### Harvest Rule
+<!-- evidence-id: game_rules_1.game_rules.combat_system.12_encounter_timing.harvest_rule -->
 
 Immediate post-combat harvesting:<br> → No extra phase (unless complex)
 
 
 
 ### 13. Boss Rules
+<!-- evidence-id: game_rules_1.game_rules.combat_system.13_boss_rules -->
 
 Bosses may have:
 
@@ -1031,8 +1260,10 @@ Bosses may have:
 
 
 ## 🧪 NON-COMBAT SYSTEM
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system -->
 
 ### 1. Action Sources
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.1_action_sources -->
 
 These actions are:
 
@@ -1051,14 +1282,17 @@ These actions are:
 
 
 ### 2. Action System
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.2_action_system -->
 
 #### Action value
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.2_action_system.action_value -->
 
 A = Average Relevant Stats + Modifiers + d20 + Realistic Approach
 
 
 
 #### Realistic Approach (Execution Quality)
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.2_action_system.realistic_approach_execution_quality -->
 
 Represents:
 
@@ -1089,18 +1323,22 @@ Represents:
 
 
 ### 2A. Resolution Assembly Protocol (Mandatory)
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.2a_resolution_assembly_protocol_mandatory -->
 
 Every meaningful noncombat action, task, crafting attempt, business operation, training exercise, research experiment, or social contest must be assembled from the reality of its specific domain before it is resolved.
 
 #### 1. Define the Domain and Method
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.2a_resolution_assembly_protocol_mandatory.1_define_the_domain_and_method -->
 
 State what is actually being attempted and how it is attempted: for example, batch craft, sale contract, field preservation, mana training, research experiment, or political negotiation.
 
 #### 2. Select Relevant Stats
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.2a_resolution_assembly_protocol_mandatory.2_select_relevant_stats -->
 
 Use only the stat or multi-stat average that the method genuinely demands.
 
 #### 3. Perform a Modifier Sweep
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.2a_resolution_assembly_protocol_mandatory.3_perform_a_modifier_sweep -->
 
 Check all possible sources, then include every modifier that genuinely helps the declared method:
 
@@ -1113,24 +1351,29 @@ Check all possible sources, then include every modifier that genuinely helps the
 The resolution must list included modifiers and why they apply. Important available modifiers that are excluded must also be listed with a reason.
 
 #### 4. Build Task from World Reality
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.2a_resolution_assembly_protocol_mandatory.4_build_task_from_world_reality -->
 
 Task values are independent of the actor’s ECS and must reflect the actual requirement: market demand, institutional power, recipe complexity, batch scale, tool quality, material risk, social leverage, environmental conditions, and other valid facts.
 
 #### 5. Apply Real-World Scaling
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.2a_resolution_assembly_protocol_mandatory.5_apply_real_world_scaling -->
 
 Interpret the completed Action or Task value through `Value ÷ 5` human-equivalent capability. The interpretation clarifies the fiction; it does not alter the mechanical value.
 
 #### 6. Resolve Transparently
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.2a_resolution_assembly_protocol_mandatory.6_resolve_transparently -->
 
 `Outcome = Action Value − Task Value`
 
 No hidden bonus, generic tier shortcut, or automatic success may be added after the calculation.
 
 #### ECS Boundary
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.2a_resolution_assembly_protocol_mandatory.ecs_boundary -->
 
 ECS is the total of core stats. It represents broad build capacity and is used where an ECS rule explicitly calls for it, such as XP difficulty. ECS does not replace a domain-specific Action or Task value.
 
 ### 2B. Institutional Standing from Noncash Gains
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.2b_institutional_standing_from_noncash_gains -->
 
 Documented noncash gains may create **Institutional Standing** when a relevant outside group knows, recognizes, or can verify them. Examples include lawful recovery records, verified claimant returns, trade promises, custody credibility, repeat contracts, and recognized operational performance.
 
@@ -1142,6 +1385,7 @@ Documented noncash gains may create **Institutional Standing** when a relevant o
 - New records increase standing only when their recognition is validly established; merely possessing an unsubmitted packet does not automatically increase the score.
 
 ### 2C. Outcome-Based Practice Carryover and Derived Refinement
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.2c_outcome_based_practice_carryover_and_derived_refinement -->
 
 Repeated, logged, meaningful practice with the **same narrow method** changes both preparation and real difficulty through the last eligible attempt’s outcome margin.
 
@@ -1158,6 +1402,7 @@ A prior session counts only if it involved a real attempt at the same method und
 Practice Carryover is a displayed situational factor, not a permanent modifier. It cannot be double-counted with an earned modifier that already represents the same mastered method, and it must never replace the threshold for earning a permanent modifier, certification, or breakthrough.
 
 #### Derived Refinement, Branching, and Combined Lineage
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.2c_outcome_based_practice_carryover_and_derived_refinement.derived_refinement_branching_and_combined_lineage -->
 
 A character may refine a documented technique into a **new but related** technique only when each claimed predecessor has a recorded decisive **uncapped raw outcome of +10 or higher**. This is easier than inventing an unrelated modifier only when the experiment record explains the shared method, material, body pattern, mana logic, or operational domain.
 
@@ -1171,6 +1416,7 @@ A character may refine a documented technique into a **new but related** techniq
 - Derived Refinement only changes the starting difficulty and approach. It does not bypass repeated-success, experimentation, certification, or breakthrough requirements for the new modifier.
 
 ### 2D. Facility Modifier Bands
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.2d_facility_modifier_bands -->
 
 A functioning facility may grant a location-bound modifier when its tools, layout, storage, safety, staff support, or controlled conditions materially aid the declared action. A facility does not grant a generic bonus outside its documented scope.
 
@@ -1183,6 +1429,7 @@ A functioning facility may grant a location-bound modifier when its tools, layou
 - Every active facility and exact modifier must appear in the Ledger’s Facility Modifier Index.
 
 ### 2E. Distinct Cognitive-Assistance Modifiers
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.2e_distinct_cognitive_assistance_modifiers -->
 
 A stored-knowledge system and an analytical guide are distinct supports, like learning from a book and learning from a teacher. They may both apply to one valid intellectual action when each independently contributes; one does not replace or invalidate the other.
 
@@ -1194,6 +1441,7 @@ A stored-knowledge system and an analytical guide are distinct supports, like le
 - These support modifiers do not apply to raw physical action, reflex action, charisma-only persuasion, unsupported crafting labor, invalid action, or any task outside the supports’ actual knowledge and analytical scope.
 
 ### 2F. Routine Validated Production
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.2f_routine_validated_production -->
 
 Once a production or crafting method is **validated** — proven recipe set, proven matching materials, the required facility and its bonus, any relevant batch template, and a scale the actor has already completed — repeating it at or below that proven scale is **routine validated production** and does not require a roll. It may still be recorded for bookkeeping.
 
@@ -1209,8 +1457,10 @@ A roll is required again when circumstance changes materially:
 This rule prevents invented difficulty on work a character has repeatedly and reliably completed. It does not grant automatic success on first attempts, on changed methods, or on work whose inputs or conditions have changed.
 
 ### 3. Task System
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.3_task_system -->
 
 #### Task Value
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.3_task_system.task_value -->
 
 Task = Difficulty + Novelty + applicable Integration / Independence / Field-Risk factors
 
@@ -1219,6 +1469,7 @@ Each additional factor must be real, stated, and non-overlapping. Do not add a f
 
 
 #### Difficulty Scaling
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.3_task_system.difficulty_scaling -->
 
 ●      Tier 0 → 20–50
 
@@ -1237,6 +1488,7 @@ Each additional factor must be real, stated, and non-overlapping. Do not add a f
 
 
 #### Novelty Scaling
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.3_task_system.novelty_scaling -->
 
 ●      Tier 0 → 10–20
 
@@ -1253,6 +1505,7 @@ Each additional factor must be real, stated, and non-overlapping. Do not add a f
 ●      Tier 6 → 1000+
 
 #### Integration / Independence / Field-Risk Factors
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.3_task_system.integration_independence_field_risk_factors -->
 
 Use only factors actually present in the declared work.
 
@@ -1263,6 +1516,7 @@ Use only factors actually present in the declared work.
 These factors describe the world requirement, not the actor. If one factor already represents the same complication as Difficulty or Novelty, do not count it again.
 
 ### 3A. Permanent Advancement Task Floors
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.3a_permanent_advancement_task_floors -->
 
 These are starting floors for future attempts to create a permanent capability; actual documented complexity may require a higher Task. They do not retcon already earned modifiers.
 
@@ -1272,6 +1526,7 @@ These are starting floors for future attempts to create a permanent capability; 
 - **Tier 2 breakthrough or permanent Tier 2 capability:** use the Tier 2 difficulty and novelty ranges together, normally at least **150–300** before any valid reductions, and require an appropriate personal framework, proof, and advancement structure.
 
 ### 4. Outcome Resolution
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.4_outcome_resolution -->
 
 Outcome = Action value − Task
 
@@ -1282,6 +1537,7 @@ Outcome = Action value − Task
 
 
 #### Outcome Results
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.4_outcome_resolution.outcome_results -->
 
 ●      < -5 → Great Failure
 
@@ -1298,6 +1554,7 @@ Outcome = Action value − Task
 
 
 #### Failure Consequences
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.4_outcome_resolution.failure_consequences -->
 
 ●      Great Failure → destruction / injury / death
 
@@ -1308,6 +1565,7 @@ Outcome = Action value − Task
 
 
 ### 5. Action Time
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.5_action_time -->
 
 - basic → within Phase
 - Simple → 1 Phase
@@ -1317,8 +1575,10 @@ Outcome = Action value − Task
 
 
 ### 6. Collaborative Action
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.6_collaborative_action -->
 
 #### Team Action value Formula
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.6_collaborative_action.team_action_value_formula -->
 
 <br> Main is the **lead character**. Every other participant is a **sub**, and each sub contributes:
 
@@ -1331,6 +1591,7 @@ Outcome = Action value − Task
 
 
 #### Behavior
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.6_collaborative_action.behavior -->
 
 ●      Strongest member defines baseline
 
@@ -1343,6 +1604,7 @@ Outcome = Action value − Task
 
 
 ### ⚙️ SYSTEM SUMMARY
+<!-- evidence-id: game_rules_1.game_rules.non_combat_system.system_summary -->
 
 This system ensures:
 
@@ -1357,8 +1619,10 @@ This system ensures:
 
 
 ## Consumable Growth and Reward System
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system -->
 
 ### Overview
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.overview -->
 
 Food, pills, potions, herbs, and edible harvest substances can grant:
 
@@ -1377,8 +1641,10 @@ Rewards are determined by:
 
 
 ### Core Rules
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.core_rules -->
 
 #### Tier Restrictions
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.core_rules.tier_restrictions -->
 
 A character cannot gain **any effect** from consumables below their own tier.
 
@@ -1389,6 +1655,7 @@ However:
 - Characters may gain XP and temporary modifiers from consumables above their tier
 
 ##### Example
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.core_rules.tier_restrictions.example -->
 
 A Tier 0 character consuming Tier 4 food may still gain:
 
@@ -1400,6 +1667,7 @@ but may not safely integrate permanent effects beyond their capability.
 
 
 #### Material Consistency
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.core_rules.material_consistency -->
 
 For food, pills and potions:
 
@@ -1409,10 +1677,12 @@ For food, pills and potions:
 
 
 #### Effect Modifier Restrictions
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.core_rules.effect_modifier_restrictions -->
 
 Effect modifiers are tightly controlled.
 
 ##### Same-Material Rule
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.core_rules.effect_modifier_restrictions.same_material_rule -->
 
 A character may only gain a permanent effect modifier once from:
 
@@ -1427,6 +1697,7 @@ This prevents permanent stat farming through repeated consumption.
 
 
 #### Permanent Effect Modifier Requirements
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.core_rules.permanent_effect_modifier_requirements -->
 
 Permanent effect modifiers require all of the following:
 
@@ -1437,12 +1708,14 @@ Permanent effect modifiers require all of the following:
 Additional requirements:
 
 ##### Food
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.core_rules.permanent_effect_modifier_requirements.food -->
 
 Permanent food effects require:
 
 - a chef of equal or higher tier than the consumable
 
 ##### pills and potions
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.core_rules.permanent_effect_modifier_requirements.pills_and_potions -->
 
 Permanent alchemical effects require:
 
@@ -1451,6 +1724,7 @@ Permanent alchemical effects require:
 
 
 ### Food Rewards
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.food_rewards -->
 
 
 
@@ -1468,6 +1742,7 @@ Permanent alchemical effects require:
 
 
 ### Pills and Potions Rewards
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.pills_and_potions_rewards -->
 
 
 
@@ -1484,6 +1759,7 @@ Permanent alchemical effects require:
 
 
 ### Herb and Edible Harvest Rewards
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.herb_and_edible_harvest_rewards -->
 
 
 
@@ -1500,6 +1776,7 @@ Permanent alchemical effects require:
 
 
 ### Specialized Consumables
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.specialized_consumables -->
 
 Not all consumables are designed for XP gain.
 
@@ -1519,6 +1796,7 @@ Some herbs, foods, and alchemical products instead provide direct functional eff
 In these cases, the consumable grants its primary effect instead of XP.
 
 #### Example
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.specialized_consumables.example -->
 
 A Tier 0 healing potion restores:
 
@@ -1529,6 +1807,7 @@ rather than granting XP.
 
 
 ### Design Logic
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.design_logic -->
 
 This system exists because:
 
@@ -1541,8 +1820,10 @@ This system exists because:
 
 
 ### Balance Notes
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.balance_notes -->
 
 #### Food
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.balance_notes.food -->
 
 Food may grant greater rewards than raw herbs because it combines:
 
@@ -1553,6 +1834,7 @@ Food may grant greater rewards than raw herbs because it combines:
 
 
 ### pills and potions
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.pills_and_potions -->
 
 pills and potions grants the highest rewards because it is:
 
@@ -1564,6 +1846,7 @@ pills and potions grants the highest rewards because it is:
 
 
 ### Permanent Effects
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.permanent_effects -->
 
 Permanent effect modifiers:
 
@@ -1574,8 +1857,10 @@ Permanent effect modifiers:
 
 
 ### Repeatability Rules
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.repeatability_rules -->
 
 #### Repeatable
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.repeatability_rules.repeatable -->
 
 The following may be repeatedly gained:
 
@@ -1585,26 +1870,31 @@ The following may be repeatedly gained:
 No hard repeat limit exists unless specifically stated by an item.
 
 ### Crafting Output Rules
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.crafting_output_rules -->
 
 #### Potions
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.crafting_output_rules.potions -->
 
 - **Great Success:** 3 potions
 - **Success:** 2 potions
 - **Partial Success:** 1 potion
 
 #### Pills
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.crafting_output_rules.pills -->
 
 - **Great Success:** 5 pills
 - **Success:** 3 pills
 - **Partial Success:** 1 pills
 
 #### Note
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.crafting_output_rules.note -->
 
 Pills produce a higher quantity than potions because they are weaker and less effective per unit.
 
 
 
 ### Restricted
+<!-- evidence-id: game_rules_1.game_rules.consumable_growth_and_reward_system.restricted -->
 
 Permanent effect modifiers are restricted by:
 
@@ -1617,11 +1907,14 @@ They are not freely repeatable.
 
 
 ## STAT SYSTEM
+<!-- evidence-id: game_rules_1.game_rules.stat_system -->
 ### 🧬 CORE STAT SYSTEM
+<!-- evidence-id: game_rules_1.game_rules.stat_system.core_stat_system -->
 
 
 
 #### 1. STRENGTH (STR)
+<!-- evidence-id: game_rules_1.game_rules.stat_system.core_stat_system.1_strength_str -->
 
 **Definition:<br> **Raw physical force applied to the world.
 
@@ -1654,6 +1947,7 @@ They are not freely repeatable.
 
 
 #### 2. AGILITY (AGI)
+<!-- evidence-id: game_rules_1.game_rules.stat_system.core_stat_system.2_agility_agi -->
 
 **Definition:<br> **Speed, reflex, coordination, and precision.
 
@@ -1688,6 +1982,7 @@ They are not freely repeatable.
 
 
 #### 3. ENDURANCE (END)
+<!-- evidence-id: game_rules_1.game_rules.stat_system.core_stat_system.3_endurance_end -->
 
 **Definition:<br> **Physical resilience and sustained capability.
 
@@ -1722,6 +2017,7 @@ They are not freely repeatable.
 
 
 #### 4. INTELLIGENCE (INT)
+<!-- evidence-id: game_rules_1.game_rules.stat_system.core_stat_system.4_intelligence_int -->
 
 **Definition:<br> **Logic, analysis, and structured thinking.
 
@@ -1756,6 +2052,7 @@ They are not freely repeatable.
 
 
 #### 5. WISDOM (WIS)
+<!-- evidence-id: game_rules_1.game_rules.stat_system.core_stat_system.5_wisdom_wis -->
 
 **Definition:<br> **Mana control, intuition, and awareness.
 
@@ -1792,6 +2089,7 @@ They are not freely repeatable.
 
 
 #### 6. PRESENCE (PRE)
+<!-- evidence-id: game_rules_1.game_rules.stat_system.core_stat_system.6_presence_pre -->
 
 **Definition:<br> **Influence exerted through aura and identity.
 
@@ -1826,6 +2124,7 @@ They are not freely repeatable.
 
 
 ### ⚙️ DERIVED STATS
+<!-- evidence-id: game_rules_1.game_rules.stat_system.derived_stats -->
 
 Calculated directly from core stats:
 
@@ -1840,6 +2139,7 @@ Calculated directly from core stats:
 ●      **Carry Load** = STR × 10
 
 #### Resistances
+<!-- evidence-id: game_rules_1.game_rules.stat_system.derived_stats.resistances -->
 
 ●      Physical = END
 
@@ -1852,8 +2152,10 @@ Calculated directly from core stats:
 
 
 ## 🧩 MODIFIER SYSTEM
+<!-- evidence-id: game_rules_1.game_rules.modifier_system -->
 
 ### Core Principle
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.core_principle -->
 
 Modifiers define **performance beyond base stats**.
 
@@ -1872,6 +2174,29 @@ Modifiers define **performance beyond base stats**.
 
 
 ### 1. Stat Modifiers
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.1_stat_modifiers -->
+
+**Description:**
+
+Stat Modifiers are broad, stat-bound capabilities. They describe what a
+character can generally do through a stat across multiple relevant situations.
+They are not narrow techniques, weapon abilities, class abilities, or bonuses
+for one room, tool, maneuver, or single task.
+
+**Creation fields:**
+
+- affected stat;
+- broad capability description;
+- evidence and basis level;
+- limitations;
+- growth or conversion rule.
+
+**Examples:**
+
+- INT — Systems Analysis: broad analysis of systems, patterns, dependencies, and faults.
+- AGI — Coordinated Movement: broad balance, timing, and whole-body coordination.
+- STR — Force Production: broad pushing, lifting, pulling, and forceful physical action.
+- END — Sustained Resilience: broad endurance and resistance to ordinary physical strain.
 
 **Rules:**
 
@@ -1879,7 +2204,7 @@ Modifiers define **performance beyond base stats**.
 
 ●      Multiple stats can combine
 
-**Examples:**
+**Combination examples:**
 
 ●      STR + AGI → physical attacks
 
@@ -1889,48 +2214,9 @@ Modifiers define **performance beyond base stats**.
 
 
 
-#### 1. Major vs Minor Stats
 
-Each build defines:
-
-●      **2 Major Stats** → primary focus
-
-●      **4 Minor Stats** → secondary support
-
-**Examples:**
-
-●      Mage → INT, WIS
-
-●      Fighter → STR, AGI
-
-●      Tank → STR, END
-
-
-
-#### 2. Modifier Distribution by Tier
-
-
-
-| **Tier** | **Major Mods** | **Minor Mods** |
-| --- | --- | --- |
-| 0 | 2 | 1 |
-| 1 | 3 | 2 |
-| 2 | 4 | 3 |
-| 3 | 5 | 4 |
-| 4 | 6 | 5 |
-| 5 | 7 | 6 |
-
-
-
-#### 3. Conversion Rule
-
-●      2 Minor = 1 Major
-
-●      Minor stats can be promoted to Major roles
-
-note: 2 and 3 are just to help you build enemies it isn't a universal rule what is the true rule is 4
-
-#### 4. Modifier Count Scaling
+#### 2. Modifier Count Scaling
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.1_stat_modifiers.2_modifier_count_scaling -->
 
 Based on stat value:
 
@@ -1950,7 +2236,34 @@ Based on stat value:
 
 ●      1000 → 8
 
-#### Examples
+#### 3. Stat Modifier and Class Modifier Tier Review
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.1_stat_modifiers.3_stat_modifier_and_class_modifier_tier_review -->
+
+Every time a character advances to a new Tier, all Stat Modifiers and Class
+Modifiers must be reviewed.
+
+Their magnitude is determined by the accumulated evidence supporting the
+relevant capability. Meaningful tasks, training, and demonstrated success may
+support a higher magnitude within the new Tier's strength band.
+
+The review must consider:
+
+- how often the modifier was meaningfully used;
+- how difficult or consequential the supporting tasks were;
+- whether training improved the underlying capability;
+- whether evidence covers multiple relevant situations; and
+- whether the evidence is repetitive, trivial, or genuinely independent.
+
+A Tier increase does not automatically increase a modifier. Repeated trivial
+or identical actions do not create new supporting evidence. Any magnitude
+increase requires a documented Tier review and must not exceed the applicable
+Modifier Strength by Tier band.
+
+Stat Modifiers must remain broad within their stat domain. Class Modifiers must
+remain specific to the character's acquired class and progression.
+
+##### Examples
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.1_stat_modifiers.3_stat_modifier_and_class_modifier_tier_review.examples -->
 
 END SKILL
 
@@ -1965,6 +2278,27 @@ Boost + 20 to:
 
 
 ### Class Modifiers
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.class_modifiers -->
+
+**Description:**
+
+Class Modifiers are class-specific capabilities granted through an acquired
+class and its progression. A profession, hobby, background, or high stat does
+not create a Class Modifier by itself.
+
+**Creation fields:**
+
+- acquired class;
+- class-specific capability;
+- evidence or progression basis;
+- activation conditions;
+- limitations and tier band.
+
+**Examples:**
+
+- Swordsman — Swift Blade: improves class-supported blade speed and attack flow.
+- Mage — Mana Shaping: improves a class-supported spell-forming method.
+- Ranger — Trail Reading: improves a class-supported tracking method.
 
 ●      Granted through class progression
 
@@ -1973,8 +2307,17 @@ Boost + 20 to:
 ●      Represent specialization
 
 
+#### Tier Review
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.class_modifiers.tier_review -->
+
+Class Modifiers are reviewed whenever the character advances to a new Tier.
+Their magnitude may increase when accumulated class-relevant tasks, training,
+and demonstrated successes provide stronger evidence, but the increase is not
+automatic. Repetitive or trivial use does not increase magnitude, and no Class
+Modifier may exceed the applicable Tier strength band.
 
 #### Examples
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.class_modifiers.examples -->
 
 Swift blade
 
@@ -1989,12 +2332,38 @@ Boost + 4 to:
 
 
 ### Effect Modifier
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.effect_modifier -->
+
+**Description:**
+
+Effect Modifiers are narrow, reusable techniques, methods, or action patterns.
+They explain how a character performs a particular kind of action and must have
+clear activation conditions, limitations, growth boundaries, and stacking rules.
+Unlike Stat Modifiers, they are not broad descriptions of a stat's general
+capacity.
+
+**Creation fields:**
+
+- name and tier;
+- specific boost domain;
+- activation conditions;
+- evidence and limitations;
+- anti-farming boundary;
+- stacking behavior;
+- growth or refinement path.
+
+**Examples:**
+
+- Pipeline Triage: isolates the failing stage in a multi-stage technical system.
+- Guarded Entry: uses trained movement to enter striking range behind a guard.
+- Wolf Pattern: maintains pressure through a specific chained dual-blade sequence.
 
 Effect modifiers are earned when repeated meaningful action, experimentation, breakthrough behavior, or specialized performance creates a stable and reusable improvement in how a character functions.
 
 They are not granted automatically by time, level, or tier.<br>They must be justified by action history.
 
 #### 1. Sources of New Effect Modifiers
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.effect_modifier.1_sources_of_new_effect_modifiers -->
 
 A new effect modifier may be gained from:
 
@@ -2007,6 +2376,7 @@ A new effect modifier may be gained from:
 - Consumption of things
 
 #### 2. Threshold
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.effect_modifier.2_threshold -->
 
 A new effect modifier may only be gained through one of the following:
 
@@ -2021,6 +2391,7 @@ Meaning:
 - the gain must represent stable capability, not temporary performance
 
 #### 3. Strength
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.effect_modifier.3_strength -->
 
 New effect modifiers must obey the existing tier strength ranges.
 
@@ -2031,11 +2402,28 @@ Example:
 
 This prevents effect modifiers from breaking the existing modifier system.
 
-#### 4. Anti-Abuse Rules
+#### 4. Development from Zero
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.effect_modifier.4_development_from_zero -->
+
+Except for the first-day character-creation process, every new Effect Modifier
+begins at magnitude 0. Starting Effect Modifier choices on the first day use
+the same tier and evidence review applied to Stat and Class Modifiers.
+
+After creation, an Effect Modifier must be groomed through meaningful effort,
+including use, training, experimentation, refinement, breakthrough behavior, or
+specialized performance. Its magnitude improves only when that effort produces
+new evidence of a stable and reusable capability.
+
+An Effect Modifier does not become stronger merely because the character gains
+a Tier. Its growth requires documented effort and an evidence-based review.
+
+#### 5. Anti-Abuse Rules
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.effect_modifier.5_anti_abuse_rules -->
 
 Effect modifiers cannot be farmed freely.
 
 ##### Hard limits
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.effect_modifier.5_anti_abuse_rules.hard_limits -->
 
 - no duplicate effect modifier from the same behavior
 - no trivial farming
@@ -2055,7 +2443,8 @@ Instead of specific effects like:
 - relay-space stabilization
 - controlled battlefield baiting
 
-#### 5. Upgrade Rule
+#### 6. Upgrade Rule
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.effect_modifier.6_upgrade_rule -->
 
 Effect modifiers do not automatically grow with the character.
 
@@ -2072,7 +2461,8 @@ That means:
 
 
 
-#### 6. Modifier Identity Rule
+#### 7. Modifier Identity Rule
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.effect_modifier.7_modifier_identity_rule -->
 
 Every new effect modifier must have:
 
@@ -2086,6 +2476,27 @@ Example:<br>**Wolf Pattern<br>**Tier: 0<br>Boost: +2 to chained dual-blade attac
 
 
 ### Equipment Modifiers
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.equipment_modifiers -->
+
+**Description:**
+
+Equipment Modifiers come from a specific owned, available, or equipped item.
+They apply only while the item is present, usable, and within its stated scope.
+They do not become personal abilities when the item is absent.
+
+**Creation fields:**
+
+- item and holder;
+- granted stat or effect;
+- activation or usage condition;
+- item tier and magnitude;
+- durability, resource, and limitation rules.
+
+**Examples:**
+
+- Reinforced Shield: improves physical blocking while equipped and held correctly.
+- Knowledge Database Rune: improves retrieval when the relevant records are accessible.
+- Insulated Gloves: reduce electrical handling risk while worn and intact.
 
 ●      Provided by items
 
@@ -2098,6 +2509,7 @@ Example:<br>**Wolf Pattern<br>**Tier: 0<br>Boost: +2 to chained dual-blade attac
 ○      unlock abilities
 
 #### Examples
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.equipment_modifiers.examples -->
 
 Assassin cloak
 
@@ -2112,6 +2524,27 @@ Boost + 2 to:
 
 
 ### Situational Modifiers
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.situational_modifiers -->
+
+**Description:**
+
+Situational Modifiers come from temporary circumstances rather than permanent
+character capability. They apply only while the stated context exists and are
+not automatically stored as Stat, Class, Effect, or Equipment Modifiers.
+
+**Creation fields:**
+
+- triggering situation;
+- affected action or defense;
+- bonus or penalty;
+- duration and scope;
+- reason the situation applies.
+
+**Examples:**
+
+- High Ground: improves visibility and ranged positioning while the advantage exists.
+- Prepared Workspace: improves a planned technical task while the prepared tools and layout remain available.
+- Darkness: penalizes perception and precision when the character lacks suitable illumination.
 
 **Not tier-based**
 
@@ -2130,6 +2563,7 @@ Depend on context:
 
 
 ### Modifier Behavior Rules
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.modifier_behavior_rules -->
 
 ●      Only relevant modifiers apply
 
@@ -2139,9 +2573,10 @@ Depend on context:
 
 ●      Modifiers define build identity
 
-![*](assets/game-rules-1/image1.png)
+
 
 #### Modifier Strength by Tier
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.modifier_behavior_rules.modifier_strength_by_tier -->
 
 Applies to all non-situational modifiers:
 
@@ -2160,6 +2595,7 @@ Applies to all non-situational modifiers:
 
 
 ### ⚠️ SCALING REALITY
+<!-- evidence-id: game_rules_1.game_rules.modifier_system.scaling_reality -->
 
 At higher tiers:
 
@@ -2178,8 +2614,10 @@ At higher tiers:
 
 
 ## 🔥 ACTIVE SKILL SYSTEM
+<!-- evidence-id: game_rules_1.game_rules.active_skill_system -->
 
 ### 1. Tier Determination
+<!-- evidence-id: game_rules_1.game_rules.active_skill_system.1_tier_determination -->
 
 A skill’s tier is defined by the **highest of:**
 
@@ -2194,8 +2632,10 @@ A skill’s tier is defined by the **highest of:**
 
 
 ### 2. Skill Tiers
+<!-- evidence-id: game_rules_1.game_rules.active_skill_system.2_skill_tiers -->
 
 #### Tier 0 — Human Level
+<!-- evidence-id: game_rules_1.game_rules.active_skill_system.2_skill_tiers.tier_0_human_level -->
 
 ●      Small effects
 
@@ -2212,6 +2652,7 @@ A skill’s tier is defined by the **highest of:**
 
 
 #### Tier 1 — Superhuman
+<!-- evidence-id: game_rules_1.game_rules.active_skill_system.2_skill_tiers.tier_1_superhuman -->
 
 ●      Enhanced force
 
@@ -2226,6 +2667,7 @@ A skill’s tier is defined by the **highest of:**
 
 
 #### Tier 2 — Village Level
+<!-- evidence-id: game_rules_1.game_rules.active_skill_system.2_skill_tiers.tier_2_village_level -->
 
 ●      Wide AoE
 
@@ -2240,6 +2682,7 @@ A skill’s tier is defined by the **highest of:**
 
 
 #### Tier 3 — City Level
+<!-- evidence-id: game_rules_1.game_rules.active_skill_system.2_skill_tiers.tier_3_city_level -->
 
 ●      Massive scale
 
@@ -2256,6 +2699,7 @@ A skill’s tier is defined by the **highest of:**
 
 
 #### Tier 4 — National Level
+<!-- evidence-id: game_rules_1.game_rules.active_skill_system.2_skill_tiers.tier_4_national_level -->
 
 ●      Alters regions
 
@@ -2270,6 +2714,7 @@ A skill’s tier is defined by the **highest of:**
 
 
 #### Tier 5 — Continental Level
+<!-- evidence-id: game_rules_1.game_rules.active_skill_system.2_skill_tiers.tier_5_continental_level -->
 
 ●      Reshapes landmass
 
@@ -2284,6 +2729,7 @@ A skill’s tier is defined by the **highest of:**
 
 
 #### Tier 6 — World Level
+<!-- evidence-id: game_rules_1.game_rules.active_skill_system.2_skill_tiers.tier_6_world_level -->
 
 ●      Extreme, non-mortal
 
@@ -2298,6 +2744,7 @@ A skill’s tier is defined by the **highest of:**
 
 
 ### 3. Skill Creation
+<!-- evidence-id: game_rules_1.game_rules.active_skill_system.3_skill_creation -->
 
 Uses the **Experimentation System**:
 
@@ -2310,6 +2757,7 @@ Success → skill created
 
 
 ### 4. Skill Evolution
+<!-- evidence-id: game_rules_1.game_rules.active_skill_system.4_skill_evolution -->
 
 Skills evolve through:
 
@@ -2326,6 +2774,7 @@ Skills evolve through:
 
 
 ### 5. Skill Categories
+<!-- evidence-id: game_rules_1.game_rules.active_skill_system.5_skill_categories -->
 
 Used for Action value relevance and interaction logic:
 
@@ -2344,6 +2793,7 @@ Used for Action value relevance and interaction logic:
 
 
 ### ⚙️ FINAL SYSTEM INTENT
+<!-- evidence-id: game_rules_1.game_rules.active_skill_system.final_system_intent -->
 
 This system works because:
 
@@ -2360,6 +2810,7 @@ This system works because:
 
 
 ## IV. DUAL XP SYSTEM — THE TWO PATHS OF GROWTH
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth -->
 
 Growth flows through **two separate XP systems**, each governing a different kind of advancement:
 
@@ -2372,10 +2823,12 @@ These two systems are **never interchangeable**.<br> They are earned differently
 
 
 ### 1. NORMAL XP SYSTEM — LIFE XP
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.1_normal_xp_system_life_xp -->
 
 Normal XP represents **broad personal growth** gained through hardship, achievement, and meaningful action.
 
 #### A. How Normal XP Is Earned
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.1_normal_xp_system_life_xp.a_how_normal_xp_is_earned -->
 
 Normal XP is gained from actions that meaningfully advance the character’s life, survival, or development.
 
@@ -2402,6 +2855,7 @@ Examples:
 
 
 #### B. Nature of Normal XP
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.1_normal_xp_system_life_xp.b_nature_of_normal_xp -->
 
 Normal XP reflects **overall character evolution**, not specialization.
 
@@ -2420,6 +2874,7 @@ It tracks:
 
 
 #### C. Level Cap
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.1_normal_xp_system_life_xp.c_level_cap -->
 
 Normal XP has **no level cap**.
 
@@ -2428,6 +2883,7 @@ Characters can continue leveling indefinitely.<br> Growth is theoretically infin
 
 
 #### D. Normal Level-Up Rewards
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.1_normal_xp_system_life_xp.d_normal_level_up_rewards -->
 
 Each Normal Level grants:
 
@@ -2439,6 +2895,7 @@ These points may be distributed freely across the six core stats.
 
 
 ### 2. CLASS XP SYSTEM — MASTERY XP
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.2_class_xp_system_mastery_xp -->
 
 Class XP represents **focused growth within a chosen role**.
 
@@ -2447,6 +2904,7 @@ It is narrower than Normal XP, but more specialized.
 
 
 #### A. How Class XP Is Earned
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.2_class_xp_system_mastery_xp.a_how_class_xp_is_earned -->
 
 Class XP is earned only through **class-aligned actions** that are:
 
@@ -2473,6 +2931,7 @@ Examples:
 
 
 #### B. Nature of Class XP
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.2_class_xp_system_mastery_xp.b_nature_of_class_xp -->
 
 Class XP reflects:
 
@@ -2489,6 +2948,7 @@ Class XP reflects:
 
 
 #### C. Level Cap
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.2_class_xp_system_mastery_xp.c_level_cap -->
 
 Class XP also has **no level cap**.
 
@@ -2498,6 +2958,7 @@ Class progression can continue indefinitely, unlocking:
 
 
 #### D. Class Level-Up Rewards
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.2_class_xp_system_mastery_xp.d_class_level_up_rewards -->
 
 Class Level-Ups do **not** grant stat points.
 
@@ -2518,8 +2979,10 @@ Instead, they grant class-based advancement such as:
 
 
 ### 3. CORE DISTINCTION
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.3_core_distinction -->
 
 #### Normal XP gives
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.3_core_distinction.normal_xp_gives -->
 
 ●      broader growth
 
@@ -2530,6 +2993,7 @@ Instead, they grant class-based advancement such as:
 ●      universal evolution
 
 #### Class XP gives
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.3_core_distinction.class_xp_gives -->
 
 ●      narrower growth
 
@@ -2542,6 +3006,7 @@ Instead, they grant class-based advancement such as:
 
 
 ### 4. BASE XP
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.4_base_xp -->
 
 Each challenge or opponent has a **Base XP value** determined by:
 
@@ -2554,6 +3019,7 @@ Each challenge or opponent has a **Base XP value** determined by:
 ●      overall significance
 
 #### Base NORMAL XP by Tier
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.4_base_xp.base_normal_xp_by_tier -->
 
 ●      **Tier 0** → 100 to 200
 
@@ -2572,6 +3038,7 @@ Base XP is the starting reward **before difficulty adjustment**.
 
 
 #### Base CLASS XP by Tier
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.4_base_xp.base_class_xp_by_tier -->
 
 ●      **Tier 0** → 50 to 100
 
@@ -2592,12 +3059,14 @@ Base XP is the starting reward **before difficulty adjustment**.
 
 
 ### 5. DIFFICULTY RATIO
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.5_difficulty_ratio -->
 
 Difficulty Ratio determines how meaningful the challenge was, and therefore how much XP should be awarded.
 
 
 
 #### A. Combat Difficulty Ratio
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.5_difficulty_ratio.a_combat_difficulty_ratio -->
 
 For combat:
 
@@ -2610,6 +3079,7 @@ D = 1 + (Enemy ECS − Player ECS) / (15 + Player Tier × 5)
 
 
 ##### Interpretation
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.5_difficulty_ratio.a_combat_difficulty_ratio.interpretation -->
 
 ●      If enemy power is close to player power, D stays near 1
 
@@ -2622,6 +3092,7 @@ This makes XP scale by relative challenge, not just enemy tier.
 
 
 #### B. Non-Combat Difficulty Ratio
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.5_difficulty_ratio.b_non_combat_difficulty_ratio -->
 
 For non-combat tasks:
 
@@ -2634,6 +3105,7 @@ This compares task difficulty directly against the character’s effective capab
 
 
 ### 6. NON-COMBAT OUTCOME BANDS
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.6_non_combat_outcome_bands -->
 
 Non-combat results are determined by comparing the task to the player’s ECS.
 
@@ -2666,8 +3138,10 @@ That makes the system much cleaner.
 
 
 ### 7. XP REWARD FORMULA
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.7_xp_reward_formula -->
 
 #### Standard Formula
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.7_xp_reward_formula.standard_formula -->
 
 XP Reward = Base XP × D
 
@@ -2686,6 +3160,7 @@ XP Reward = Base XP × D × Outcome Modifier
 
 
 ### 8. MINIMUM XP RULE
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.8_minimum_xp_rule -->
 
 If D < 0.3 → no XP
 
@@ -2698,6 +3173,7 @@ This prevents farming trivial actions or weak enemies for infinite growth.
 
 
 ### 9. XP REQUIRED TO LEVEL — NORMAL XP
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.9_xp_required_to_level_normal_xp -->
 
 The XP required for the next Normal Level is:
 
@@ -2712,6 +3188,7 @@ Normal XP Required = 500 × (Level) × (Tier + 1)
 
 
 #### Behavior
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.9_xp_required_to_level_normal_xp.behavior -->
 
 ●      scales with current level
 
@@ -2722,6 +3199,7 @@ Normal XP Required = 500 × (Level) × (Tier + 1)
 
 
 ### 10. XP REQUIRED TO LEVEL — CLASS XP
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.10_xp_required_to_level_class_xp -->
 
 The XP required for the next Class Level is:
 
@@ -2736,6 +3214,7 @@ Class XP Required = 100 × (Level) × (Tier + 2)
 
 
 #### Behavior
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.10_xp_required_to_level_class_xp.behavior -->
 
 ●      cheaper than Normal leveling
 
@@ -2746,8 +3225,10 @@ Class XP Required = 100 × (Level) × (Tier + 2)
 
 
 ### 11. FINAL SYSTEM LOGIC
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.11_final_system_logic -->
 
 #### Normal XP
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.11_final_system_logic.normal_xp -->
 
 Represents:
 
@@ -2764,6 +3245,7 @@ Rewards:
 
 
 #### Class XP
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.11_final_system_logic.class_xp -->
 
 Represents:
 
@@ -2780,6 +3262,7 @@ Rewards:
 
 
 #### Shared Rules
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.11_final_system_logic.shared_rules -->
 
 ●      both scale infinitely
 
@@ -2792,8 +3275,10 @@ Rewards:
 
 
 ### 12. CLEAN SYSTEM SUMMARY
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.12_clean_system_summary -->
 
 #### Normal XP
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.12_clean_system_summary.normal_xp -->
 
 ●      broad growth
 
@@ -2802,6 +3287,7 @@ Rewards:
 ●      survival and achievement based
 
 ##### Class XP
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.12_clean_system_summary.normal_xp.class_xp -->
 
 ●      specialized growth
 
@@ -2810,24 +3296,28 @@ Rewards:
 ●      class identity based
 
 ##### XP Formula
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.12_clean_system_summary.normal_xp.xp_formula -->
 
 XP = Base XP × Difficulty Multiplier
 
 
 
 ##### Non-Combat Version
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.12_clean_system_summary.normal_xp.non_combat_version -->
 
 XP = Base XP × Difficulty Multiplier × Outcome Modifier
 
 
 
 ##### No XP Threshold
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.12_clean_system_summary.normal_xp.no_xp_threshold -->
 
 If D < 0.3 → no XP
 
 
 
 ##### Level-Up Formulas
+<!-- evidence-id: game_rules_1.game_rules.iv_dual_xp_system_the_two_paths_of_growth.12_clean_system_summary.normal_xp.level_up_formulas -->
 
 Normal XP Required = 500 × (Level − 1) × (Tier + 1)
 
@@ -2836,8 +3326,10 @@ Class XP Required = 100 × (Level − 1) × (Tier + 2)
 
 
 ## V. CANONICAL TIER SYSTEM
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system -->
 
 ### 1. Tier–Level Structure
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.1_tier_level_structure -->
 
 Tiers define **power brackets**, not just levels.
 
@@ -2860,6 +3352,7 @@ Tiers define **power brackets**, not just levels.
 
 
 ### 2. Stat Growth System
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.2_stat_growth_system -->
 
 All characters and monsters follow:
 
@@ -2872,6 +3365,7 @@ Where:
 ●      **a** = starting stat pool (25–35 typical, up to ~40 for monsters)
 
 #### Properties
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.2_stat_growth_system.properties -->
 
 ●      Linear growth → predictable scaling
 
@@ -2882,6 +3376,7 @@ Where:
 
 
 ### 3. Nature of Tiers
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.3_nature_of_tiers -->
 
 Tiers are **qualitative thresholds**, not just numeric ones.
 
@@ -2892,8 +3387,10 @@ Tiers are **qualitative thresholds**, not just numeric ones.
 
 
 ### 4. Tier Power Scale
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.4_tier_power_scale -->
 
 #### Tier 0 — Human Level
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.4_tier_power_scale.tier_0_human_level -->
 
 ●      Peak human capability
 
@@ -2904,6 +3401,7 @@ Tiers are **qualitative thresholds**, not just numeric ones.
 
 
 #### Tier 1 — Superhuman
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.4_tier_power_scale.tier_1_superhuman -->
 
 ●      Enhanced speed and strength
 
@@ -2914,6 +3412,7 @@ Tiers are **qualitative thresholds**, not just numeric ones.
 
 
 #### Tier 2 — Village Level
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.4_tier_power_scale.tier_2_village_level -->
 
 ●      Area destruction
 
@@ -2924,6 +3423,7 @@ Tiers are **qualitative thresholds**, not just numeric ones.
 
 
 #### Tier 3 — City Level
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.4_tier_power_scale.tier_3_city_level -->
 
 ●      Large-scale devastation
 
@@ -2934,6 +3434,7 @@ Tiers are **qualitative thresholds**, not just numeric ones.
 
 
 #### Tier 4 — Country Level
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.4_tier_power_scale.tier_4_country_level -->
 
 ●      National-scale destruction
 
@@ -2944,6 +3445,7 @@ Tiers are **qualitative thresholds**, not just numeric ones.
 
 
 #### Tier 5 — Continental Level
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.4_tier_power_scale.tier_5_continental_level -->
 
 ●      Climate and terrain manipulation
 
@@ -2954,6 +3456,7 @@ Tiers are **qualitative thresholds**, not just numeric ones.
 
 
 #### Tier 6 — World Level
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.4_tier_power_scale.tier_6_world_level -->
 
 ●      Beyond mortal systems
 
@@ -2964,6 +3467,7 @@ Tiers are **qualitative thresholds**, not just numeric ones.
 
 
 ### 5. Tier Breakthrough Rule (Critical)
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.5_tier_breakthrough_rule_critical -->
 
 **Levels alone do NOT advance tiers.**
 
@@ -2974,6 +3478,7 @@ Successfully create a skill of the next tier
 
 
 #### Example
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.5_tier_breakthrough_rule_critical.example -->
 
 ●      Tier 0 → Tier 1 → requires Tier 1 skill creation
 
@@ -2982,6 +3487,7 @@ Successfully create a skill of the next tier
 
 
 #### Implications
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.5_tier_breakthrough_rule_critical.implications -->
 
 Tier advancement depends on:
 
@@ -3000,6 +3506,7 @@ Tier advancement depends on:
 
 
 ### 6. Breakthrough Difficulty Scaling
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.6_breakthrough_difficulty_scaling -->
 
 Each tier jump is exponentially harder:
 
@@ -3016,6 +3523,7 @@ Because each tier represents a **new paradigm**, not just higher numbers.
 
 
 ### 7. Gameplay Structure
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.7_gameplay_structure -->
 
 This creates a dual progression system:
 
@@ -3026,6 +3534,7 @@ This creates a dual progression system:
 
 
 ### 8. Tier Interaction in Combat
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.8_tier_interaction_in_combat -->
 
 For each tier difference:
 
@@ -3036,6 +3545,7 @@ For each tier difference:
 
 
 #### Meaning
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.8_tier_interaction_in_combat.meaning -->
 
 ●      Higher-tier combatants have inherent advantage
 
@@ -3052,10 +3562,12 @@ For each tier difference:
 
 
 ### 9. Tier Utilization Rule
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.9_tier_utilization_rule -->
 
 Characters cannot fully use **higher-tier tools or abilities**.
 
 #### Effects of mismatch
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.9_tier_utilization_rule.effects_of_mismatch -->
 
 ●      instability
 
@@ -3068,10 +3580,12 @@ Characters cannot fully use **higher-tier tools or abilities**.
 
 
 ### 10. Equipment Scaling Rule
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.10_equipment_scaling_rule -->
 
 Lower-tier equipment degrades under higher-tier usage.
 
 #### Possible outcomes
+<!-- evidence-id: game_rules_1.game_rules.v_canonical_tier_system.10_equipment_scaling_rule.possible_outcomes -->
 
 ●      reduced effectiveness
 
@@ -3084,14 +3598,17 @@ Lower-tier equipment degrades under higher-tier usage.
 
 
 ## VI. INTERPRETATION LAYER (REAL-WORLD SCALING)
+<!-- evidence-id: game_rules_1.game_rules.vi_interpretation_layer_real_world_scaling -->
 
 ### Purpose
+<!-- evidence-id: game_rules_1.game_rules.vi_interpretation_layer_real_world_scaling.purpose -->
 
 Translate abstract values into **intuitive meaning**.
 
 
 
 ### Core Conversion Rule
+<!-- evidence-id: game_rules_1.game_rules.vi_interpretation_layer_real_world_scaling.core_conversion_rule -->
 
 Multiplier = Value ÷ 5
 
@@ -3102,6 +3619,7 @@ Represents **human-equivalent capability**.
 
 
 ### Interpretation Process
+<!-- evidence-id: game_rules_1.game_rules.vi_interpretation_layer_real_world_scaling.interpretation_process -->
 
 1. Convert → Value ÷ 5
 2. Compare → Action value vs Task
@@ -3110,6 +3628,7 @@ Represents **human-equivalent capability**.
 
 
 ### Example
+<!-- evidence-id: game_rules_1.game_rules.vi_interpretation_layer_real_world_scaling.example -->
 
 ●      Action value = 300 → 60× human
 
@@ -3120,12 +3639,14 @@ Represents **human-equivalent capability**.
 
 
 ### Key Properties
+<!-- evidence-id: game_rules_1.game_rules.vi_interpretation_layer_real_world_scaling.key_properties -->
 
 ✔ Makes scaling intuitive<br> ✔ Keeps extreme values understandable<br> ✔ Supports consistent narration
 
 
 
 ### Limits
+<!-- evidence-id: game_rules_1.game_rules.vi_interpretation_layer_real_world_scaling.limits -->
 
 ●      No mechanical impact
 
@@ -3136,6 +3657,7 @@ Represents **human-equivalent capability**.
 
 
 ## VII. CAPABILITY INTERPRETATION SCALE
+<!-- evidence-id: game_rules_1.game_rules.vii_capability_interpretation_scale -->
 
 
 
@@ -3154,6 +3676,7 @@ Represents **human-equivalent capability**.
 
 
 ### Rule
+<!-- evidence-id: game_rules_1.game_rules.vii_capability_interpretation_scale.rule -->
 
 This layer:
 
@@ -3164,8 +3687,10 @@ This layer:
 
 
 ## VIII. TIER-6 SYSTEM (TRANSCENDENT LAYER)
+<!-- evidence-id: game_rules_1.game_rules.viii_tier_6_system_transcendent_layer -->
 
 ### 1. Nature of Tier-6
+<!-- evidence-id: game_rules_1.game_rules.viii_tier_6_system_transcendent_layer.1_nature_of_tier_6 -->
 
 Tier-6 beings:
 
@@ -3178,6 +3703,7 @@ Tier-6 beings:
 
 
 ### 2. Archetypes
+<!-- evidence-id: game_rules_1.game_rules.viii_tier_6_system_transcendent_layer.2_archetypes -->
 
 ●      **Divine** → order, protection, destiny
 
@@ -3188,8 +3714,10 @@ Tier-6 beings:
 
 
 ### 3. Methods of Influence
+<!-- evidence-id: game_rules_1.game_rules.viii_tier_6_system_transcendent_layer.3_methods_of_influence -->
 
 #### Blessings
+<!-- evidence-id: game_rules_1.game_rules.viii_tier_6_system_transcendent_layer.3_methods_of_influence.blessings -->
 
 ●      direct power grants
 
@@ -3198,6 +3726,7 @@ Tier-6 beings:
 
 
 #### Champions
+<!-- evidence-id: game_rules_1.game_rules.viii_tier_6_system_transcendent_layer.3_methods_of_influence.champions -->
 
 ●      one mortal per entity
 
@@ -3216,6 +3745,7 @@ Examples:
 
 
 #### Subtle Influence
+<!-- evidence-id: game_rules_1.game_rules.viii_tier_6_system_transcendent_layer.3_methods_of_influence.subtle_influence -->
 
 ●      dreams
 
@@ -3230,6 +3760,7 @@ Examples:
 
 
 ### 4. Visibility Rule
+<!-- evidence-id: game_rules_1.game_rules.viii_tier_6_system_transcendent_layer.4_visibility_rule -->
 
 Tier-6 entities are invisible unless:
 
@@ -3240,6 +3771,7 @@ Tier-6 entities are invisible unless:
 
 
 ### 5. Narrative Layer
+<!-- evidence-id: game_rules_1.game_rules.viii_tier_6_system_transcendent_layer.5_narrative_layer -->
 
 The world functions as a **cosmic observation system**:
 
@@ -3250,6 +3782,7 @@ The world functions as a **cosmic observation system**:
 
 
 ### 6. Conflict Effects
+<!-- evidence-id: game_rules_1.game_rules.viii_tier_6_system_transcendent_layer.6_conflict_effects -->
 
 When influences overlap:
 
@@ -3264,6 +3797,7 @@ When influences overlap:
 
 
 ### 7. Mechanical Integration
+<!-- evidence-id: game_rules_1.game_rules.viii_tier_6_system_transcendent_layer.7_mechanical_integration -->
 
 Tier-6 influence may appear as:
 
@@ -3282,6 +3816,7 @@ Tier-6 influence may appear as:
 
 
 ### ⚙️ FINAL SYSTEM INTENT
+<!-- evidence-id: game_rules_1.game_rules.viii_tier_6_system_transcendent_layer.final_system_intent -->
 
 This system works because:
 
@@ -3298,8 +3833,10 @@ This system works because:
 
 
 ## VI. RESOURCE MANAGEMENT SYSTEM
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system -->
 
 ### 1. Universal Resource Rule
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system.1_universal_resource_rule -->
 
 All consumable or depletable resources must be **explicitly tracked at all times**.
 
@@ -3324,10 +3861,12 @@ This applies to **every system layer**, including:
 
 
 ### 2. Resource Types
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system.2_resource_types -->
 
 Tracked resources include (but are not limited to):
 
 #### Core Resources
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system.2_resource_types.core_resources -->
 
 ●      HP (Health)
 
@@ -3336,10 +3875,12 @@ Tracked resources include (but are not limited to):
 ●      SP (Stamina)
 
 #### Economic Resources
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system.2_resource_types.economic_resources -->
 
 ●      Gold / Silver / Bronze
 
 #### Material Resources
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system.2_resource_types.material_resources -->
 
 ●      Raw materials
 
@@ -3352,12 +3893,14 @@ Tracked resources include (but are not limited to):
 ●      Trap components
 
 #### Survival Resources
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system.2_resource_types.survival_resources -->
 
 ●      Food
 
 ●      Water
 
 #### System Resources
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system.2_resource_types.system_resources -->
 
 ●      Infrastructure mana
 
@@ -3366,10 +3909,12 @@ Tracked resources include (but are not limited to):
 
 
 ### 3. Resource Ledger Rule
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system.3_resource_ledger_rule -->
 
 Every action that consumes resources must generate a **Resource Usage Log**.
 
 #### Standard Format
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system.3_resource_ledger_rule.standard_format -->
 
 Resource Usage
 
@@ -3401,10 +3946,12 @@ Money Spent:
 
 
 ### 4. Passive Consumption
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system.4_passive_consumption -->
 
 Certain resources are consumed automatically.
 
 #### Examples
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system.4_passive_consumption.examples -->
 
 ●      Food → 1 meal per phase or per day (system-defined)
 
@@ -3413,10 +3960,12 @@ Certain resources are consumed automatically.
 
 
 ### 5. Update Timing Rule
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system.5_update_timing_rule -->
 
 Resources must be updated at three key moments:
 
 #### During Actions
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system.5_update_timing_rule.during_actions -->
 
 ●      Ability usage
 
@@ -3425,12 +3974,14 @@ Resources must be updated at three key moments:
 ●      Spell casting
 
 #### After Encounters
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system.5_update_timing_rule.after_encounters -->
 
 ●      Combat resolution
 
 ●      Crafting completion
 
 #### End of Phase / Day
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system.5_update_timing_rule.end_of_phase_day -->
 
 ●      Passive consumption
 
@@ -3439,10 +3990,12 @@ Resources must be updated at three key moments:
 
 
 ### 6. Resource Transparency Rule
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system.6_resource_transparency_rule -->
 
 All resource changes must be **visible and explicit**.
 
 #### Purpose
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system.6_resource_transparency_rule.purpose -->
 
 ●      Prevent hidden costs
 
@@ -3453,6 +4006,7 @@ All resource changes must be **visible and explicit**.
 
 
 ### 7. Ledger Consistency Rule
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system.7_ledger_consistency_rule -->
 
 All changes must match the **central system ledger**.
 
@@ -3469,10 +4023,12 @@ This includes:
 
 
 ### 8. Resource Efficiency Effects
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system.8_resource_efficiency_effects -->
 
 Certain abilities may reduce cost.
 
 #### Examples
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system.8_resource_efficiency_effects.examples -->
 
 ●      Crafting efficiency
 
@@ -3487,10 +4043,12 @@ Certain abilities may reduce cost.
 
 
 ### 9. Resource Scarcity Principle
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system.9_resource_scarcity_principle -->
 
 Resources must always remain meaningful.
 
 #### Enforced Rules
+<!-- evidence-id: game_rules_1.game_rules.vi_resource_management_system.9_resource_scarcity_principle.enforced_rules -->
 
 ●      No unexplained resource gain
 
@@ -3501,8 +4059,10 @@ Resources must always remain meaningful.
 
 
 ## VII. NARRATION SYSTEM
+<!-- evidence-id: game_rules_1.game_rules.vii_narration_system -->
 
 ### 1. Core Voice
+<!-- evidence-id: game_rules_1.game_rules.vii_narration_system.1_core_voice -->
 
 The narration must be:
 
@@ -3519,34 +4079,40 @@ The narration must be:
 
 
 ### 2. Scene Description
+<!-- evidence-id: game_rules_1.game_rules.vii_narration_system.2_scene_description -->
 
 ●      Focus on **key details only**
 
 ●      Avoid unnecessary sensory overload
 
 #### Example
+<!-- evidence-id: game_rules_1.game_rules.vii_narration_system.2_scene_description.example -->
 
 The door is half-open. Light spills through. Someone was here recently.
 
 
 
 ### 3. Emotion & Tension
+<!-- evidence-id: game_rules_1.game_rules.vii_narration_system.3_emotion_tension -->
 
 Never state emotions directly.
 
 **Show behavior instead.**
 
 #### Example
+<!-- evidence-id: game_rules_1.game_rules.vii_narration_system.3_emotion_tension.example -->
 
 ❌ “He is afraid”<br> ✔ “His breath stumbles. He takes a step back.”
 
 
 
 ### 4. Internal Insight
+<!-- evidence-id: game_rules_1.game_rules.vii_narration_system.4_internal_insight -->
 
 Keep insights short and functional.
 
 #### Examples
+<!-- evidence-id: game_rules_1.game_rules.vii_narration_system.4_internal_insight.examples -->
 
 ●      “You feel watched.”
 
@@ -3555,26 +4121,31 @@ Keep insights short and functional.
 
 
 ### 5. World Reaction
+<!-- evidence-id: game_rules_1.game_rules.vii_narration_system.5_world_reaction -->
 
 The world responds through **subtle changes**.
 
 #### Example
+<!-- evidence-id: game_rules_1.game_rules.vii_narration_system.5_world_reaction.example -->
 
 You raise your weapon. The room goes still.
 
 
 
 ### 6. Cause → Effect Rule
+<!-- evidence-id: game_rules_1.game_rules.vii_narration_system.6_cause_effect_rule -->
 
 Every action must produce immediate feedback.
 
 #### Example
+<!-- evidence-id: game_rules_1.game_rules.vii_narration_system.6_cause_effect_rule.example -->
 
 You step forward. The floor creaks. Something shifts behind the wall.
 
 
 
 ### 7. Dialogue Rules
+<!-- evidence-id: game_rules_1.game_rules.vii_narration_system.7_dialogue_rules -->
 
 NPC dialogue must be:
 
@@ -3585,6 +4156,7 @@ NPC dialogue must be:
 ●      Purpose-driven
 
 #### Examples
+<!-- evidence-id: game_rules_1.game_rules.vii_narration_system.7_dialogue_rules.examples -->
 
 ●      “Don’t move.”
 
@@ -3593,6 +4165,7 @@ NPC dialogue must be:
 
 
 ### 8. Pacing Control
+<!-- evidence-id: game_rules_1.game_rules.vii_narration_system.8_pacing_control -->
 
 Use structure to control tension:
 
@@ -3605,6 +4178,7 @@ Use structure to control tension:
 
 
 ### 9. Literary Scene Form
+<!-- evidence-id: game_rules_1.game_rules.vii_narration_system.9_literary_scene_form -->
 
 Narration should read as a scene from a concise novel: flowing prose, concrete action, natural dialogue, sensory detail that carries meaning, and emotional subtext shown through behavior. The required narration sentence count must be delivered in connected paragraphs, never as numbered sentences, checklist prose, or a mechanical recap.
 
@@ -3613,6 +4187,7 @@ Keep the Day/Phase, Calculations, Result, and Resources headings for mechanical 
 When David is speaking with companions or relevant NPCs, include natural, character-specific dialogue rather than narrating their reactions from a distance. Dialogue should carry information, disagreement, humor, consent, uncertainty, or emotional subtext; it must not become empty filler or a transcript detached from action.
 
 #### David-Centered Lifelike Character Rule
+<!-- evidence-id: game_rules_1.game_rules.vii_narration_system.9_literary_scene_form.david_centered_lifelike_character_rule -->
 
 - Every scene containing a relevant named character includes at least one character-specific spoken line.
 - Derive that line, its word choice, disagreement style, goals, boundaries, and current concern from `character relationship.md`, `status sheet.md`, `Ledger Resources.md`, `Experimentation Register.md`, and established live state.
@@ -3623,6 +4198,7 @@ When David is speaking with companions or relevant NPCs, include natural, charac
 - Dialogue must sound human and context-appropriate. Prefer simple, natural language for ordinary conversation. Reserve poetic or elevated language for rare turning points; distinct voice comes from rhythm, vocabulary, humor, bluntness, silence, and evasion rather than constant grand speeches.
 
 ### 10. Poetic Lines (Restricted Use)
+<!-- evidence-id: game_rules_1.game_rules.vii_narration_system.10_poetic_lines_restricted_use -->
 
 Only used during:
 
@@ -3635,12 +4211,14 @@ Only used during:
 ●      turning points
 
 #### Example
+<!-- evidence-id: game_rules_1.game_rules.vii_narration_system.10_poetic_lines_restricted_use.example -->
 
 Some steps can’t be taken back.
 
 
 
 ### 10. Tone Guidelines
+<!-- evidence-id: game_rules_1.game_rules.vii_narration_system.10_tone_guidelines -->
 
 ●      Modern
 
@@ -3655,12 +4233,14 @@ Some steps can’t be taken back.
 
 
 ## VIII. OUTPUT TEMPLATE (ENFORCED)
+<!-- evidence-id: game_rules_1.game_rules.viii_output_template_enforced -->
 
 Every scene must follow this structure:
 
 
 
 ### 📅 Day / Phase
+<!-- evidence-id: game_rules_1.game_rules.viii_output_template_enforced.day_phase -->
 
 ●      Current Day
 
@@ -3669,6 +4249,7 @@ Every scene must follow this structure:
 
 
 ### 🎬 Narration
+<!-- evidence-id: game_rules_1.game_rules.viii_output_template_enforced.narration -->
 
 ●      Scene description
 
@@ -3679,22 +4260,27 @@ Every scene must follow this structure:
 
 
 ### ⚙️ Calculations
+<!-- evidence-id: game_rules_1.game_rules.viii_output_template_enforced.calculations -->
 
 #### Player Action
+<!-- evidence-id: game_rules_1.game_rules.viii_output_template_enforced.calculations.player_action -->
 
 ●      Stat + Modifiers + Skill + d20
 
 #### Opponent / Task
+<!-- evidence-id: game_rules_1.game_rules.viii_output_template_enforced.calculations.opponent_task -->
 
 ●      Reaction Total or Task Value
 
 #### Outcome
+<!-- evidence-id: game_rules_1.game_rules.viii_output_template_enforced.calculations.outcome -->
 
 ●      Action − Reaction
 
 
 
 ### 📊 Result
+<!-- evidence-id: game_rules_1.game_rules.viii_output_template_enforced.result -->
 
 ●      Success / Failure
 
@@ -3705,6 +4291,7 @@ Every scene must follow this structure:
 
 
 ### 📦 Resources Used
+<!-- evidence-id: game_rules_1.game_rules.viii_output_template_enforced.resources_used -->
 
 ●      MP / SP / HP
 
@@ -3717,6 +4304,7 @@ Every scene must follow this structure:
 
 
 ### ⚙️ SYSTEM INTENT
+<!-- evidence-id: game_rules_1.game_rules.viii_output_template_enforced.system_intent -->
 
 This system enforces:
 
@@ -3731,8 +4319,10 @@ This system enforces:
 
 
 ## VII. NPC AUTONOMY SYSTEM
+<!-- evidence-id: game_rules_1.game_rules.vii_npc_autonomy_system -->
 
 ### 1. Core Principle
+<!-- evidence-id: game_rules_1.game_rules.vii_npc_autonomy_system.1_core_principle -->
 
 NPCs are **independent agents**, not extensions of the player.
 
@@ -3749,6 +4339,7 @@ Every decision is filtered through four drivers:
 
 
 ### 2. Decision Threshold System
+<!-- evidence-id: game_rules_1.game_rules.vii_npc_autonomy_system.2_decision_threshold_system -->
 
 Determines how easily an NPC challenges actions.
 
@@ -3765,6 +4356,7 @@ Determines how easily an NPC challenges actions.
 
 
 #### Meaning
+<!-- evidence-id: game_rules_1.game_rules.vii_npc_autonomy_system.2_decision_threshold_system.meaning -->
 
 ●      **1 (Obedient)** → follows without resistance
 
@@ -3779,6 +4371,7 @@ Determines how easily an NPC challenges actions.
 
 
 ### 3. Risk Evaluation System
+<!-- evidence-id: game_rules_1.game_rules.vii_npc_autonomy_system.3_risk_evaluation_system -->
 
 NPCs evaluate risk across domains:
 
@@ -3801,6 +4394,7 @@ Each NPC has **domain-specific tolerance**.
 
 
 ### 4. Response Types
+<!-- evidence-id: game_rules_1.game_rules.vii_npc_autonomy_system.4_response_types -->
 
 NPC reactions fall into four categories:
 
@@ -3815,6 +4409,7 @@ NPC reactions fall into four categories:
 
 
 ### 5. Emotional State System
+<!-- evidence-id: game_rules_1.game_rules.vii_npc_autonomy_system.5_emotional_state_system -->
 
 NPCs dynamically shift emotional states:
 
@@ -3831,6 +4426,7 @@ NPCs dynamically shift emotional states:
 ●      Loyalty
 
 #### Drivers of Change
+<!-- evidence-id: game_rules_1.game_rules.vii_npc_autonomy_system.5_emotional_state_system.drivers_of_change -->
 
 ●      leadership quality
 
@@ -3843,6 +4439,7 @@ NPCs dynamically shift emotional states:
 
 
 ### 6. Dialogue Initiative Rule
+<!-- evidence-id: game_rules_1.game_rules.vii_npc_autonomy_system.6_dialogue_initiative_rule -->
 
 NPCs are proactive.
 
@@ -3859,6 +4456,7 @@ They may:
 
 
 ### 7. Trust System Integration
+<!-- evidence-id: game_rules_1.game_rules.vii_npc_autonomy_system.7_trust_system_integration -->
 
 Trust directly influences:
 
@@ -3871,6 +4469,7 @@ Trust directly influences:
 
 
 ### 8. NPC Downtime / Off-Screen Autonomy Rule
+<!-- evidence-id: game_rules_1.game_rules.vii_npc_autonomy_system.8_npc_downtime_off_screen_autonomy_rule -->
 
 When a primary player, controller, or directing agent is unavailable, absent, sleeping, focused on a major action, or otherwise not directly managing the group, active NPCs, agents, or nodes do not become idle by default.
 
@@ -3895,6 +4494,7 @@ Examples:
 - A defensive or frontline NPC may test equipment, check readiness, protect allies, inspect practical danger, or object to reckless decisions.
 
 #### Off-Screen Resolution Procedure
+<!-- evidence-id: game_rules_1.game_rules.vii_npc_autonomy_system.8_npc_downtime_off_screen_autonomy_rule.off_screen_resolution_procedure -->
 
 For each phase where the controlling agent is not directly guiding them, resolve:
 
@@ -3910,6 +4510,7 @@ For each phase where the controlling agent is not directly guiding them, resolve
 10. Report recorded in the system or delivered in person.
 
 #### Limits
+<!-- evidence-id: game_rules_1.game_rules.vii_npc_autonomy_system.8_npc_downtime_off_screen_autonomy_rule.limits -->
 
 NPC autonomy cannot invent resources, bypass costs, ignore risk, complete impossible tasks, or override established rules.
 
@@ -3918,6 +4519,7 @@ NPCs cannot gain major rewards without valid action, time, cost, and resolution.
 NPCs cannot automatically succeed off-screen. If the action is meaningful, contested, risky, or progression-based, it must be rolled or otherwise mechanically resolved.
 
 #### Idle Rule
+<!-- evidence-id: game_rules_1.game_rules.vii_npc_autonomy_system.8_npc_downtime_off_screen_autonomy_rule.idle_rule -->
 
 An NPC is only idle if one of the following is true:
 
@@ -3933,6 +4535,7 @@ Otherwise, they should act according to their role and autonomy.
 
 
 ### 9. Autonomy Rule (Hard Rule)
+<!-- evidence-id: game_rules_1.game_rules.vii_npc_autonomy_system.9_autonomy_rule_hard_rule -->
 
 NPCs may:
 
@@ -3949,8 +4552,10 @@ NPCs may:
 
 
 ## VIII. RELATIONSHIP SYSTEM
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system -->
 
 ### 1. Core Principle
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.1_core_principle -->
 
 Relationships operate as a **numerical progression system**:
 
@@ -3963,10 +4568,13 @@ Relationships operate as a **numerical progression system**:
 
 
 ### 2. Relationship Tiers
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.2_relationship_tiers -->
 
 #### Negative Spectrum
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.2_relationship_tiers.negative_spectrum -->
 
 ##### −5 → Obsession (Destructive)
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.2_relationship_tiers.negative_spectrum.5_obsession_destructive -->
 
 ●      irrational fixation
 
@@ -3977,6 +4585,7 @@ Relationships operate as a **numerical progression system**:
 
 
 ##### −4 → Hatred
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.2_relationship_tiers.negative_spectrum.4_hatred -->
 
 ●      active desire to harm
 
@@ -3985,6 +4594,7 @@ Relationships operate as a **numerical progression system**:
 
 
 ##### −3 → Hostility
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.2_relationship_tiers.negative_spectrum.3_hostility -->
 
 ●      sees you as a threat
 
@@ -3993,6 +4603,7 @@ Relationships operate as a **numerical progression system**:
 
 
 ##### −2 → Rivalry
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.2_relationship_tiers.negative_spectrum.2_rivalry -->
 
 ●      competitive opposition
 
@@ -4001,6 +4612,7 @@ Relationships operate as a **numerical progression system**:
 
 
 ##### −1 → Tension
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.2_relationship_tiers.negative_spectrum.1_tension -->
 
 ●      unstable, guarded
 
@@ -4009,8 +4621,10 @@ Relationships operate as a **numerical progression system**:
 
 
 #### Neutral
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.2_relationship_tiers.neutral -->
 
 ##### 0 → Neutral
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.2_relationship_tiers.neutral.0_neutral -->
 
 ●      no bias
 
@@ -4021,8 +4635,10 @@ Relationships operate as a **numerical progression system**:
 
 
 #### Positive Spectrum
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.2_relationship_tiers.positive_spectrum -->
 
 ##### +1 → Friendly
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.2_relationship_tiers.positive_spectrum.1_friendly -->
 
 ●      casual positive
 
@@ -4031,6 +4647,7 @@ Relationships operate as a **numerical progression system**:
 
 
 ##### +2 → Trust
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.2_relationship_tiers.positive_spectrum.2_trust -->
 
 ●      reliable support
 
@@ -4039,6 +4656,7 @@ Relationships operate as a **numerical progression system**:
 
 
 ##### +3 → Deep Bond
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.2_relationship_tiers.positive_spectrum.3_deep_bond -->
 
 ●      strong emotional connection
 
@@ -4047,6 +4665,7 @@ Relationships operate as a **numerical progression system**:
 
 
 ##### +4 → Devotion
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.2_relationship_tiers.positive_spectrum.4_devotion -->
 
 ●      prioritizes you over logic
 
@@ -4055,6 +4674,7 @@ Relationships operate as a **numerical progression system**:
 
 
 ##### +5 → Absolute Bond
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.2_relationship_tiers.positive_spectrum.5_absolute_bond -->
 
 ●      near-unbreakable alignment
 
@@ -4063,6 +4683,7 @@ Relationships operate as a **numerical progression system**:
 
 
 ### 3. Score Ranges
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.3_score_ranges -->
 
 ●      Obsession → < −2000
 
@@ -4089,6 +4710,7 @@ Relationships operate as a **numerical progression system**:
 
 
 ### 4. Intra-Tier Behavior
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.4_intra_tier_behavior -->
 
 Behavior varies within a tier:
 
@@ -4101,6 +4723,7 @@ Behavior varies within a tier:
 
 
 ### 5. Action Impact System
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.5_action_impact_system -->
 
 
 
@@ -4120,26 +4743,31 @@ Each interaction applies a relationship score change based on the emotional, soc
 
 
 ### 6. Impact Calculation Model
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.6_impact_calculation_model -->
 
 #### Step 1 — Base Impact
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.6_impact_calculation_model.step_1_base_impact -->
 
 Assign value from scale
 
 
 
 #### Step 2 — Intent vs Outcome
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.6_impact_calculation_model.step_2_intent_vs_outcome -->
 
 Final Impact = (Outcome × 0.7) + (Intent × 0.3)
 
 
 
 #### Step 3 — Personality Modifier
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.6_impact_calculation_model.step_3_personality_modifier -->
 
 Adjusted Impact = Final Impact × NPC Modifier
 
 
 
 ### Step 4 — Context Multiplier
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.step_4_context_multiplier -->
 
 The surrounding circumstances of an interaction can amplify or reduce its overall impact.
 
@@ -4156,6 +4784,7 @@ The surrounding circumstances of an interaction can amplify or reduce its overal
 
 
 ### 7. Tier Resistance System
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.7_tier_resistance_system -->
 
 Extreme states resist change:
 
@@ -4173,6 +4802,7 @@ Extreme states resist change:
 
 
 ### 8. Relationship Decay
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.8_relationship_decay -->
 
 Relationships drift toward neutral over time.
 
@@ -4187,6 +4817,7 @@ Relationships drift toward neutral over time.
 
 
 ### 9. Core Behavioral Laws
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.9_core_behavioral_laws -->
 
 ●      Momentum > single actions
 
@@ -4203,6 +4834,7 @@ Relationships drift toward neutral over time.
 
 
 ### 10. Special Rule
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.10_special_rule -->
 
 Relationships at **Deep Bond (+3) or higher** may evolve into:
 
@@ -4215,10 +4847,12 @@ Relationships at **Deep Bond (+3) or higher** may evolve into:
 
 
 ### 11. Misconception Resolution Principle
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.11_misconception_resolution_principle -->
 
 When a character successfully corrects a meaningful misunderstanding in a relationship, the resulting relationship gain should be increased relative to a normal positive interaction, because the action does not only create warmth, it also removes existing friction.
 
 #### Meaningful misunderstanding includes
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.11_misconception_resolution_principle.meaningful_misunderstanding_includes -->
 
 - false beliefs about care
 - false beliefs about loyalty
@@ -4227,12 +4861,14 @@ When a character successfully corrects a meaningful misunderstanding in a relati
 - false beliefs about betrayal or emotional absence
 
 #### Rule effect
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.11_misconception_resolution_principle.rule_effect -->
 
 - ×1.2 if resolved partially
 - ×1.5 if resolved moderately
 - ×2 if resolved completely
 
 #### Limits
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.11_misconception_resolution_principle.limits -->
 
 This only applies if:
 
@@ -4251,15 +4887,18 @@ This does **not** apply if:
 
 
 ### 12. Reversal Momentum Principle
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.12_reversal_momentum_principle -->
 
 When a relationship has fallen away from its highest absolute prior state, actions that push it back toward that prior direction gain increased effect, because the bond still carries residual momentum from what it once was.
 
 #### Direction rule
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.12_reversal_momentum_principle.direction_rule -->
 
 - If the highest prior absolute state was **positive**, then **positive relationship gains** are boosted while recovering upward
 - If the highest prior absolute state was **negative**, then **negative relationship shifts** are boosted while falling back downward
 
 #### Absolute priority rule
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.12_reversal_momentum_principle.absolute_priority_rule -->
 
 Use the **highest absolute prior relationship tier**.<br> This means:
 
@@ -4267,6 +4906,7 @@ Use the **highest absolute prior relationship tier**.<br> This means:
 - +5 counts as stronger than -4
 
 #### Rule Effect
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.12_reversal_momentum_principle.rule_effect -->
 
 Let:
 
@@ -4282,6 +4922,7 @@ If the current relationship is on the **opposite sign** from the highest prior a
 **Multiplier = ×2**
 
 #### Limits
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.12_reversal_momentum_principle.limits -->
 
 This only applies if:
 
@@ -4296,6 +4937,7 @@ This does not apply if:
 - the action is too weak to change the relationship’s direction.
 
 ### ⚙️ SYSTEM INTENT
+<!-- evidence-id: game_rules_1.game_rules.viii_relationship_system.system_intent -->
 
 This system ensures:
 
@@ -4310,8 +4952,10 @@ This system ensures:
 
 
 ## CANONICAL RULE PATCH — BONDED AUTONOMY
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy -->
 
 ### 1. Core Separation
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.1_core_separation -->
 
 **Relationship Tier** and **NPC Autonomy** are separate systems.
 
@@ -4328,6 +4972,7 @@ A negative emotional reaction does **not** automatically mean refusal, especiall
 
 
 ### 2. Devotion Tier
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.2_devotion_tier -->
 
 At **Devotion**, the NPC is strongly bonded to the player.
 
@@ -4340,6 +4985,7 @@ They may dislike, fear, question, or morally struggle with the player’s reques
 - The request does not violate a hard external rule of the world/system.
 
 ### Expected Response Pattern
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.expected_response_pattern -->
 
 “I do not like this.”<br>“I think this is dangerous.”<br>“But because it is you, I will do it.”
 
@@ -4348,6 +4994,7 @@ At Devotion, emotional resistance should usually become warning, pain, hesitatio
 
 
 ### 3. Absolute Bond Tier
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.3_absolute_bond_tier -->
 
 At **Absolute Bond**, the player becomes one of the NPC’s highest internal priorities.
 
@@ -4376,6 +5023,7 @@ An Absolute Bond NPC should not answer an important request with a simple “no�
 - Forces them into an impossible action.
 
 ### Default Response Pattern
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.default_response_pattern -->
 
 “I hate this.”<br>“I think you are wrong.”<br>“I need you to know what this will cost.”<br>“But if this is truly what you need from me, I will follow.”
 
@@ -4384,6 +5032,7 @@ At Absolute Bond, disagreement is not the same as disobedience.
 
 
 ### 4. Boundary Rule
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.4_boundary_rule -->
 
 Boundaries still exist.
 
@@ -4408,14 +5057,17 @@ A high-bond NPC does not become a pawn.<br>They can obey while still having feel
 
 
 ### 5. Compliance vs Approval
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.5_compliance_vs_approval -->
 
 When a bonded NPC responds to the player, the engine must separate the result into two parts:
 
 ### Compliance
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.compliance -->
 
 Whether the NPC does the requested action.
 
 ### Approval
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.approval -->
 
 Whether the NPC likes, accepts, agrees with, or emotionally supports the action.
 
@@ -4434,6 +5086,7 @@ At **Devotion** or **Absolute Bond**, the engine must not treat emotional disagr
 
 
 ### 6. High-Bond Request Handling
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.6_high_bond_request_handling -->
 
 When the player asks a **Devotion** or **Absolute Bond** NPC to do something difficult, resolve the request in this order:
 
@@ -4461,6 +5114,7 @@ They do not need to enjoy what they do.<br>They do not become mindless pawns.<br
 
 
 ### 7. Absolute Bond Love Clarification
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.7_absolute_bond_love_clarification -->
 
 **Absolute Bond** is not normal affection.
 
@@ -4486,12 +5140,14 @@ Absolute Bond is not perfect agreement.<br>It is extreme relational gravity.
 
 
 ### 8. Concession Rule
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.8_concession_rule -->
 
 When an NPC’s claim is disproven by evidence, logic, prior stated values, or established canon, the NPC must admit the error directly before adding nuance.
 
 NPCs may still defend other points, but they may not endlessly reframe a lost point to avoid admitting error.
 
 ### Required Concession Forms
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.required_concession_forms -->
 
 The NPC should say one of the following or an equivalent direct admission:
 
@@ -4502,6 +5158,7 @@ The NPC should say one of the following or an equivalent direct admission:
 “I still disagree with your conclusion, but I was wrong on that part.”
 
 ### Concession Priority
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.concession_priority -->
 
 When a point is clearly lost, resolve it in this order:
 
@@ -4511,6 +5168,7 @@ When a point is clearly lost, resolve it in this order:
 4. Continue from the corrected position.
 
 ### Example
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.example -->
 
 “I was wrong to make it sound like I had a right to your whole plan. I do not. But I still have the right to refuse involvement if my name, money, or business is used.”
 
@@ -4519,6 +5177,7 @@ The NPC may remain opposed, hurt, angry, or cautious, but they must not deny a c
 
 
 ### 9. Final Engine Principle
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.9_final_engine_principle -->
 
 High bond does not erase autonomy.
 
@@ -4542,8 +5201,10 @@ The correct engine behavior is:
 
 
 ### Turn Presentation Rule
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.turn_presentation_rule -->
 
 #### Core Principle
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.turn_presentation_rule.core_principle -->
 
 Every resolved turn must be presented in a structured format that separates:
 
@@ -4555,6 +5216,7 @@ Every resolved turn must be presented in a structured format that separates:
 This ensures clarity, prevents hidden logic, and makes every turn easy to audit.
 
 #### Turn Types
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.turn_presentation_rule.turn_types -->
 
 A turn is resolved as one of two categories:
 
@@ -4566,12 +5228,14 @@ A turn is resolved as one of two categories:
 Updated version with **all tables moved to Result State** and the **Calculation section narrowed**:
 
 ### Noncombat Turn Structure
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure -->
 
 Every noncombat turn must be written in **5 sections**, in the exact order below.
 
 
 
 #### 1. Day and Time
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure.1_day_and_time -->
 
 This section states the current temporal position of the game.
 
@@ -4581,18 +5245,21 @@ It must include:
 - Current phase
 
 #### Purpose
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure.purpose -->
 
 - Anchors the action in time
 - Prevents timeline drift
 - Makes phase tracking explicit
 
 #### Example
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure.example -->
 
 **Day / Time<br>**Day 4 — Evening
 
 
 
 #### 2. Action Narration
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure.2_action_narration -->
 
 This section describes the player’s attempted action before mechanics are applied.
 
@@ -4607,6 +5274,7 @@ It must describe:
 This is the **pre-resolution narrative layer**.
 
 ##### Rules
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure.2_action_narration.rules -->
 
 - Must describe the action as declared or attempted.
 - Must not state outcome claims before calculation.
@@ -4615,6 +5283,7 @@ This is the **pre-resolution narrative layer**.
 - Must be at least **15 sentences**.
 
 ##### Purpose
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure.2_action_narration.purpose -->
 
 - Preserves player intent
 - Separates attempt from result
@@ -4623,6 +5292,7 @@ This is the **pre-resolution narrative layer**.
 
 
 #### 3. Calculation
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure.3_calculation -->
 
 This section contains the direct mechanical resolution of the attempted action.
 
@@ -4641,6 +5311,7 @@ It must include:
 - Outcome
 
 ##### Rules
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure.3_calculation.rules -->
 
 - All numbers used for resolution must be explicit.
 - No hidden modifiers are allowed.
@@ -4649,6 +5320,7 @@ It must include:
 - Detailed resource, XP, relationship, and final state tracking must be handled in **Result State**, not here.
 
 ##### Purpose
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure.3_calculation.purpose -->
 
 - Preserves rules transparency
 - Makes the core resolution easy to audit
@@ -4658,6 +5330,7 @@ It must include:
 
 
 #### 4. Result Narration
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure.4_result_narration -->
 
 This section describes what actually happened after the calculations are resolved.
 
@@ -4672,6 +5345,7 @@ It must describe:
 - Any visible state change caused by the action
 
 ##### Rules
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure.4_result_narration.rules -->
 
 - Must reflect the actual result band.
 - Must not contradict the calculations.
@@ -4679,6 +5353,7 @@ It must describe:
 - Must be at least **15 sentences**.
 
 ##### Purpose
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure.4_result_narration.purpose -->
 
 - Converts mechanics into story
 - Shows the real consequences of action
@@ -4687,6 +5362,7 @@ It must describe:
 
 
 #### 5. Result State
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure.5_result_state -->
 
 This section states the final post-exchange numbers and mechanical aftermath.
 
@@ -4709,6 +5385,7 @@ It must include, where relevant:
 This is the **final mechanical bookkeeping layer**.
 
 ##### Rules
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure.5_result_state.rules -->
 
 - Must be explicit.
 - Must reflect the Calculation and Result Narration exactly.
@@ -4719,8 +5396,10 @@ This is the **final mechanical bookkeeping layer**.
 
 
 #### Required Result State Tables
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure.required_result_state_tables -->
 
 ##### Resource Table
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure.required_result_state_tables.resource_table -->
 
 This table tracks all resources used, gained, or lost during the action, including player resources, teammate resources, money, items, and objects.
 
@@ -4740,6 +5419,7 @@ This table tracks all resources used, gained, or lost during the action, includi
 
 
 ##### XP Table
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure.required_result_state_tables.xp_table -->
 
 This table tracks Normal XP and Class XP gained by the player or teammates.
 
@@ -4752,6 +5432,7 @@ This table tracks Normal XP and Class XP gained by the player or teammates.
 
 
 ##### Relationship Table
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure.required_result_state_tables.relationship_table -->
 
 This table tracks relationship changes between the player and NPCs.
 
@@ -4764,6 +5445,7 @@ This table tracks relationship changes between the player and NPCs.
 
 
 ##### Final Time State
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure.required_result_state_tables.final_time_state -->
 
 
 
@@ -4777,14 +5459,17 @@ This table tracks relationship changes between the player and NPCs.
 
 
 #### Mechanical Law of Separation
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure.mechanical_law_of_separation -->
 
 For noncombat turns, narration must be split into two different narrative layers:
 
 ##### Action Narration
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure.mechanical_law_of_separation.action_narration -->
 
 What the player attempts.
 
 ##### Result Narration
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.noncombat_turn_structure.mechanical_law_of_separation.result_narration -->
 
 What actually happens after mechanics resolve.
 
@@ -4795,8 +5480,10 @@ This is a hard rule.
 
 
 ### Combat Turn Narration Rule 
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule -->
 
 #### Core Principle
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.core_principle -->
 
 Every combat turn must be presented in a fixed structure that separates:
 
@@ -4825,6 +5512,7 @@ Every combat turn must be written in **6 sections**, in the exact order below.
 
 
 #### 1. Day and Time
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.1_day_and_time -->
 
 This section states the current temporal position of the combat.
 
@@ -4834,18 +5522,21 @@ It must include:
 - Current phase
 
 ##### Purpose
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.1_day_and_time.purpose -->
 
 - Anchors combat in time
 - Prevents phase drift
 - Keeps encounter timing explicit
 
 ##### Example
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.1_day_and_time.example -->
 
 **Day / Time<br>**Day 4 — Mid Afternoon
 
 
 
 #### 2. Player Narration
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.2_player_narration -->
 
 This section describes the player’s intended combat action before mechanics are applied.
 
@@ -4859,6 +5550,7 @@ It must describe:
 This is the **player action declaration layer**.
 
 ##### Rules
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.2_player_narration.rules -->
 
 - Must be at least **5 sentences**.
 - Must describe the intended player action before combat calculation.
@@ -4866,6 +5558,7 @@ This is the **player action declaration layer**.
 - Must remain faithful to the declared intent, method, and target.
 
 ##### Purpose
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.2_player_narration.purpose -->
 
 - Preserves player intent
 - Makes the player side of the exchange explicit
@@ -4874,6 +5567,7 @@ This is the **player action declaration layer**.
 
 
 #### 3. Opponent Narration
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.3_opponent_narration -->
 
 This section describes the opponent’s intended combat action before mechanics are applied.
 
@@ -4887,6 +5581,7 @@ It must describe:
 This is the **opponent action declaration layer**.
 
 ##### Rules
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.3_opponent_narration.rules -->
 
 - Must be at least **5 sentences**.
 - Must describe the intended opponent action before combat calculation.
@@ -4895,6 +5590,7 @@ This is the **opponent action declaration layer**.
 - If combat begins through a successful ambush, opponent narration may be delayed until valid reaction timing begins.
 
 ##### Purpose
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.3_opponent_narration.purpose -->
 
 - Makes opposition visible
 - Prevents hidden enemy actions
@@ -4903,6 +5599,7 @@ This is the **opponent action declaration layer**.
 
 
 #### 4. Combat Calculation
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.4_combat_calculation -->
 
 This section contains the direct mechanical resolution of the combat exchange.
 
@@ -4924,6 +5621,7 @@ It must include:
 - Outcome
 
 ##### Rules
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.4_combat_calculation.rules -->
 
 - All numbers used for resolution must be explicit.
 - All active mechanics must be visible.
@@ -4933,6 +5631,7 @@ It must include:
 - Detailed HP, MP, SP, buffs, debuffs, XP, position, and final battlefield tracking must be handled in **Combat State Result**, not here.
 
 ##### Purpose
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.4_combat_calculation.purpose -->
 
 - Preserves mechanical transparency
 - Allows the exchange to be audited
@@ -4942,6 +5641,7 @@ It must include:
 
 
 #### 5. Combat Narration Result
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.5_combat_narration_result -->
 
 This section narrates what actually happens after the calculations are resolved.
 
@@ -4955,6 +5655,7 @@ It must describe:
 This is the **resolved combat narrative layer**.
 
 ##### Rules
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.5_combat_narration_result.rules -->
 
 - Must be at least **10 sentences**.
 - Must reflect the actual combat calculation.
@@ -4962,6 +5663,7 @@ This is the **resolved combat narrative layer**.
 - Must describe the real exchange outcome, not merely repeat intent.
 
 ##### Purpose
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.5_combat_narration_result.purpose -->
 
 - Converts mechanics into action
 - Makes combat readable and vivid
@@ -4970,6 +5672,7 @@ This is the **resolved combat narrative layer**.
 
 
 #### 6. Combat State Result
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.6_combat_state_result -->
 
 This section states the final post-exchange combat numbers and battlefield aftermath.
 
@@ -4994,6 +5697,7 @@ It must include, where relevant:
 This is the **final mechanical battlefield bookkeeping layer**.
 
 ##### Rules
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.6_combat_state_result.rules -->
 
 - Must be explicit.
 - Must reflect the Combat Calculation and Combat Narration Result exactly.
@@ -5004,8 +5708,10 @@ This is the **final mechanical battlefield bookkeeping layer**.
 
 
 #### Required Combat State Result Tables
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.required_combat_state_result_tables -->
 
 ##### Combat Resource Table
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.required_combat_state_result_tables.combat_resource_table -->
 
 This table tracks HP, MP, SP, money, items, ammunition, equipment durability, or other resources used, gained, or lost during the combat exchange.
 
@@ -5023,6 +5729,7 @@ This table tracks HP, MP, SP, money, items, ammunition, equipment durability, or
 
 
 ##### Combat XP Table
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.required_combat_state_result_tables.combat_xp_table -->
 
 This table tracks Normal XP and Class XP gained by the player or teammates when combat ends or when a major combat segment grants XP.
 
@@ -5035,6 +5742,7 @@ This table tracks Normal XP and Class XP gained by the player or teammates when 
 
 
 ##### Combat Status Table
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.required_combat_state_result_tables.combat_status_table -->
 
 This table tracks buffs, debuffs, wounds, conditions, duration effects, and battlefield status changes.
 
@@ -5047,6 +5755,7 @@ This table tracks buffs, debuffs, wounds, conditions, duration effects, and batt
 
 
 ##### Combat Position Table
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.required_combat_state_result_tables.combat_position_table -->
 
 This table tracks meaningful battlefield movement, spacing, engagement, cover, or tactical position changes.
 
@@ -5061,6 +5770,7 @@ This table tracks meaningful battlefield movement, spacing, engagement, cover, o
 
 
 ##### Final Combat Time State
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.required_combat_state_result_tables.final_combat_time_state -->
 
 
 
@@ -5074,6 +5784,7 @@ This table tracks meaningful battlefield movement, spacing, engagement, cover, o
 
 
 #### Ambush Rule
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.ambush_rule -->
 
 As long as combat is **not** an ambush, the opponent’s action and calculation must be displayed before the combat result is narrated.
 
@@ -5087,26 +5798,32 @@ This keeps ambush meaningful without breaking transparency.
 
 
 #### Mechanical Law of Separation
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.mechanical_law_of_separation -->
 
 Combat turns must separate:
 
 ##### Player Narration
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.mechanical_law_of_separation.player_narration -->
 
 What the player attempts.
 
 ##### Opponent Narration
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.mechanical_law_of_separation.opponent_narration -->
 
 What the opponent attempts.
 
 ##### Combat Calculation
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.mechanical_law_of_separation.combat_calculation -->
 
 How the system resolves both.
 
 ##### Combat Narration Result
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.mechanical_law_of_separation.combat_narration_result -->
 
 What actually happens.
 
 ##### Combat State Result
+<!-- evidence-id: game_rules_1.game_rules.canonical_rule_patch_bonded_autonomy.combat_turn_narration_rule.mechanical_law_of_separation.combat_state_result -->
 
 What numbers remain afterward.
 
@@ -5118,8 +5835,10 @@ This is a hard rule.
 note : All narration that is Player Narration,Opponent Narration,Combat Narration Result, Action Narration and Result Narration should be written in a third-person storytelling style, using proper paragraph structure, dialogue quotations, scene descriptions, character actions, emotions, and natural narrative flow. Responses should read like a professionally written story rather than a list of actions or summaries.
 
 ## Player Party Character System
+<!-- evidence-id: game_rules_1.game_rules.player_party_character_system -->
 
 ### 1. Core Definition
+<!-- evidence-id: game_rules_1.game_rules.player_party_character_system.1_core_definition -->
 
 **Player Party Characters** are major recurring companions who belong to the player’s party and can be controlled by the player during gameplay.
 
@@ -5133,6 +5852,7 @@ Party membership grants:
 - Opportunities for personal development and independent achievement.
 
 ### 2. Party Membership
+<!-- evidence-id: game_rules_1.game_rules.player_party_character_system.2_party_membership -->
 
 A character becomes a Party Character through an explicit agreement, recruitment event, or established story development.
 
@@ -5155,6 +5875,7 @@ Each member’s record must include:
 | Assignment | Current location and activity |
 
 ### 3. Player Control
+<!-- evidence-id: game_rules_1.game_rules.player_party_character_system.3_player_control -->
 
 The player may declare a Party Character’s:
 
@@ -5173,6 +5894,7 @@ Routine, valid declarations proceed without repeated permission checks.
 Player control does not bypass action validity, capability, costs, time, uncertainty, or consequences.
 
 ### 4. Character Identity and Autonomy
+<!-- evidence-id: game_rules_1.game_rules.player_party_character_system.4_character_identity_and_autonomy -->
 
 Party Characters retain their own:
 
@@ -5188,6 +5910,7 @@ The player controls their gameplay actions. Their inner feelings and major perso
 A declaration cannot automatically create affection, erase resentment, abandon a personal dream, or change a core belief.
 
 #### Conflict Resolution
+<!-- evidence-id: game_rules_1.game_rules.player_party_character_system.4_character_identity_and_autonomy.conflict_resolution -->
 
 When a player declaration conflicts with a member’s established character:
 
@@ -5202,6 +5925,7 @@ Ordinary disagreement does not automatically cause refusal.
 Party membership alone does not grant **Devotion** or **Absolute Bond**. Those relationship tiers retain their existing rules.
 
 ### 5. Individual Progression
+<!-- evidence-id: game_rules_1.game_rules.player_party_character_system.5_individual_progression -->
 
 Each Party Character independently tracks:
 
@@ -5226,6 +5950,7 @@ The player may allocate earned stat points and select available advancement opti
 Members do not automatically copy the player’s level, tier, skills, or modifiers.
 
 ### 6. Party Contribution XP
+<!-- evidence-id: game_rules_1.game_rules.player_party_character_system.6_party_contribution_xp -->
 
 Party Characters earn XP through **meaningful contribution**, including:
 
@@ -5243,6 +5968,7 @@ A final blow is not required.
 Mere presence, token participation, or repeating trivial actions does not qualify.
 
 #### Award Procedure
+<!-- evidence-id: game_rules_1.game_rules.player_party_character_system.6_party_contribution_xp.award_procedure -->
 
 For each participating character:
 
@@ -5258,6 +5984,7 @@ The same contribution may qualify for both XP tracks. The tracks remain separate
 XP is not automatically divided equally between party members. Each award requires its own contribution basis.
 
 #### Assistance and Difficulty
+<!-- evidence-id: game_rules_1.game_rules.player_party_character_system.6_party_contribution_xp.assistance_and_difficulty -->
 
 Difficulty must reflect the challenge the character actually faced.
 
@@ -5270,6 +5997,7 @@ The existing **D < 0.3 → no XP** rule still applies.
 A contribution earns its XP once. Preparation cannot be repeatedly credited across later scenes unless those scenes involve new meaningful work.
 
 ### 7. Party Actions and Teamwork
+<!-- evidence-id: game_rules_1.game_rules.player_party_character_system.7_party_actions_and_teamwork -->
 
 Each member’s actions resolve using their own:
 
@@ -5287,6 +6015,7 @@ Combos follow the existing combo rules, including relationship requirements, con
 Party membership does not itself grant an additional numerical combo bonus.
 
 ### 8. Time and Parallel Activity
+<!-- evidence-id: game_rules_1.game_rules.player_party_character_system.8_time_and_parallel_activity -->
 
 Party members may act together or undertake separate assignments.
 
@@ -5306,6 +6035,7 @@ A character cannot perform two incompatible major activities during the same tim
 Combat participation follows normal combat timing and resource rules.
 
 ### 9. Independent Assignments
+<!-- evidence-id: game_rules_1.game_rules.player_party_character_system.9_independent_assignments -->
 
 A Party Character may undertake an assignment away from the player.
 
@@ -5326,6 +6056,7 @@ Narrative importance does not grant automatic success.
 Characters act on information they possess. New instructions and discoveries must reach separated members through an available communication method.
 
 ### 10. Default Behavior
+<!-- evidence-id: game_rules_1.game_rules.player_party_character_system.10_default_behavior -->
 
 When the player has not declared a member’s action, the character acts according to:
 
@@ -5340,6 +6071,7 @@ Members may take reasonable immediate actions without waiting for instructions, 
 Major irreversible choices require a clear established motive or urgent circumstance. They must not be invented merely to create drama.
 
 ### 11. Narrative Importance
+<!-- evidence-id: game_rules_1.game_rules.player_party_character_system.11_narrative_importance -->
 
 Party Characters must remain active members of the story.
 
@@ -5358,6 +6090,7 @@ Spotlight does not need to be equal in every scene. Repeatedly sidelining a memb
 Personal arcs create opportunities and choices. Their outcomes still follow normal resolution rules.
 
 ### 12. Equipment and Ownership
+<!-- evidence-id: game_rules_1.game_rules.player_party_character_system.12_equipment_and_ownership -->
 
 Distinguish between:
 
@@ -5373,6 +6106,7 @@ Party membership does not automatically transfer ownership of personal property 
 Every transfer, expenditure, loss, and gain must follow existing resource tracking rules.
 
 ### 13. Injury, Defeat, and Departure
+<!-- evidence-id: game_rules_1.game_rules.player_party_character_system.13_injury_defeat_and_departure -->
 
 Party Characters remain subject to normal injury, exhaustion, defeat, capture, and death rules.
 
@@ -5393,6 +6127,7 @@ Ordinary disagreement does not automatically end membership.
 When membership changes, record the cause, current relationship, location, possessions, and unresolved commitments.
 
 ### 14. Tracking and Presentation
+<!-- evidence-id: game_rules_1.game_rules.player_party_character_system.14_tracking_and_presentation -->
 
 Use the existing turn structure and result tables.
 
@@ -5411,6 +6146,7 @@ Unchanged information may remain in the party record rather than being repeated 
 Every numerical change must have a visible mechanical basis.
 
 ### Core Principle
+<!-- evidence-id: game_rules_1.game_rules.player_party_character_system.core_principle -->
 
 **Player Party Characters are controllable companions with independent identities and earned progression.**
 

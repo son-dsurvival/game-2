@@ -20,10 +20,10 @@ from pathlib import Path
 from typing import Any, Iterable
 
 try:
-    from brain.model_gateway import ModelGateway
+    from brain.state.model_gateway import ModelGateway
     from brain.turn_router import RoutingRecord
 except ModuleNotFoundError:  # Direct execution: python brain/evidence_bundle.py
-    from model_gateway import ModelGateway
+    from brain.state.model_gateway import ModelGateway
     from turn_router import RoutingRecord
 
 
@@ -394,9 +394,9 @@ class EvidenceBundleBuilder:
 
     def _build_in_memory_index(self) -> dict[str, Any]:
         try:
-            from brain.build_evidence_index import build_file_node
+            from brain.state.build_evidence_index import build_file_node
         except ModuleNotFoundError:
-            from build_evidence_index import build_file_node
+            from brain.state.build_evidence_index import build_file_node
         under = []
         if self.markdown_root.exists():
             for path in sorted(self.markdown_root.rglob("*.md")):
@@ -568,6 +568,11 @@ class EvidenceBundleBuilder:
         if target == "character" or any(word in lowered for word in ("character", "relationship", "npc", "modifier", "autonomy", "status")):
             keywords = {"character", "relationship", "status", "autonomy", "modifier"}
             preferred_sources = {"character relationship", "status sheet", "temp_memory"}
+            if "stat modifier" in lowered or "create_stat_modifier" in lowered:
+                # Stat-design batches need the actual modifier distribution,
+                # strength, and count rules—not merely the character sheet.
+                keywords.update({"stat", "tier", "growth", "distribution", "strength", "count"})
+                preferred_sources.update({"game rules", "terms"})
         elif target == "document" or any(word in lowered for word in ("document", "rule", "sheet", "ledger", "markdown")):
             keywords = {"rule", "status", "relationship", "ledger"}
             preferred_sources = set()
@@ -648,7 +653,7 @@ class EvidenceBundleBuilder:
                 if isinstance(location, str) and location.startswith("lines "):
                     node_path = [*path, str(node.get("name", ""))]
                     entry["nodes"].append({
-                        "id": self._section_id(source, node_path, location),
+                        "id": str(node.get("id")) if isinstance(node.get("id"), str) and node.get("id") else self._section_id(source, node_path, location),
                         "name": str(node.get("name", "")),
                         "description": str(node.get("description", "")),
                         "source": source,
@@ -1024,11 +1029,8 @@ class EvidenceBundleBuilder:
         ]))
         result: dict[str, dict[str, Any]] = {}
         keyword_map = {
-            # Core lanes receive broad but intentional views of the same frozen
-            # bundle. The Create Specialist must be able to compare all current
+            # The Create Specialist must be able to compare all current
             # scopes before proposing a new branch specialist.
-            "rules": ("rule", "combat", "difficulty", "xp", "time", "resource", "experiment"),
-            "character": ("character", "status", "relationship", "modifier", "autonomy"),
             "special": ("business", "alchemy", "class", "politic", "faction", "relay", "lore", "branch", "registry"),
             "create": (),
             "combat": ("combat", "attack", "reaction", "action economy", "opponent"),
@@ -1041,35 +1043,45 @@ class EvidenceBundleBuilder:
             "relay": ("relay", "mana", "spell computer"),
             "cognitive_assistance": ("ava", "cognitive", "spell computer"),
             "modifier": ("resource", "mana", "cost", "modifier", "spell"),
-            "create_stat_modifier": ("stat modifier", "stat", "character", "draft"),
+            "create_stat_modifier": ("stat modifier", "modifier system", "modifier strength", "modifier distribution", "modifier count", "major", "minor", "stat", "character", "draft"),
             "create_effect_modifier": ("effect modifier", "repeated", "breakthrough", "training", "experiment", "modifier"),
+            "active_skills_spells": ("active skill", "skill", "spell", "class", "progression"),
+            "tier_level_up": ("xp", "level", "tier", "progression", "advancement"),
+            "consumables_rewards": ("consumable", "reward", "loot", "grant", "resource", "equipment"),
+            "spell": ("spell", "magic", "mana", "cast", "activation"),
             "modifier_creation": ("effect modifier", "repeated", "breakthrough", "training", "experiment", "modifier"),
             "spell": ("spell", "magic", "mana", "relay", "cost"),
             "difficulty": ("difficulty", "task", "reaction", "opponent", "roll", "experiment", "spell"),
             "current_state": ("status", "current", "temporary", "state"),
-            "rules": ("rule", "game rules", "terms"),
+            "situation": ("situation", "environment", "terrain", "weather", "visibility", "cover", "hazard", "condition", "position"),
             "xp": ("xp", "experience", "practice"),
         }
         history = history or []
         history_breakdown = history_breakdown or []
         current_state = current_state or {}
         state_scopes = {
-            'rules': ('position', 'world_pool', 'pending_world_event', 'saved_rolls', 'game_cache', 'answers'),
-            'character': ('position', 'party', 'main_character', 'draft', 'answers', 'game_cache'),
             'special': ('position', 'party', 'main_character', 'pending_world_event', 'specialist_proposals', 'game_cache'),
             'create': ('position', 'party', 'main_character', 'draft', 'specialist_proposals', 'answers', 'game_cache'),
             'resources': ('position', 'party', 'main_character', 'draft', 'game_cache', 'answers'),
             'time': ('position', 'pending_world_event', 'saved_rolls', 'answers'),
-            'experimentation': ('position', 'party', 'game_cache', 'answers'),
+            'experimentation': ('position', 'party', 'character_specialist_groups', 'game_cache', 'answers'),
+            'relationship': ('position', 'party', 'character_specialist_groups', 'game_cache', 'answers'),
+            'npc_autonomy': ('position', 'party', 'character_specialist_groups', 'game_cache', 'answers'),
             'relay': ('position', 'party', 'game_cache', 'answers'),
             'cognitive_assistance': ('position', 'party', 'main_character', 'game_cache', 'answers'),
-            'modifier': ('position', 'party', 'draft', 'game_cache', 'answers'),
-            'create_stat_modifier': ('position', 'party', 'draft', 'game_cache', 'answers'),
-            'create_effect_modifier': ('position', 'party', 'draft', 'game_cache', 'answers'),
+            'class': ('position', 'party', 'main_character', 'draft', 'character_specialist_groups', 'game_cache', 'answers'),
+            'modifier': ('position', 'party', 'draft', 'character_specialist_groups', 'game_cache', 'answers'),
+            'create_stat_modifier': ('position', 'party', 'draft', 'character_specialist_groups', 'game_cache', 'answers', 'setup_policy'),
+            'create_effect_modifier': ('position', 'party', 'draft', 'character_specialist_groups', 'game_cache', 'answers', 'setup_policy'),
+            'active_skills_spells': ('position', 'party', 'draft', 'character_specialist_groups', 'game_cache', 'answers'),
+            'tier_level_up': ('position', 'party', 'main_character', 'draft', 'game_cache', 'answers'),
+            'consumables_rewards': ('position', 'party', 'main_character', 'draft', 'game_cache', 'answers'),
+            'spell': ('position', 'party', 'main_character', 'draft', 'game_cache', 'answers'),
             'modifier_creation': ('position', 'party', 'draft', 'game_cache', 'answers'),
             'spell': ('position', 'party', 'game_cache', 'answers'),
             'difficulty': ('position', 'party', 'pending_world_event', 'saved_rolls', 'game_cache', 'answers'),
-            'current_state': ('position', 'party', 'main_character', 'draft', 'game_cache', 'answers'),
+            'current_state': ('position', 'party', 'main_character', 'draft', 'character_specialist_groups', 'game_cache', 'answers'),
+            'situation': ('position', 'pending_world_event', 'world_pool', 'party', 'game_cache', 'answers'),
             'xp': ('position', 'party', 'game_cache', 'answers'),
         }
         for name in names:
@@ -1078,9 +1090,9 @@ class EvidenceBundleBuilder:
                 activation = set(definition.activation_tags)
             except ValueError:
                 try:
-                    from brain.branch_registry import BranchRegistry
+                    from brain.specialists.branch_registry import BranchRegistry
                 except ModuleNotFoundError:
-                    from branch_registry import BranchRegistry
+                    from brain.specialists.branch_registry import BranchRegistry
                 branch = BranchRegistry(self.repo_root).entry(name)
                 raw_activation = branch.get("activation_tags", []) if branch else []
                 activation = set(raw_activation if isinstance(raw_activation, list) else [raw_activation])
@@ -1099,9 +1111,9 @@ class EvidenceBundleBuilder:
                 text = str(item.get('text', '')).casefold()
                 foundational = item.get('priority') == 'foundational' or item.get('source') == 'setup_conversation'
                 relevant = any(keyword.casefold() in text for keyword in history_keywords if keyword)
-                if name in {'character', 'create'} and foundational:
+                if name == 'create' and foundational:
                     relevant = True
-                if item.get('important') and foundational and name in {'rules', 'special', 'resources', 'difficulty', 'modifier', 'modifier_creation', 'create_stat_modifier', 'create_effect_modifier'}:
+                if item.get('important') and foundational and name in {'special', 'resources', 'difficulty', 'modifier', 'modifier_creation', 'create_stat_modifier', 'create_effect_modifier'}:
                     relevant = True
                 if relevant or (not history_breakdown and history):
                     scoped_history.append(item)
@@ -1192,8 +1204,28 @@ class EvidenceBundleBuilder:
                 key: value for key, value in party.items()
                 if re.sub(r"[^a-z0-9]+", " ", str(key).casefold()).strip() in names
             }
-        elif specialist not in {"character", "current_state", "relationship", "npc_autonomy", "cognitive_assistance"}:
+        elif specialist not in {"current_state", "relationship", "npc_autonomy", "cognitive_assistance"}:
             result.pop("party", None)
+
+        groups = result.get("character_specialist_groups")
+        if isinstance(groups, dict):
+            scoped_groups: dict[str, list[dict[str, Any]]] = {}
+            for character_name, entries in groups.items():
+                normalized_name = re.sub(r"[^a-z0-9]+", " ", str(character_name).casefold()).strip()
+                if names and normalized_name not in names:
+                    continue
+                if not isinstance(entries, list):
+                    continue
+                relevant = []
+                for entry in entries:
+                    if not isinstance(entry, dict):
+                        continue
+                    owners = entry.get("specialists")
+                    if not isinstance(owners, list) or specialist in owners:
+                        relevant.append(entry)
+                if relevant:
+                    scoped_groups[str(character_name)] = relevant
+            result["character_specialist_groups"] = scoped_groups
 
         draft = result.get("draft")
         if isinstance(draft, dict) and names and specialist not in {"create_stat_modifier", "create_effect_modifier", "create"}:
@@ -1266,8 +1298,6 @@ class EvidenceBundleBuilder:
         if not isinstance(names, list):
             return []
         hints = {
-            "rules": ("game rules", "combat", "action", "validity", "modifier", "time", "resource"),
-            "character": ("status", "character", "relationship", "autonomy", "modifier"),
             "special": ("world", "branch", "lore", "registry", "dungeon", "technology"),
             "combat": ("combat", "action", "reaction", "opponent", "attack"),
             "current_state": ("status", "current", "state", "temporary"),

@@ -1,0 +1,382 @@
+{
+  "player_prompts": [
+    "Tell Renn to collect medicinal herbs in the north grove. I search the market for a map.",
+    "Travel along the north road.",
+    "Enter the north grove and meet Renn."
+  ],
+  "turn_results": [
+    {
+      "status": "open",
+      "play_gate": "open",
+      "position": {
+        "day": 1,
+        "phase": "Morning",
+        "progress": 0.0
+      },
+      "message": "The player continues toward the north grove.",
+      "turn_id": null,
+      "stage": null
+    },
+    {
+      "status": "open",
+      "play_gate": "open",
+      "position": {
+        "day": 1,
+        "phase": "Late Morning",
+        "progress": 0.0
+      },
+      "message": "The player continues toward the north grove.",
+      "turn_id": null,
+      "stage": null
+    },
+    {
+      "status": "open",
+      "play_gate": "open",
+      "position": {
+        "day": 1,
+        "phase": "Midday",
+        "progress": 0.0
+      },
+      "message": "The player continues toward the north grove.\nRenn is here, still collecting medicinal herbs. The backend records 6 herbs gathered.",
+      "turn_id": null,
+      "stage": null
+    }
+  ],
+  "backend_ticks": [
+    {
+      "tick_id": "day-1-morning",
+      "position": {
+        "day": 1,
+        "phase": "Morning",
+        "progress": 0.0
+      },
+      "actions": [
+        {
+          "directive_id": "directive-renn-herbs",
+          "actor": "Renn",
+          "assigned_task": "Collect medicinal herbs in the north grove.",
+          "chosen_action": "Collect medicinal herbs in the north grove.",
+          "location": "north grove",
+          "constraints": [],
+          "requires_resolution": true,
+          "visibility": "hidden",
+          "ooc_visibility": "private",
+          "rationale": "Assigned task is compatible with the actor's current state; resolve capability, cost, risk, and outcome separately.",
+          "status": "successful",
+          "player_visibility": "hidden"
+        }
+      ],
+      "automatic_updates": [],
+      "resource_changes": [
+        {
+          "resource": "medicinal herbs",
+          "before": 0,
+          "delta": 2,
+          "after": 2,
+          "reason": "temporary test assumption: 2 herbs per phase"
+        }
+      ],
+      "world_updates": [],
+      "visibility_events": [],
+      "completed_directives": [],
+      "notes": [
+        "Lead Resolver test adapter resolved the autonomous action."
+      ],
+      "next_context": null,
+      "interrupt": null
+    },
+    {
+      "tick_id": "day-1-late-morning",
+      "position": {
+        "day": 1,
+        "phase": "Late Morning",
+        "progress": 0.0
+      },
+      "actions": [
+        {
+          "directive_id": "directive-renn-herbs",
+          "actor": "Renn",
+          "assigned_task": "Collect medicinal herbs in the north grove.",
+          "chosen_action": "Collect medicinal herbs in the north grove.",
+          "location": "north grove",
+          "constraints": [],
+          "requires_resolution": true,
+          "visibility": "hidden",
+          "ooc_visibility": "private",
+          "rationale": "Assigned task is compatible with the actor's current state; resolve capability, cost, risk, and outcome separately.",
+          "status": "successful",
+          "player_visibility": "hidden"
+        }
+      ],
+      "automatic_updates": [],
+      "resource_changes": [
+        {
+          "resource": "medicinal herbs",
+          "before": 2,
+          "delta": 2,
+          "after": 4,
+          "reason": "temporary test assumption: 2 herbs per phase"
+        }
+      ],
+      "world_updates": [],
+      "visibility_events": [],
+      "completed_directives": [],
+      "notes": [
+        "Lead Resolver test adapter resolved the autonomous action."
+      ],
+      "next_context": null,
+      "interrupt": null
+    },
+    {
+      "tick_id": "day-1-midday",
+      "position": {
+        "day": 1,
+        "phase": "Midday",
+        "progress": 0.0
+      },
+      "actions": [
+        {
+          "directive_id": "directive-renn-herbs",
+          "actor": "Renn",
+          "assigned_task": "Collect medicinal herbs in the north grove.",
+          "chosen_action": "Collect medicinal herbs in the north grove.",
+          "location": "north grove",
+          "constraints": [],
+          "requires_resolution": true,
+          "visibility": "hidden",
+          "ooc_visibility": "private",
+          "rationale": "Assigned task is compatible with the actor's current state; resolve capability, cost, risk, and outcome separately.",
+          "status": "successful",
+          "player_visibility": "hidden"
+        }
+      ],
+      "automatic_updates": [],
+      "resource_changes": [
+        {
+          "resource": "medicinal herbs",
+          "before": 4,
+          "delta": 2,
+          "after": 6,
+          "reason": "temporary test assumption: 2 herbs per phase"
+        }
+      ],
+      "world_updates": [],
+      "visibility_events": [],
+      "completed_directives": [
+        "directive-renn-herbs"
+      ],
+      "notes": [
+        "Lead Resolver test adapter resolved the autonomous action."
+      ],
+      "next_context": null,
+      "interrupt": null
+    }
+  ],
+  "backend_lead_resolutions": [
+    {
+      "plan": {
+        "tick_id": "day-1-morning",
+        "previous": {
+          "day": 1,
+          "phase": "Early Morning",
+          "progress": 0.0
+        },
+        "position": {
+          "day": 1,
+          "phase": "Morning",
+          "progress": 0.0
+        },
+        "actions": [
+          {
+            "directive_id": "directive-renn-herbs",
+            "actor": "Renn",
+            "assigned_task": "Collect medicinal herbs in the north grove.",
+            "chosen_action": "Collect medicinal herbs in the north grove.",
+            "location": "north grove",
+            "constraints": [],
+            "requires_resolution": true,
+            "visibility": "hidden",
+            "ooc_visibility": "private",
+            "rationale": "Assigned task is compatible with the actor's current state; resolve capability, cost, risk, and outcome separately."
+          }
+        ],
+        "automatic_updates": [],
+        "instructions": "Resolve each action using normal validity, time, cost, risk, and outcome rules.",
+        "specialist_analysis": []
+      },
+      "resolution": {
+        "status": "resolved",
+        "actions": [
+          {
+            "directive_id": "directive-renn-herbs",
+            "actor": "Renn",
+            "assigned_task": "Collect medicinal herbs in the north grove.",
+            "chosen_action": "Collect medicinal herbs in the north grove.",
+            "location": "north grove",
+            "constraints": [],
+            "requires_resolution": true,
+            "visibility": "hidden",
+            "ooc_visibility": "private",
+            "rationale": "Assigned task is compatible with the actor's current state; resolve capability, cost, risk, and outcome separately.",
+            "status": "successful",
+            "player_visibility": "hidden"
+          }
+        ],
+        "resource_changes": [
+          {
+            "resource": "medicinal herbs",
+            "before": 0,
+            "delta": 2,
+            "after": 2,
+            "reason": "temporary test assumption: 2 herbs per phase"
+          }
+        ],
+        "completed_directives": [],
+        "notes": [
+          "Lead Resolver test adapter resolved the autonomous action."
+        ]
+      }
+    },
+    {
+      "plan": {
+        "tick_id": "day-1-late-morning",
+        "previous": {
+          "day": 1,
+          "phase": "Morning",
+          "progress": 0.0
+        },
+        "position": {
+          "day": 1,
+          "phase": "Late Morning",
+          "progress": 0.0
+        },
+        "actions": [
+          {
+            "directive_id": "directive-renn-herbs",
+            "actor": "Renn",
+            "assigned_task": "Collect medicinal herbs in the north grove.",
+            "chosen_action": "Collect medicinal herbs in the north grove.",
+            "location": "north grove",
+            "constraints": [],
+            "requires_resolution": true,
+            "visibility": "hidden",
+            "ooc_visibility": "private",
+            "rationale": "Assigned task is compatible with the actor's current state; resolve capability, cost, risk, and outcome separately."
+          }
+        ],
+        "automatic_updates": [],
+        "instructions": "Resolve each action using normal validity, time, cost, risk, and outcome rules.",
+        "specialist_analysis": []
+      },
+      "resolution": {
+        "status": "resolved",
+        "actions": [
+          {
+            "directive_id": "directive-renn-herbs",
+            "actor": "Renn",
+            "assigned_task": "Collect medicinal herbs in the north grove.",
+            "chosen_action": "Collect medicinal herbs in the north grove.",
+            "location": "north grove",
+            "constraints": [],
+            "requires_resolution": true,
+            "visibility": "hidden",
+            "ooc_visibility": "private",
+            "rationale": "Assigned task is compatible with the actor's current state; resolve capability, cost, risk, and outcome separately.",
+            "status": "successful",
+            "player_visibility": "hidden"
+          }
+        ],
+        "resource_changes": [
+          {
+            "resource": "medicinal herbs",
+            "before": 2,
+            "delta": 2,
+            "after": 4,
+            "reason": "temporary test assumption: 2 herbs per phase"
+          }
+        ],
+        "completed_directives": [],
+        "notes": [
+          "Lead Resolver test adapter resolved the autonomous action."
+        ]
+      }
+    },
+    {
+      "plan": {
+        "tick_id": "day-1-midday",
+        "previous": {
+          "day": 1,
+          "phase": "Late Morning",
+          "progress": 0.0
+        },
+        "position": {
+          "day": 1,
+          "phase": "Midday",
+          "progress": 0.0
+        },
+        "actions": [
+          {
+            "directive_id": "directive-renn-herbs",
+            "actor": "Renn",
+            "assigned_task": "Collect medicinal herbs in the north grove.",
+            "chosen_action": "Collect medicinal herbs in the north grove.",
+            "location": "north grove",
+            "constraints": [],
+            "requires_resolution": true,
+            "visibility": "hidden",
+            "ooc_visibility": "private",
+            "rationale": "Assigned task is compatible with the actor's current state; resolve capability, cost, risk, and outcome separately."
+          }
+        ],
+        "automatic_updates": [],
+        "instructions": "Resolve each action using normal validity, time, cost, risk, and outcome rules.",
+        "specialist_analysis": []
+      },
+      "resolution": {
+        "status": "resolved",
+        "actions": [
+          {
+            "directive_id": "directive-renn-herbs",
+            "actor": "Renn",
+            "assigned_task": "Collect medicinal herbs in the north grove.",
+            "chosen_action": "Collect medicinal herbs in the north grove.",
+            "location": "north grove",
+            "constraints": [],
+            "requires_resolution": true,
+            "visibility": "hidden",
+            "ooc_visibility": "private",
+            "rationale": "Assigned task is compatible with the actor's current state; resolve capability, cost, risk, and outcome separately.",
+            "status": "successful",
+            "player_visibility": "hidden"
+          }
+        ],
+        "resource_changes": [
+          {
+            "resource": "medicinal herbs",
+            "before": 4,
+            "delta": 2,
+            "after": 6,
+            "reason": "temporary test assumption: 2 herbs per phase"
+          }
+        ],
+        "completed_directives": [
+          "directive-renn-herbs"
+        ],
+        "notes": [
+          "Lead Resolver test adapter resolved the autonomous action."
+        ]
+      }
+    }
+  ],
+  "background_calls": 3,
+  "final_message": "The player continues toward the north grove.\nRenn is here, still collecting medicinal herbs. The backend records 6 herbs gathered.",
+  "final_herb_total": 6,
+  "checks": {
+    "player_cycle_entered_backend": true,
+    "backend_resolved_each_tick": true,
+    "backend_calculated_resources": true,
+    "player_met_character_after_third_turn": true,
+    "meeting_revealed_result": true
+  },
+  "status": "passed"
+}

@@ -130,9 +130,9 @@ class BranchDiscovery:
         }
         if persist:
             try:
-                from brain.branch_registry import BranchRegistry
+                from brain.specialists.branch_registry import BranchRegistry
             except ImportError:
-                from branch_registry import BranchRegistry
+                from brain.specialists.branch_registry import BranchRegistry
             report["persisted_candidates"] = BranchRegistry(self.root).record_candidates(candidates)
         else:
             report["persisted_candidates"] = []
@@ -191,9 +191,9 @@ class BranchDiscovery:
 
     def _registry(self) -> dict[str, dict[str, Any]]:
         try:
-            from brain.branch_registry import BranchRegistry
+            from brain.specialists.branch_registry import BranchRegistry
         except ImportError:
-            from branch_registry import BranchRegistry
+            from brain.specialists.branch_registry import BranchRegistry
         return BranchRegistry(self.root).entries()
 
     def _sources(self, runtime_data: Any) -> list[tuple[str, str, str]]:

@@ -62,7 +62,7 @@ class EvidenceBundleHistoryTests(unittest.TestCase):
                 'request_type': 'in_game',
                 'mode': 'noncombat',
                 'tags': [],
-                'required_specialists': ['character', 'rules'],
+                'required_specialists': ['create'],
                 'segments': [{'text': 'I use Ava to inspect the relay.'}],
             }
             bundle = EvidenceBundleBuilder(root).build(
@@ -73,14 +73,14 @@ class EvidenceBundleHistoryTests(unittest.TestCase):
             ).to_dict()
             self.assertEqual(bundle['history_breakdown'][0]['history_id'], 'transcript-1')
             self.assertIn('system', bundle['history_breakdown'][0]['categories'])
-            character_bundle = bundle['specialist_bundles']['character']
-            self.assertEqual(len(character_bundle['history']), 1)
-            self.assertIn('position', bundle['specialist_bundles']['rules']['state'])
-            self.assertEqual(character_bundle['citation_allowlist']['history_ids'], ['transcript-1'])
-            self.assertIn('all_ids', character_bundle['citation_allowlist'])
+            create_bundle = bundle['specialist_bundles']['create']
+            self.assertEqual(len(create_bundle['history']), 1)
+            self.assertIn('position', create_bundle['state'])
+            self.assertEqual(create_bundle['citation_allowlist']['history_ids'], ['transcript-1'])
+            self.assertIn('all_ids', create_bundle['citation_allowlist'])
             self.assertEqual(
-                set(character_bundle['citation_allowlist']['all_ids']),
-                set(character_bundle['citation_allowlist']['evidence_ids']) | {'transcript-1'},
+                set(create_bundle['citation_allowlist']['all_ids']),
+                set(create_bundle['citation_allowlist']['evidence_ids']) | {'transcript-1'},
             )
 
 

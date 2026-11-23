@@ -1,4 +1,5 @@
 # Branch Registry
+<!-- evidence-id: branch_registry.branch_registry -->
 
 This document tracks branch discovery and activation for the game runtime. `candidate` means branch discovery found relevant lore, log, chat, cache, or state evidence; it is recorded but not routed. A branch specialist and branch template are used only when the status is `unlocked`.
 
@@ -35,7 +36,7 @@ specialist: class
 template: class.md
 activation tags: context.class_system
 discovery status: candidate
-discovery sources: markdown_files/game rules (1).md, markdown_files/TERMS_AND_NOMENCLATURE.md, markdown_files/🌍 CORE WORLD FRAME (REFINED).md, brain/state/session_runtime.json, runtime.evidence_bundle, runtime.evidence_bundle.player_input, runtime.evidence_bundle.conversation_history
+discovery sources: markdown_files/character relationship.md, markdown_files/game rules (1).md, markdown_files/status sheet.md, markdown_files/TERMS_AND_NOMENCLATURE.md, markdown_files/🌍 CORE WORLD FRAME (REFINED).md, brain/state/session_runtime.json, runtime.evidence_bundle, runtime.evidence_bundle.player_input, runtime.evidence_bundle.conversation_history
 reason: class choice and class progression
 
 ## Relay
@@ -119,6 +120,17 @@ discovery status: lore_candidate
 discovery sources: markdown_files/🌍 CORE WORLD FRAME (REFINED).md, brain/state/session_runtime.json, runtime.evidence_bundle
 reason: knowledge markets, study, and instructional institutions
 
+## Tier 6
+status: candidate
+specialist: tier_6
+template: none
+activation tags: context.tier6
+purpose: Tier 6 deals, pacts, contracts, and interactions between characters and Tier 6 specialist entities.
+questions: What Tier 6 entity or specialist is involved? | What deal, pact, contract, exchange, or interaction is being proposed or resolved? | What obligations, prices, permissions, risks, and consequences apply?
+discovery status: candidate
+reason: Tier 6 specialist-entity interactions and negotiated deals
+
 ## Unlock Rules
+<!-- evidence-id: branch_registry.branch_registry.unlock_rules -->
 
 A branch becomes `unlocked` only when a resolved turn provides evidence that the branch has been established. A player request or a specialist proposal alone creates a candidate; it does not unlock the branch.

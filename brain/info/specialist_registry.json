@@ -1,0 +1,27 @@
+{
+  "tier_6": {
+    "activation_tags": [
+      "context.tier6"
+    ],
+    "branch": "tier_6",
+    "description": "Tier 6 deals, pacts, contracts, and interactions between characters and Tier 6 specialist entities.",
+    "evidence_requirements": [
+      "A resolved turn must establish the Tier 6 interaction, deal, pact, or specialist entity."
+    ],
+    "name": "tier_6",
+    "purpose": "Tier 6 deals, pacts, contracts, and interactions between characters and Tier 6 specialist entities.",
+    "questions": [
+      "What Tier 6 entity or specialist is involved?",
+      "What deal, pact, contract, exchange, or interaction is being proposed or resolved?",
+      "What obligations, prices, permissions, risks, and consequences apply?"
+    ],
+    "sections": [
+      "Current State",
+      "Rules and Constraints",
+      "Resources and Costs",
+      "Evidence and Progress",
+      "Consequences and Open Questions"
+    ],
+    "template": null
+  }
+}

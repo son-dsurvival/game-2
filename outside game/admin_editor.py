@@ -17,6 +17,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from approval import proposal_digest
+from admin_contracts import READ_ONLY_CAMPAIGN_FILES
 from brain.persistence import atomic_json, atomic_text
 from audit import AuditLog
 from template_renderer import TemplateRenderer
@@ -173,7 +174,7 @@ class AdminEditor:
             if action == "create":
                 if exists:
                     return {"error": f"change_{index} cannot create an existing file"}
-                if target.startswith("outside game/templates/"):
+                if target.startswith("outside game/templates/") or (target.startswith("brain/") and target.endswith(".json")):
                     updated = new
                 elif template:
                     updated = self.templates.render(template, values) if values or not new else new
@@ -194,7 +195,12 @@ class AdminEditor:
                         return {"error": f"change_{index} would remove existing headings", "target_file": target, "removed": sorted(removed)[:6]}
         except (FileNotFoundError, ValueError) as exc:
             return {"error": f"change_{index} template validation failed: {exc}", "target_file": target}
-        if "```json" in updated.casefold():
+        if target.endswith(".json"):
+            try:
+                json.loads(updated)
+            except json.JSONDecodeError as exc:
+                return {"error": f"change_{index} would write invalid JSON: {exc.msg}"}
+        elif "```json" in updated.casefold():
             return {"error": f"change_{index} would write a JSON blob into Markdown"}
         if template and campaign:
             unresolved = sorted(set(re.findall(r"\{[^{}\n]+\}", updated)))
@@ -234,10 +240,14 @@ class AdminEditor:
                 target.unlink(missing_ok=True)
 
     def _target_path(self, target: str) -> tuple[Path, str | None]:
+        if target in READ_ONLY_CAMPAIGN_FILES:
+            return self.root, "target is read-only and cannot be edited by the AI"
         campaign = target.startswith("markdown_files/")
         templates = target.startswith("outside game/templates/")
         technical = target.startswith("brain/")
-        if not target.endswith(".md") or not (campaign or templates or technical):
+        markdown = target.endswith(".md")
+        json_catalog = technical and target.endswith(".json")
+        if not ((campaign or templates) and markdown) and not json_catalog and not (technical and markdown):
             return self.root, "target is forbidden"
         allowed_root = "markdown_files" if campaign else "outside game/templates" if templates else "brain"
         allowed = self.root / allowed_root

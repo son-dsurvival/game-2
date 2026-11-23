@@ -12,11 +12,20 @@ from pathlib import Path
 from typing import Any
 
 from backend.phase_clock import PHASES, PhaseClock
-from brain.model_gateway import model_scope
+from brain.state.model_gateway import model_scope
 from brain.dice import DiceJournal
 from brain.persistence import atomic_json, atomic_text, runtime_lease
-from brain.player_clarification import PlayerClarification
 from brain.runtime_state import RuntimeStateStore
+
+
+def _outside_class(module_name: str, class_name: str) -> Any:
+    """Load an outside-game helper from the directory with a space in its name."""
+    from brain.game_modules import admin_module
+    return getattr(admin_module(module_name), class_name)
+
+
+def _player_clarification() -> Any:
+    return _outside_class('player_clarification', 'PlayerClarification')
 
 
 NEW_GAME_EMPTY_FILES = {
@@ -327,7 +336,7 @@ class CampaignPipeline:
                     return self._review_question(message, state)
                 return self._revise(message, state)
             if state['play_gate'] == 'setup_draft':
-                from brain.setup_drafts import SetupDrafts
+                SetupDrafts = _outside_class('setup_drafts', 'SetupDrafts')
                 drafts = SetupDrafts(self.state)
                 if hasattr(self.modules, 'setup_chat'):
                     # Never lose the player's message just because the model is
@@ -419,7 +428,7 @@ class CampaignPipeline:
         with runtime_lease(self.root):
             previous = self.state.load()
             self._hard_reset_new_game()
-            from brain.setup_drafts import SetupDrafts
+            SetupDrafts = _outside_class('setup_drafts', 'SetupDrafts')
             SetupDrafts(self.state).begin('new_game')
             state = self.state.load()
             draft = state.get('draft') or {}
@@ -445,7 +454,7 @@ class CampaignPipeline:
         for filename, content in NEW_GAME_EMPTY_FILES.items():
             atomic_text(self.root / 'markdown_files' / filename, content)
         for filename in (
-            'background_state.json', 'background_visible.md', 'pipeline_cache.json',
+            'background_state.json', 'background_visible.md', 'world_state.json', 'recurring_processes.json', 'resource_formulas.json', 'pipeline_cache.json',
             'session_context.json', 'dice.json', 'model_calls.jsonl', 'runtime_errors.jsonl',
             'player_prompt_history.txt',
         ):
@@ -539,37 +548,37 @@ class CampaignPipeline:
         return self._begin_character_mode('new_party_member')
 
     def _begin_character_mode(self, mode: str) -> dict[str, Any]:
-        from brain.setup_drafts import SetupDrafts
+        SetupDrafts = _outside_class('setup_drafts', 'SetupDrafts')
         with runtime_lease(self.root):
             SetupDrafts(self.state).begin(mode)
             return self.view()
 
     def add_character(self, identity: dict[str, Any], stats: dict[str, Any], description: str, character_class: str) -> dict[str, Any]:
-        from brain.setup_drafts import SetupDrafts
+        SetupDrafts = _outside_class('setup_drafts', 'SetupDrafts')
         with runtime_lease(self.root):
             SetupDrafts(self.state).add(identity, stats, description, character_class)
             return self.view()
 
     def select_main(self, name: str) -> dict[str, Any]:
-        from brain.setup_drafts import SetupDrafts
+        SetupDrafts = _outside_class('setup_drafts', 'SetupDrafts')
         with runtime_lease(self.root):
             SetupDrafts(self.state).choose(name)
             return self.view()
 
     def another_character(self) -> dict[str, Any]:
-        from brain.setup_drafts import SetupDrafts
+        SetupDrafts = _outside_class('setup_drafts', 'SetupDrafts')
         with runtime_lease(self.root):
             SetupDrafts(self.state).another()
             return self.view()
 
     def cancel_setup(self) -> dict[str, Any]:
-        from brain.setup_drafts import SetupDrafts
+        SetupDrafts = _outside_class('setup_drafts', 'SetupDrafts')
         with runtime_lease(self.root):
             SetupDrafts(self.state).cancel()
             return self.view()
 
     def undo_setup_input(self) -> dict[str, Any]:
-        from brain.setup_drafts import SetupDrafts
+        SetupDrafts = _outside_class('setup_drafts', 'SetupDrafts')
         with runtime_lease(self.root):
             SetupDrafts(self.state).undo_last_input()
             return self.view()
@@ -714,6 +723,7 @@ class CampaignPipeline:
             'clarification_links': links, 'active_clarification': active_clarification,
             'game_cache': state.get('game_cache', {}), 'revision': operation['revision'],
             'review_proposal': state.get('proposal'), 'completed_day': state.get('completed_day'),
+            'day_start_position': state.get('day_start_position'),
             'world_pool': state.get('world_pool'), 'review_kind': operation.get('review_gate'),
             'saved_rolls': state.get('saved_rolls', {}), 'draft': state.get('draft'),
             'event_to_encounter': operation.get('event_to_encounter'),
@@ -866,7 +876,8 @@ class CampaignPipeline:
                     prepared = self.modules.prepare_day(context)
                     self._validate_pool(prepared['world_pool'])
                     operation['turn_ids'] = prepared.get('turn_ids', [])
-                    self.state.save({'world_pool': prepared['world_pool']})
+                    operation['world_plan'] = prepared.get('world_plan')
+                    self.state.save({'world_pool': prepared['world_pool'], 'operation': operation})
                     self._prepare_review(prepared['proposal'], operation, 'day_end_review')
                 elif operation['kind'] == 'world':
                     self._world(operation)
@@ -1000,6 +1011,12 @@ class CampaignPipeline:
                     # the scene above, so mark the due event as encountered.
                     resolution['encountered_event_id'] = operation['event_to_encounter']['id']
                 results.update(resolution=lead, after=after, transitions=transitions)
+                entity_changes = resolution.get('world_entity_changes', []) if isinstance(resolution, dict) else []
+                if entity_changes:
+                    if not results.get('world_entity_changes_queued'):
+                        self.modules.queue_world_entity_changes(entity_changes)
+                        results['world_entity_changes_queued'] = True
+                    results['world_entity_changes'] = entity_changes
                 self._checkpoint(operation, 'narrate')
                 self._start_background(operation, context)
             elif stage == 'narrate':
@@ -1124,7 +1141,7 @@ class CampaignPipeline:
         candidate: dict[str, Any] = dict(response)
         if isinstance(question, dict):
             candidate.update(question)
-        presented = PlayerClarification.present(candidate)
+        presented = _player_clarification().present(candidate)
         if not presented:
             self._checkpoint(
                 operation, stage, play_gate='retry', pending_clarification=None,
@@ -1232,10 +1249,10 @@ class CampaignPipeline:
         draft = state.get('draft') or {}
         fallback = None
         if stage == 'prepare_setup' and draft.get('mode') == 'new_game':
-            fallback = PlayerClarification.from_setup_draft(draft)
+            fallback = _player_clarification().from_setup_draft(draft)
         if fallback is None and stage == 'prepare_character':
             fallback = 'Please provide the missing player-facing detail for this character.'
-        presented = PlayerClarification.present(response, fallback=fallback)
+        presented = _player_clarification().present(response, fallback=fallback)
         operation['stage'] = stage
         if not presented:
             self._checkpoint(
@@ -1368,6 +1385,9 @@ class CampaignPipeline:
         elif operation['review_gate'] == 'character_review':
             self._activate_character(operation)
         elif operation['review_gate'] == 'day_end_review':
+            current_position = self.state.load().get('position')
+            if isinstance(current_position, dict):
+                self.state.save({'day_start_position': current_position})
             operation['kind'] = 'world'
             self._checkpoint(operation, 'world', play_gate='world_event_pending')
             self._world(operation)
@@ -1438,10 +1458,11 @@ class CampaignPipeline:
                 if item.get('metadata', {}).get('campaign_id') == draft['campaign_id']:
                     retained.append(line)
             atomic_text(journal, '\n'.join(retained) + ('\n' if retained else ''))
-        for name in ('background_state.json', 'background_visible.md', 'pipeline_cache.json', 'session_context.json', 'dice.json'):
+        for name in ('background_state.json', 'background_visible.md', 'world_state.json', 'recurring_processes.json', 'resource_formulas.json', 'pipeline_cache.json', 'session_context.json', 'dice.json'):
             (self.root / 'brain/state' / name).unlink(missing_ok=True)
         self.state.save({'campaign_id': draft['campaign_id'], 'main_character': draft['main_character'], 'party': draft['characters'],
-                         'draft': None, 'setup_status': 'active', 'position': {'day': 1, 'phase': PHASES[0], 'progress': 0}, 'operation': None,
+                         'draft': None, 'setup_status': 'active', 'position': {'day': 1, 'phase': PHASES[0], 'progress': 0},
+                         'day_start_position': {'day': 1, 'phase': PHASES[0], 'progress': 0}, 'operation': None,
                          'history': [], 'game_cache': {}, 'saved_rolls': {}, 'pending_world_event': None,
                          'world_pool': state.get('world_pool'),
                          'completed_day': None, 'pending_dice': None, 'pending_clarification': None, 'day_end': None,

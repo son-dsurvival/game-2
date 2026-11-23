@@ -14,7 +14,7 @@ TurnRouter → EvidenceBundleBuilder → SpecialistRunner → admin_agent.py
                                              admin_editor.py
 ```
 
-`admin_agent.py` is model-facing and read-only. It answers questions, checks claims against the frozen evidence bundle, and prepares exact Markdown proposals or brain/backend instructions. It never writes campaign files.
+`admin_agent.py` is model-facing and read-only. It answers questions, checks claims against the frozen evidence bundle, prepares exact Markdown proposals or brain/backend instructions, and may request one validated non-destructive slash command through the runtime. The runtime executes that request through the same command path as the player. It never writes campaign files and cannot request `/new-game`, `/cancel-setup`, approval commands, `/main`, or `/quit`.
 
 `admin_editor.py` is deterministic. It accepts only an approved proposal, uses registered Markdown templates for document creation/filling, allows only exact Markdown changes under `markdown_files/`, checks old text hashes, writes atomically, rejects JSON blobs in campaign documents, and appends an audit entry. Numeric changes remain readable exact line updates such as `Score: 4` to `Score: 5`; descriptions are updated in place rather than duplicated.
 

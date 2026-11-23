@@ -6,6 +6,7 @@ from .background_state import BackgroundStateStore
 from .autonomy_resolver import AutonomyResolver
 from .phase_tick import PhaseTickEngine
 from .visibility_filter import VisibilityFilter
+from .world_director import WorldDirector
 
 __all__ = [
     "AutonomyResolver",
@@ -16,4 +17,5 @@ __all__ = [
     "PhasePosition",
     "PhaseTickEngine",
     "VisibilityFilter",
+    "WorldDirector",
 ]

@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from brain.model_gateway import model_scope
+from brain.state.model_gateway import model_scope
 from brain.recorder import SessionRecorder
 
 

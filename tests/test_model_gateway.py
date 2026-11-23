@@ -2,7 +2,7 @@ import json
 import tempfile
 import unittest
 
-from brain.model_gateway import ModelGateway
+from brain.state.model_gateway import ModelGateway
 
 
 class ModelGatewayTests(unittest.TestCase):

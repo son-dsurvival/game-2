@@ -24,72 +24,137 @@ RESET_FILES = (
 )
 PRESERVED_FILES = ('Branch Registry.md', '🌍 CORE WORLD FRAME (REFINED).md')
 
+# Starting Stat Modifier capacity follows the existing stat-value bands. This
+# determines the number of modifier slots, not an automatic award.
+STAT_MODIFIER_SLOT_BANDS = (
+    (1000, 8), (500, 7), (200, 6), (100, 5), (50, 4),
+    (20, 3), (10, 2), (5, 1),
+)
+
+
+def stat_modifier_slots(value: Any) -> int:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return 0
+    if number < 5:
+        return 0
+    for threshold, slots in STAT_MODIFIER_SLOT_BANDS:
+        if number >= threshold:
+            return slots
+    return 0
+
+
+def setup_changes_are_meaningful(batch_id: str, changes: object) -> bool:
+    """Return whether a setup proposal adds meaningful player-facing state."""
+    if not isinstance(changes, list):
+        return False
+    for change in changes:
+        if not isinstance(change, dict):
+            continue
+        old = str(change.get('old_text', ''))
+        new = str(change.get('new_text', ''))
+        if old == new:
+            continue
+        if batch_id == 'status_active_skills':
+            skill_blocks = re.findall(
+                r'(?ms)^### Active Skills\s*\n(.*?)(?=^---\s*$|^#\s+|\Z)',
+                new,
+            )
+            if skill_blocks and all(
+                re.sub(r'\s+', ' ', block).strip().casefold()
+                == 'no active system skills established.'
+                for block in skill_blocks
+            ):
+                continue
+            if old and old in new:
+                addition = new.replace(old, '', 1)
+                addition = re.sub(r'(?m)^### Active Skills\s*$', '', addition)
+                addition = re.sub(r'(?m)^No active system skills established\.\s*$', '', addition)
+                addition = re.sub(r'(?m)^---\s*$', '', addition)
+                addition = re.sub(r'(?m)^# .*$\n?', '', addition)
+                if not addition.strip():
+                    continue
+        return True
+    return False
+
+
+def starting_stat_modifier_slots(draft: dict[str, Any]) -> list[dict[str, Any]]:
+    """Return deterministic starting slots for each drafted character/stat."""
+    slots: list[dict[str, Any]] = []
+    for character in draft.get('characters', []) if isinstance(draft, dict) else []:
+        if not isinstance(character, dict):
+            continue
+        identity = character.get('identity') if isinstance(character.get('identity'), dict) else {}
+        name = str(identity.get('name') or 'Unnamed Character')
+        stats = character.get('stats') if isinstance(character.get('stats'), dict) else {}
+        for raw_stat, value in stats.items():
+            stat = str(raw_stat).upper()
+            count = stat_modifier_slots(value)
+            for slot in range(1, count + 1):
+                slots.append({'character': name, 'stat': stat, 'slot': slot, 'stat_value': value})
+    return slots
+
 
 BATCHES: tuple[dict[str, Any], ...] = (
     {
         'id': 'status_identity_stats_derived', 'file': 'status sheet.md',
         'sections': ('Identity', 'Stats', 'Derived Stats'),
-        'specialists': ('rules', 'character', 'class', 'world', 'create'),
+        'specialists': (),
         'purpose': 'Establish identity, approved base stats, deterministic derived values, and show both XP tracks as current XP / XP required for the next level. At Level 1, Tier 0, use Class XP 0 / 200 and Normal XP 0 / 500.',
     },
     {
         'id': 'status_stat_modifiers', 'file': 'status sheet.md',
         'sections': ('Stat Modifiers',),
-        'specialists': ('rules', 'character', 'create_stat_modifier'),
-        'purpose': 'Generate five character-grounded Stat Modifier choices, including no modifier when justified, for player selection.',
+        'specialists': ('create_stat_modifier',),
+        'purpose': 'Generate three choices for every deterministic Stat Modifier slot allowed by each character’s stat values, including slots unlocked by character action. Strong evidence supports high-basis options; weak or absent evidence produces low or assumed-low generic options. More independent bases may justify a higher magnitude within the character’s tier.',
     },
     {
         'id': 'status_class_modifiers', 'file': 'status sheet.md',
         'sections': ('Class', 'Class Modifiers'),
-        'specialists': ('rules', 'character', 'class'),
-        'purpose': 'Record class status and class modifiers without granting a class contrary to world rules.',
+        'specialists': ('class',),
+        'purpose': 'Record class status and, for every available Class Modifier slot, provide five class-specific choices from which the player selects one. Do not grant a class or class modifier contrary to world rules.'
     },
     {
         'id': 'status_active_skills', 'file': 'status sheet.md',
         'sections': ('Active Skills',),
-        'specialists': ('rules', 'character', 'class'),
+        'specialists': ('class',),
         'purpose': 'Record active system skills only when the rules and evidence support them.',
     },
     {
         'id': 'status_effect_modifiers', 'file': 'status sheet.md',
         'sections': ('Effect Modifiers',),
-        'specialists': ('rules', 'character', 'create_effect_modifier'),
-        'purpose': 'Generate five character-grounded Effect Modifier choices, including no modifier when justified, for player selection.',
+        'specialists': ('create_effect_modifier',),
+        'purpose': 'Provide ten starting Effect Modifier choices per character; the player selects three. Generate the choices from the character description, with high-basis evidence supporting stronger effects within tier and low or absent basis producing low or assumed-low options.'
     },
     {
         'id': 'status_equipment', 'file': 'status sheet.md',
         'sections': ('Equipment',),
-        'specialists': ('rules', 'character'),
+        'specialists': (),
         'purpose': 'Record background-supported equipment without inventing System items.',
-    },
-    {
-        'id': 'status_modifier_groups', 'file': 'status sheet.md',
-        'sections': ('Modifier Groups',),
-        'specialists': ('rules', 'character', 'create_effect_modifier'),
-        'purpose': 'Review proposed Effect Modifier placements; an empty section is valid and needs no placement.',
     },
     {
         'id': 'ledger_resources', 'file': 'Ledger Resources.md',
         'sections': ('Current Resources', 'Materials', 'Facilities', 'Resource Rules and Notes'),
-        'specialists': ('rules', 'character'),
+        'specialists': (),
         'purpose': 'Record starting resources and clearly label setup assumptions.',
     },
     {
         'id': 'relationships', 'file': 'character relationship.md',
         'sections': ('Player', 'Party Character Relationships', 'Non-Party Character Relationships'),
-        'specialists': ('rules', 'character'),
+        'specialists': (),
         'purpose': 'Record party roles, autonomy, and relationship assumptions.',
     },
     {
         'id': 'experimentation', 'file': 'Experimentation Register.md',
         'sections': ('Active Experiments', 'Completed Experiments'),
-        'specialists': ('rules', 'create_effect_modifier'),
+        'specialists': ('create_effect_modifier',),
         'purpose': 'Start experiments and typed Effect Modifier design at an empty baseline.'
     },
     {
         'id': 'temporary_memory', 'file': 'TEMP_MEMORY.md',
         'sections': ('Current Session Position', 'Pending Session Canon'),
-        'specialists': ('rules', 'character'),
+        'specialists': (),
         'purpose': 'Start temporary campaign memory without carrying forward old records.',
     },
 )
